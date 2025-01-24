@@ -35,12 +35,15 @@ BOOL gbFullscreen = FALSE;
 
 // vulkun related global variables
 
-
-// instance extension related variables
 uint32_t enabledInstanceExtensionCount = 0;
 
 
 const char* enabledInstanceExtensionNames_array[2];  // VK_KHR_SURFACE_EXTENSION_NAME and VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+
+
+// instance extension related variables
+
+VkInstance vkInstance = VK_NULL_HANDLE;
 
 
 //entry_point function
@@ -285,25 +288,29 @@ void ToggleFullscreen(void)
 VkResult initialise(void)
 {
 	// function declarations
-	VkResult fillExtensionNames();
+
+	VkResult createVulkanInstance(void);
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
 
 	// code
-	vkresult = fillExtensionNames();
+	vkresult = createVulkanInstance();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "initialise() : fillExtensionNames function failed\n");
+		fprintf(gpFile, "initialise() : createVulkanInstance() function failed\n");
 		return(vkresult);
 	}
 	else
 	{
-		fprintf(gpFile, "initialise() : fillExtensionNames() succeeded\n");
+		fprintf(gpFile, "initialise() : createVulkanInstance() succeeded\n");
 	}
+
+	// variable declarations
 
 	return(vkresult);
 }
+
 
 
 void resize(int width, int heigth)
@@ -353,9 +360,90 @@ void uninitialise(void)
 
 
 	}
+
+	// destroy Vulkan instance
+	if (vkInstance)
+	{
+		vkDestroyInstance(vkInstance, NULL);
+		vkInstance = VK_NULL_HANDLE;
+		fprintf(gpFile, "uninitialise() : vkDestroyInstance() succeeded\n");
+	}
 }
 
 //////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
+
+VkResult createVulkanInstance(void)
+{
+	// function declarations
+	VkResult fillExtensionNames();
+
+	// variable declarations
+	VkResult vkresult = VK_SUCCESS;
+
+	// code
+	vkresult = fillExtensionNames();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createVulkanInstance() : fillExtensionNames function failed\n");
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "createVulkanInstance() : fillExtensionNames() succeeded\n");
+	}
+
+	// step : 2 initlalise struct VkApplicationInfo
+
+	VkApplicationInfo vkApplicationInfo;
+	memset((void*)&vkApplicationInfo, 0, sizeof(VkApplicationInfo));
+
+	vkApplicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	vkApplicationInfo.pNext = NULL;
+	vkApplicationInfo.pApplicationName = gpszAppName;
+	vkApplicationInfo.applicationVersion = 1;
+	vkApplicationInfo.pEngineName = gpszAppName;
+	vkApplicationInfo.engineVersion = 1;
+	vkApplicationInfo.apiVersion = VK_API_VERSION_1_3;
+
+
+	// step 3 : Initialize struct VkInstanceCreateInfo
+	VkInstanceCreateInfo vkInstanceCreateInfo;
+	memset((void*)&vkInstanceCreateInfo, 0, sizeof(VkInstanceCreateInfo));
+
+	vkInstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;  // Corrected the structure type
+	vkInstanceCreateInfo.pNext = NULL;
+	vkInstanceCreateInfo.pApplicationInfo = &vkApplicationInfo;
+	vkInstanceCreateInfo.enabledExtensionCount = enabledInstanceExtensionCount;
+	vkInstanceCreateInfo.ppEnabledExtensionNames = enabledInstanceExtensionNames_array;  // Corrected the field name
+
+
+	// step : 4 create instance by calling vkCreateInstance
+	vkresult = vkCreateInstance(&vkInstanceCreateInfo, NULL, &vkInstance);
+
+	if (vkresult == VK_ERROR_INCOMPATIBLE_DRIVER)
+	{
+		fprintf(gpFile, "createVulkanInstance() : vkCreateInstance() function failed due to incompatible driver (%d)\n", vkresult);
+		return vkresult;
+	}
+	else if (vkresult == VK_ERROR_EXTENSION_NOT_PRESENT)
+	{
+		fprintf(gpFile, "createVulkanInstance() : vkCreateInstance() function failed due to required extension not present (%d)\n", vkresult);
+		return vkresult;
+	}
+	else if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createVulkanInstance() : vkCreateInstance() function failed due to unknown reason (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createVulkanInstance() : vkCreateInstance() function succeeded\n");
+		return vkresult;
+	}
+
+
+}
+
 
 VkResult fillExtensionNames(void)
 {
