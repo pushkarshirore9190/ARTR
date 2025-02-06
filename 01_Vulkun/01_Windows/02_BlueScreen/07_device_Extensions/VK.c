@@ -56,6 +56,17 @@ uint32_t graphicsQueueFamilyIndex_Selected = UINT_MAX;
 
 VkPhysicalDeviceMemoryProperties vkPhysicalDeviceMemoryProperties;
 
+// get from getPhysicalDevice()
+
+uint32_t physicalDeviceCount = 0;
+
+VkPhysicalDevice* vkPhysicalDevice_Array = NULL;
+
+
+uint32_t enableDeviceExtensionCount = 0;
+
+const char* enabledDeviceExtensionNames_array[1];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME
+
 
 //entry_point function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
@@ -303,7 +314,8 @@ VkResult initialise(void)
 	VkResult createVulkanInstance(void);
 	VkResult getSupportedSurface(void);
 	VkResult getPhysicalDevice(void);
-
+	VkResult printVkInfo(void);
+	VkResult fillDeviceExtensionNames(void);
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -346,6 +358,29 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : getPhysicalDevice() succeeded\n");
 	}
 
+	// print vulkan info
+	vkresult = printVkInfo();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : printVkInfo() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : printVkInfo() succeeded\n");
+	}
+
+	// fill device extension names
+	vkresult = fillDeviceExtensionNames();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : fillDeviceExtensionNames function failed\n");
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : fillDeviceExtensionNames() succeeded\n");
+	}
 
 	return(vkresult);
 }
@@ -644,8 +679,6 @@ VkResult getSupportedSurface(void)
 VkResult getPhysicalDevice(void)
 {
 	VkResult vkresult = VK_SUCCESS;
-	uint32_t physicalDeviceCount = 0;
-	VkPhysicalDevice* vkPhysicalDevice_Array = NULL;
 
 	vkresult = vkEnumeratePhysicalDevices(vkInstance, &physicalDeviceCount, NULL);
 	if (vkresult != VK_SUCCESS)
@@ -752,12 +785,6 @@ VkResult getPhysicalDevice(void)
 	if (bFound == VK_TRUE)
 	{
 		fprintf(gpFile, "getPhysicalDevice succeeded to select the required physical device with graphics enabled\n");
-
-		if (vkPhysicalDevice_Array)
-		{
-			free(vkPhysicalDevice_Array);
-			vkPhysicalDevice_Array = NULL;
-		}
 	}
 	else
 	{
@@ -805,9 +832,177 @@ VkResult getPhysicalDevice(void)
 	return vkresult;
 }
 
+VkResult printVkInfo()
+{
+	VkResult vkresult = VK_SUCCESS;
+
+	// Header for Vulkan Information
+	fprintf(gpFile, "********************** VULKAN INFORMATION *****************************\n");
+
+	for (uint32_t i = 0; i < physicalDeviceCount; i++)
+	{
+		VkPhysicalDeviceProperties vkPhysicalDeviceProperties;
+		memset(&vkPhysicalDeviceProperties, 0, sizeof(VkPhysicalDeviceProperties));
+
+		// Correct function name
+		vkGetPhysicalDeviceProperties(vkPhysicalDevice_Array[i], &vkPhysicalDeviceProperties);
+
+		uint32_t majorVersion = VK_API_VERSION_MAJOR(vkPhysicalDeviceProperties.apiVersion);
+		uint32_t minorVersion = VK_API_VERSION_MINOR(vkPhysicalDeviceProperties.apiVersion);
+		uint32_t patchVersion = VK_API_VERSION_PATCH(vkPhysicalDeviceProperties.apiVersion);
+
+		// API VERSION
+		fprintf(gpFile, "apiVersion    = %d.%d.%d\n", majorVersion, minorVersion, patchVersion);
+
+		// DEVICE NAME
+		fprintf(gpFile, "deviceName    = %s\n", vkPhysicalDeviceProperties.deviceName);
+
+		// DEVICE TYPE
+		fprintf(gpFile, "deviceType    = ");
+		switch (vkPhysicalDeviceProperties.deviceType)
+		{
+		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+			fprintf(gpFile, "integratedGPU (iGPU)\n");  // Correct spelling
+			break;
+
+		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+			fprintf(gpFile, "discreteGPU (dGPU)\n");
+			break;
+
+		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+			fprintf(gpFile, "virtualGPU (vGPU)\n");
+			break;
+
+		case VK_PHYSICAL_DEVICE_TYPE_CPU:
+			fprintf(gpFile, "CPU\n");
+			break;
+
+		case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+			fprintf(gpFile, "Other\n");
+			break;
+
+		default:
+			fprintf(gpFile, "UNKNOWN\n");
+		}
+
+		// Vendor ID (Hexadecimal)
+		fprintf(gpFile, "vendorID      = 0x%04x\n", vkPhysicalDeviceProperties.vendorID);
+
+		// Device ID
+		fprintf(gpFile, "deviceID      = 0x%04x\n", vkPhysicalDeviceProperties.deviceID);
+
+		fprintf(gpFile, "--------------------------------------------------------------------\n");
+	}
+
+	// Free allocated memory if necessary
+	if (vkPhysicalDevice_Array)
+	{
+		free(vkPhysicalDevice_Array);
+		fprintf(gpFile, "printVkInfo(): Physical Device memory freed.\n");
+		vkPhysicalDevice_Array = NULL;
+	}
+
+	return vkresult;
+}
 
 
+VkResult fillDeviceExtensionNames(void)
+{
+    // Variable declarations
+    VkResult vkresult = VK_SUCCESS;
 
+    // Step 1: Query how many device extensions are supported
+    uint32_t deviceExtensionCount = 0;
+    vkresult = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, NULL);
+    if (vkresult != VK_SUCCESS)
+    {
+        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call failed with error code %d\n", vkresult);
+        return vkresult;
+    }
+    fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call succeeded. Device extension count: %d\n", deviceExtensionCount);
 
+    // Step 2: Allocate memory for extension properties
+    VkExtensionProperties* vkExtensionProperties_array = (VkExtensionProperties*)malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
+    if (!vkExtensionProperties_array)
+    {
+        fprintf(gpFile, "fillDeviceExtensionNames(): Memory allocation failed for vkExtensionProperties_array\n");
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    // Query extension properties
+    vkresult = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, vkExtensionProperties_array);
+    if (vkresult != VK_SUCCESS)
+    {
+        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call failed with error code %d\n", vkresult);
+        free(vkExtensionProperties_array);
+        return vkresult;
+    }
+    fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call succeeded\n");
+
+    // Step 3: Allocate memory for extension name strings
+    char** DeviceExtensionNames_array = (char**)malloc(sizeof(char*) * deviceExtensionCount);
+    if (!DeviceExtensionNames_array)
+    {
+        fprintf(gpFile, "fillDeviceExtensionNames(): Memory allocation failed for DeviceExtensionNames_array\n");
+        free(vkExtensionProperties_array);
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    for (uint32_t i = 0; i < deviceExtensionCount; i++)
+    {
+        DeviceExtensionNames_array[i] = (char*)malloc(strlen(vkExtensionProperties_array[i].extensionName) + 1);
+        if (!DeviceExtensionNames_array[i])
+        {
+            fprintf(gpFile, "fillDeviceExtensionNames(): Memory allocation failed for DeviceExtensionNames_array[%d]\n", i);
+            // Free previously allocated memory before returning
+            for (uint32_t j = 0; j < i; j++)
+                free(DeviceExtensionNames_array[j]);
+            free(DeviceExtensionNames_array);
+            free(vkExtensionProperties_array);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        strcpy(DeviceExtensionNames_array[i], vkExtensionProperties_array[i].extensionName);
+        fprintf(gpFile, "fillDeviceExtensionNames(): Vulkan Device Extension = %s\n", DeviceExtensionNames_array[i]);
+    }
+
+    free(vkExtensionProperties_array); // Free extension properties after copying names
+
+    // Step 4: Check for required extensions
+    VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
+
+    for (uint32_t i = 0; i < deviceExtensionCount; i++)
+    {
+        if (strcmp(DeviceExtensionNames_array[i], VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
+        {
+            vulkanSwapchainExtensionFound = VK_TRUE;
+            enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+        }
+    }
+
+    // Step 5: Free the allocated memory for extension names
+    for (uint32_t i = 0; i < deviceExtensionCount; i++)
+    {
+        free(DeviceExtensionNames_array[i]);
+    }
+    free(DeviceExtensionNames_array);
+
+    // Step 6: Check if the required extension is found
+    if (vulkanSwapchainExtensionFound == VK_FALSE)
+    {
+        vkresult = VK_ERROR_INITIALIZATION_FAILED; // Return hardcoded failure
+        fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME not found\n");
+        return vkresult;
+    }
+    fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME found\n");
+
+    // Step 7: Print enabled extension names
+    for (uint32_t i = 0; i < enableDeviceExtensionCount; i++)
+    {
+        fprintf(gpFile, "fillDeviceExtensionNames(): Enabled Vulkan Device Extension = %s\n", enabledDeviceExtensionNames_array[i]);
+    }
+
+    return vkresult;
+}
 
 
