@@ -90,9 +90,16 @@ VkExtent2D vkExtent2D_Swapchain;
 
 
 // swapchain images and swapchain image views relrated data
-uint32_t SwapchainImageCount = UINT32_MAX;
+uint32_t SwapchainImageCount = UINT32_MAX;  // Fixed 'unit32_t' to 'uint32_t' and 'UNIT32_MAX' to 'UINT32_MAX'
 VkImage* SwapchainImage_Array = NULL;
 VkImageView* SwapchainImageView_Array = NULL;
+
+
+// command pool 
+VkCommandPool vkcommandpool = VK_NULL_HANDLE;
+
+// 
+VkCommandBuffer* vkCommandBuffer_Array = NULL;
 
 
 //entry_point function
@@ -346,6 +353,8 @@ VkResult initialise(void)
 	void getDeviceQueue(void);
 	VkResult createSwapchain(VkBool32);
 	VkResult createImagesAndImageViews(void);
+	VkResult createCommandPool(void);
+	VkResult createCommandBuffers(void);
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -437,6 +446,28 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createImagesAndImageViews() succeeded\n");
 	}
 
+	vkresult = createCommandPool();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createCommandPool() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createCommandPool() succeeded\n");
+	}
+
+	vkresult = createCommandBuffers();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createCommandBuffers() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createCommandBuffers() succeeded\n");
+	}
+
 	fprintf(gpFile, "******************************************* Initialise comment *****************************\n");
 
 	return(vkresult);
@@ -489,48 +520,71 @@ void uninitialise(void)
 	{
 		vkDeviceWaitIdle(vkDevice);
 		fprintf(gpFile, "uninitialise() : vkDeviceWaitIdle is Done\n");
-
-		// free swapchain images 
-		for (uint32_t i = 0; i < SwapchainImageCount; i++) // Fixed 'unit32_t' to 'uint32_t' and missing semicolon
-		{
-			vkDestroyImage(vkDevice, SwapchainImage_Array[i], NULL); // Fixed 'VkDestroyImage' to 'vkDestroyImage'
-			fprintf(gpFile, "uninitialise() : VkDestroyImage is Done\n");
-		}
-
-		if (SwapchainImageView_Array)
-		{
-			free(SwapchainImageView_Array);
-			SwapchainImageView_Array = NULL;
-			fprintf(gpFile, "uninitialise() : Images array is free\n");
-		}
-
-		//// destroy image views
-		//for (uint32_t i = 0; i < SwapchainImageCount; i++) // Fixed 'unit32_t' to 'uint32_t'
-		//{
-		//	vkDestroyImageView(vkDevice, SwapchainImageView_Array[i], NULL); // Fixed 'VkDestroyImageView' to 'vkDestroyImageView'
-		//	fprintf(gpFile, "uninitialise() : Image view is free\n");
-		//}
-
-		// free actual image view array
-		if (SwapchainImage_Array)
-		{
-			free(SwapchainImage_Array);
-			SwapchainImage_Array = NULL;
-			fprintf(gpFile, "uninitialise() : SwapchainImage_Array is free\n");
-		}
-
-		// destroy swapchain
-		if (vkSwapchainKHR)
-		{
-			vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
-			vkSwapchainKHR = VK_NULL_HANDLE;
-			fprintf(gpFile, "uninitialise() : vkDestroySwapchainKHR is Done\n");
-		}
-
 		vkDestroyDevice(vkDevice, NULL);
 		vkDevice = VK_NULL_HANDLE;
 		fprintf(gpFile, "uninitialise() : vkDestroyDevice is Done\n");
 	}
+
+	// free in loop
+	for (unit32_t i = 0 i < SwapchainImageCount; i++)
+	{
+		vkfreeCommandBuffers(vkDevice, vkCommandpool, 1, &vkCommandBuffer_Array[i]);
+		fprintf(gpFile, "uninitialise() : vkfreeCommandBuffers is Done\n");
+	}
+
+	// free actual array
+	if (vkCommandBuffer_Array)
+	{
+		free(vkCommandBuffer_Array);
+		vkCommandBuffer_Array = NULL;
+		fprintf(gpFile, "uninitialise() : vkCommandBuffer_Array is free\n");
+	}
+
+	// destroy command pool
+	if (vkcommandpool)
+	{
+		VkDestroyCommandpool(vkDevice, vkcommandpool, NULL);
+		vkcommandpool = VK_NULL_HANDLE;
+		fprintf(gpFile, "uninitialise() : VkDestroyCommandpool is Done\n");
+	}
+
+	// free swapchain images 
+	for (uint32_t i = 0; i < SwapchainImageCount; i++) // Fixed 'unit32_t' to 'uint32_t' and missing semicolon
+	{
+		vkDestroyImage(vkDevice, SwapchainImage_Array[i], NULL); // Fixed 'VkDestroyImage' to 'vkDestroyImage'
+		fprintf(gpFile, "uninitialise() : VkDestroyImage is Done\n");
+	}
+
+	if (SwapchainImage_Array)
+	{
+		free(SwapchainImage_Array);
+		SwapchainImage_Array = NULL;
+		fprintf(gpFile, "uninitialise() : Images array is free\n");
+	}
+
+	//// destroy image views
+	//for (uint32_t i = 0; i < SwapchainImageCount; i++) // Fixed 'unit32_t' to 'uint32_t'
+	//{
+	//	vkDestroyImageView(vkDevice, SwapchainImageView_Array[i], NULL); // Fixed 'VkDestroyImageView' to 'vkDestroyImageView'
+	//	fprintf(gpFile, "uninitialise() : Image view is free\n");
+	//}
+
+	// free actual image view array
+	if (SwapchainImageView_Array) 
+	{
+		free(SwapchainImageView_Array);
+		SwapchainImageView_Array = NULL;
+		fprintf(gpFile, "uninitialise() : SwapchainImageView_Array is free\n");
+	}
+
+	// destroy swapchain
+	if (vkSwapchainKHR)
+	{
+		vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
+		vkSwapchainKHR = VK_NULL_HANDLE;
+		fprintf(gpFile, "uninitialise() : vkDestroySwapchainKHR is Done\n");
+	}
+
 
 	// No need to destroy selected physical device
 
@@ -1494,42 +1548,48 @@ VkResult createImagesAndImageViews(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	// get swapchain image count
-	vkresult = vkGetSwapchainImagesKHR(vkDevice, vkSwapchainKHR, &SwapchainImageCount, NULL);
+	vkresult = vkGetSwapchainImagesKHR(VkDevice, VkSwapchain, &SwapchainImageCount, NULL);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createImagesAndImageViews() 1st call : vkGetSwapchainImagesKHR() function failed (%d)\n", vkresult);
 		return vkresult;
 	}
 
-	else if (SwapchainImageCount == 0)
+	if (SwapchainImageCount == 0)
 	{
 		fprintf(gpFile, "createImagesAndImageViews() 1st call : swapchain image count is zero, returning hardcoded error value\n");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
-	else
+
+	fprintf(gpFile, "createImagesAndImageViews() 1st call : this function gives swapchain image count = %d\n", SwapchainImageCount);
+
+	// allocate the swapchain image array
+	SwapchainImage_Array = (VkImage*)malloc(sizeof(VkImage) * SwapchainImageCount);
+	if (SwapchainImage_Array == NULL)
 	{
-		fprintf(gpFile, "createImagesAndImageViews() 1st call : this func is giving the swapchain image count = %d\n", SwapchainImageCount);
+		fprintf(gpFile, "createImagesAndImageViews() : Failed to allocate memory for SwapchainImage_Array\n");
+		return VK_ERROR_OUT_OF_HOST_MEMORY;
 	}
 
-	//// allocate the swapchain image array
-	SwapchainImage_Array = (VkImage*)malloc(sizeof(VkImage) * SwapchainImageCount);
-
-	//// fill this array with swapchain images
-	vkresult = vkGetSwapchainImagesKHR(vkDevice, vkSwapchainKHR, &SwapchainImageCount, SwapchainImage_Array);
+	// fill this array with swapchain images
+	vkresult = vkGetSwapchainImagesKHR(VkDevice, VkSwapchain, &SwapchainImageCount, SwapchainImage_Array);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() function failed (%d)\n", vkresult);
 		return vkresult;
 	}
-	else
+
+	fprintf(gpFile, "createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded\n");
+
+	// allocate array of swapchain image views
+	SwapchainImageView_Array = (VkImageView*)malloc(sizeof(VkImageView) * SwapchainImageCount);
+	if (SwapchainImageView_Array == NULL)
 	{
-		fprintf(gpFile, "createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded\n");
+		fprintf(gpFile, "createImagesAndImageViews() : Failed to allocate memory for SwapchainImageView_Array\n");
+		return VK_ERROR_OUT_OF_HOST_MEMORY;
 	}
 
-	//// allocate array of swapchain image views
-	SwapchainImageView_Array = (VkImageView*)malloc(sizeof(VkImageView) * SwapchainImageCount);
-
-	//// initialize VkImageViewCreateInfo Structure
+	// initialize VkImageViewCreateInfo Structure
 	VkImageViewCreateInfo vkImageViewCreateInfo;
 	memset(&vkImageViewCreateInfo, 0, sizeof(VkImageViewCreateInfo));
 
@@ -1548,12 +1608,12 @@ VkResult createImagesAndImageViews(void)
 	vkImageViewCreateInfo.subresourceRange.layerCount = 1;
 	vkImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 
-	//// now fill image view array using above struct
+	// now fill image view array using above struct
 	for (uint32_t i = 0; i < SwapchainImageCount; i++)
 	{
 		vkImageViewCreateInfo.image = SwapchainImage_Array[i];
 
-		vkresult = vkCreateImageView(vkDevice, &vkImageViewCreateInfo, NULL, &SwapchainImageView_Array[i]);
+		vkresult = vkCreateImageView(VkDevice, &vkImageViewCreateInfo, NULL, &SwapchainImageView_Array[i]);
 		if (vkresult != VK_SUCCESS)
 		{
 			fprintf(gpFile, "createImagesAndImageViews() : vkCreateImageView() function failed for iteration (%d).(%d)\n", i, vkresult);
@@ -1568,6 +1628,79 @@ VkResult createImagesAndImageViews(void)
 	return vkresult;
 }
 
+VkResult createCommnadPool(void)
+{
+	// variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	//code
+
+	// vkcommandpool creating info strure
+
+	VkCommnadpoolCreateInfo vkCommnadpoolCreateInfo;
+	memset((void*)&vkCommnadpoolCreateInfo, sizeof(VkCommnadpoolCreateInfo));
+
+	vkCommnadpoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	vkCommnadpoolCreateInfo.pNext = NULL;
+	vkCommnadpoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	vkCommnadpoolCreateInfo.queueFamilyIndex = graphicsQueueFamilyIndex_Selected;
+
+	vkresult = vkCreateCommadpool(vkDevice, &vkCommnadpoolCreateInfo, NULL, &vkcommandpool);
+
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createCommnadPool() : vkCreateCommadpool() function failed for iteration (%d).(%d)\n", i, vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createCommnadPool() : vkCreateCommadpool() succeeded for iteration (%d)\n", i);
+	}
+
+	return vkresult;
+
+}
+
+
+VkResult createCommandBuffers(void)
+{
+	// variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	//code
+
+	// vkcommandbufferallocate initialisation
+
+	VkCommandBufferAllcateInfo vkCommandBufferAllcateInfo;
+	memset((void*)&vkCommandBufferAllcateInfo, sizeof(VkCommandBufferAllcateInfo));
+
+	vkCommandBufferAllcateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	vkCommandBufferAllcateInfo.pNext = NULL;
+	vkCommandBufferAllcateInfo.flags = 0;
+	vkCommandBufferAllcateInfo.commandpool = vkCommandpool;
+	vkCommandBufferAllcateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	vkCommandBufferAllcateInfo.commandBufferCount = 1;
+
+	vkCommandBuffer_Array = (VkCommandBuffer*)malloc(sizeof(VkCommandBuffer) * SwapchainImageCount);
+
+	// allocate command  buffers
+	for (unit32_t i = 0; i < SwapchainImageCount; i++)
+	{
+		vkresult = VkAllocateCommandBuffers(vkDevice, &vkCommandBufferAllcateInfo, &vkCommandBuffer_Array[i]);
+
+		if (vkresult != VK_SUCCESS)
+		{
+			fprintf(gpFile, "createCommandBuffers() : VkAllocateCommandBuffers() function failed for iteration (%d).(%d)\n", i, vkresult);
+			return vkresult;
+		}
+		else
+		{
+			fprintf(gpFile, "createCommandBuffers() : VkAllocateCommandBuffers() succeeded for iteration (%d)\n", i);
+		}
+	}
+
+	return vkresult;
+}
 
 
 
