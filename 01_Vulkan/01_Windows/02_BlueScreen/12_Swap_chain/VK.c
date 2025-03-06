@@ -465,20 +465,20 @@ void uninitialise(void)
 
 	// no need to destroy / unitialise device queue
 
-    // destroy swapchain
-	if (vkSwapchainKHR)
-	{
-		vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
-		vkSwapchainKHR = VK_NULL_HANDLE;
-		fprintf(gpFile, "uninitialise() : vkDestroySwapchainKHR is Done\n");
-	}
-
-
 	// Destroy Vulkan Device
 	if (vkDevice)
 	{
 		vkDeviceWaitIdle(vkDevice);
 		fprintf(gpFile, "uninitialise() : vkDeviceWaitIdle is Done\n");
+
+		 // destroy swapchain
+		if (vkSwapchainKHR)
+		{
+			vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
+			vkSwapchainKHR = VK_NULL_HANDLE;
+			fprintf(gpFile, "uninitialise() : vkDestroySwapchainKHR is Done\n");
+		}
+		
 		vkDestroyDevice(vkDevice, NULL);
 		vkDevice = VK_NULL_HANDLE;
 		fprintf(gpFile, "uninitialise() : vkDestroyDevice is Done\n");

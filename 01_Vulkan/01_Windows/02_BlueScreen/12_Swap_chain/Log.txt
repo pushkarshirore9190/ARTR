@@ -217,8 +217,8 @@ createSwapchain() : vkCreateSwapchainKHR() succeeded
 initialise() : createSwapchain() succeeded
 ******************************************* Initialise comment *****************************
 Winmain() : Intialise() succeeded
-uninitialise() : vkDestroySwapchainKHR is Done
 uninitialise() : vkDeviceWaitIdle is Done
+uninitialise() : vkDestroySwapchainKHR is Done
 uninitialise() : vkDestroyDevice is Done
 uninitialise() : vkDestroySurfaceKHR() succeeded
 uninitialise() : vkDestroyInstance() succeeded
