@@ -90,9 +90,20 @@ VkExtent2D vkExtent2D_Swapchain;
 
 
 // swapchain images and swapchain image views relrated data
-uint32_t SwapchainImageCount = UINT32_MAX;
+uint32_t SwapchainImageCount = UINT32_MAX;  // Fixed 'unit32_t' to 'uint32_t' and 'UNIT32_MAX' to 'UINT32_MAX'
 VkImage* SwapchainImage_Array = NULL;
 VkImageView* SwapchainImageView_Array = NULL;
+
+
+// command pool 
+VkCommandPool vkcommandpool = VK_NULL_HANDLE;
+
+// command buffer
+VkCommandBuffer* vkCommandBuffer_Array = NULL;
+
+// render pass
+VkRenderPass vkRenderpass = VK_NULL_HANDLE;
+
 
 
 //entry_point function
@@ -346,6 +357,10 @@ VkResult initialise(void)
 	void getDeviceQueue(void);
 	VkResult createSwapchain(VkBool32);
 	VkResult createImagesAndImageViews(void);
+	VkResult createCommandPool(void);
+	VkResult createCommandBuffers(void);
+	VkResult createRenderPass(void);
+
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -437,6 +452,39 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createImagesAndImageViews() succeeded\n");
 	}
 
+	vkresult = createCommandPool();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createCommandPool() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createCommandPool() succeeded\n");
+	}
+
+	vkresult = createCommandBuffers();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createCommandBuffers() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createCommandBuffers() succeeded\n");
+	}
+
+	vkresult = createRenderPass();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createRenderPass() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createRenderPass() succeeded\n");
+	}
+
 	fprintf(gpFile, "******************************************* Initialise comment *****************************\n");
 
 	return(vkresult);
@@ -462,6 +510,7 @@ void update(void)
 	// code
 }
 
+
 void uninitialise(void)
 {
 	// function declaration
@@ -483,7 +532,6 @@ void uninitialise(void)
 
 	// no need to destroy / unitialise device queue
 
-
 	// Destroy Vulkan Device
 	if (vkDevice)
 	{
@@ -491,9 +539,9 @@ void uninitialise(void)
 		fprintf(gpFile, "uninitialise() : vkDeviceWaitIdle is Done\n");
 
 		// destroy image views
-		for (uint32_t i = 0; i < SwapchainImageCount; i++) 
+		for (uint32_t i = 0; i < SwapchainImageCount; i++)
 		{
-			vkDestroyImageView(vkDevice, SwapchainImageView_Array[i], NULL); 
+			vkDestroyImageView(vkDevice, SwapchainImageView_Array[i], NULL);
 			fprintf(gpFile, "uninitialise() : Image view is free\n");
 		}
 
@@ -511,13 +559,43 @@ void uninitialise(void)
 		//	fprintf(gpFile, "uninitialise() : VkDestroyImage is Done\n");
 		//}
 
-
 		// free actual image view array
 		if (SwapchainImage_Array)
 		{
 			free(SwapchainImage_Array);
 			SwapchainImage_Array = NULL;
 			fprintf(gpFile, "uninitialise() : SwapchainImage_Array is free\n");
+		}
+
+		for (uint32_t i = 0; i < SwapchainImageCount; i++)
+		{
+			vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_Array[i]);
+			//vkDestroyImageView(vkDevice, swapchainImageView_array[i], NULL);
+			fprintf(gpFile, "\nFree commandbuffers freed\n");
+		}
+
+		// Destroy render pass
+		if (vkRenderpass)
+		{
+			vkDestroyRenderPass(vkDevice, vkRenderpass, NULL);
+			vkRenderpass = VK_NULL_HANDLE;
+			fprintf(gpFile, "uninitialise() : vkDestroyRenderPass is Done\n");
+		}
+
+		// free actual array
+		if (vkCommandBuffer_Array)
+		{
+			free(vkCommandBuffer_Array);
+			vkCommandBuffer_Array = NULL;
+			fprintf(gpFile, "uninitialise() : vkCommandBuffer_Array is free\n");
+		}
+
+		// destroy command pool
+		if (vkcommandpool)
+		{
+			vkDestroyCommandPool(vkDevice, vkcommandpool, NULL);
+			vkcommandpool = VK_NULL_HANDLE;
+			fprintf(gpFile, "uninitialise() : VkDestroyCommandpool is Done\n");
 		}
 
 		// destroy swapchain
@@ -533,8 +611,8 @@ void uninitialise(void)
 		fprintf(gpFile, "uninitialise() : vkDestroyDevice is Done\n");
 	}
 
-	// No need to destroy selected physical device
 
+	// No need to destroy selected physical device
 
 	if (vkSurfaceKHR)
 	{
@@ -1568,6 +1646,143 @@ VkResult createImagesAndImageViews(void)
 
 	return vkresult;
 }
+
+VkResult createCommandPool(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	// vkCommandPool creating info structure
+	VkCommandPoolCreateInfo vkCommandPoolCreateInfo;
+	memset(&vkCommandPoolCreateInfo, 0, sizeof(VkCommandPoolCreateInfo));
+
+	vkCommandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	vkCommandPoolCreateInfo.pNext = NULL;
+	vkCommandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	vkCommandPoolCreateInfo.queueFamilyIndex = graphicsQueueFamilyIndex_Selected;
+
+	// Create the command pool
+	vkresult = vkCreateCommandPool(vkDevice, &vkCommandPoolCreateInfo, NULL, &vkcommandpool);
+
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createCommandPool() : vkCreateCommandPool() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createCommandPool() : vkCreateCommandPool() succeeded.\n");
+	}
+
+	return vkresult;
+}
+
+
+VkResult createCommandBuffers(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	// Command buffer allocation structure initialization
+	VkCommandBufferAllocateInfo vkCommandBufferAllocateInfo;
+	memset(&vkCommandBufferAllocateInfo, 0, sizeof(VkCommandBufferAllocateInfo));
+
+	vkCommandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	vkCommandBufferAllocateInfo.pNext = NULL;
+	vkCommandBufferAllocateInfo.commandPool = vkcommandpool;
+	vkCommandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	vkCommandBufferAllocateInfo.commandBufferCount = SwapchainImageCount;
+
+	// Allocate memory for command buffer array
+	vkCommandBuffer_Array = (VkCommandBuffer*)malloc(sizeof(VkCommandBuffer) * SwapchainImageCount);
+
+	// Allocate command buffers
+	vkresult = vkAllocateCommandBuffers(vkDevice, &vkCommandBufferAllocateInfo, vkCommandBuffer_Array);
+
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createCommandBuffers() : vkAllocateCommandBuffers() function failed. Error Code: (%d)\n", vkresult);
+		free(vkCommandBuffer_Array);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createCommandBuffers() : vkAllocateCommandBuffers() succeeded.\n");
+	}
+
+	return vkresult;
+}
+
+VkResult createRenderPass(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	VkAttachmentDescription vkAttachmentDescription_array[1];
+
+	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) * _ARRAYSIZE(vkAttachmentDescription_array));
+	vkAttachmentDescription_array[0].flags = 0;
+	vkAttachmentDescription_array[0].format = vkFormat_color;
+	vkAttachmentDescription_array[0].samples = VK_SAMPLE_COUNT_1_BIT;   //No multi sampling so 1 bit is enough
+	vkAttachmentDescription_array[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	vkAttachmentDescription_array[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;				//color attachment related
+	vkAttachmentDescription_array[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;			//This is for both Depth and Stencil although it is for stencil
+	vkAttachmentDescription_array[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	vkAttachmentDescription_array[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;													//Image data when in and when out
+	vkAttachmentDescription_array[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+
+
+
+	//Declare and initialize vkAttachmentReference structure
+	VkAttachmentReference vkAttachmentRederence;
+	memset((void*)&vkAttachmentRederence, 0, sizeof(VkAttachmentReference));
+	vkAttachmentRederence.attachment = 0;			//This means above given array 0th Ataachment reference, O means it is the index number
+	vkAttachmentRederence.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;		//Tis means this attachment i can use it color attachment so keep it optimal
+
+
+	//Step 3 : Declare and Initialize vkSubpassDescription
+
+	VkSubpassDescription vkSubpassDesciption;
+	memset((void*)&vkSubpassDesciption, 0, sizeof(VkSubpassDescription));
+	vkSubpassDesciption.flags = 0;
+	vkSubpassDesciption.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	vkSubpassDesciption.inputAttachmentCount = 0;
+	vkSubpassDesciption.pInputAttachments = NULL;
+	vkSubpassDesciption.colorAttachmentCount = _ARRAYSIZE(vkAttachmentDescription_array);
+	vkSubpassDesciption.pColorAttachments = &vkAttachmentRederence;
+	vkSubpassDesciption.pResolveAttachments = NULL;
+	vkSubpassDesciption.pDepthStencilAttachment = NULL;
+	vkSubpassDesciption.preserveAttachmentCount = 0;
+	vkSubpassDesciption.pPreserveAttachments = NULL;
+
+	//Step 4: Declare and initialize vkrenderpass create info structure
+	VkRenderPassCreateInfo vkRenderPassCreateInfo;
+	memset((void*)&vkRenderPassCreateInfo, 0, sizeof(VkRenderPassCreateInfo));
+	vkRenderPassCreateInfo.flags = 0;
+	vkRenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	vkRenderPassCreateInfo.pNext = NULL;
+	vkRenderPassCreateInfo.attachmentCount = _ARRAYSIZE(vkAttachmentDescription_array);
+	vkRenderPassCreateInfo.pAttachments = vkAttachmentDescription_array;
+	vkRenderPassCreateInfo.subpassCount = 1;
+	vkRenderPassCreateInfo.pSubpasses = &vkSubpassDesciption;
+	vkRenderPassCreateInfo.pDependencies = NULL;
+
+	// Create render pass
+	vkresult = vkCreateRenderPass(vkDevice, &vkRenderPassCreateInfo, NULL, &vkRenderpass);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() succeeded.\n");
+	}
+
+	return vkresult;
+}
+
 
 
 

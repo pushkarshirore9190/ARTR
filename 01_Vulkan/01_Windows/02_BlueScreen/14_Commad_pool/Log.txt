@@ -219,9 +219,12 @@ createImagesAndImageViews() 1st call : this func is giving the swapchain image c
 createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
 createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
 initialise() : createImagesAndImageViews() succeeded
+createCommandPool() : vkCreateCommandPool() succeeded.
+initialise() : createCommandPool() succeeded
 ******************************************* Initialise comment *****************************
 Winmain() : Intialise() succeeded
 uninitialise() : vkDeviceWaitIdle is Done
+uninitialise() : VkDestroyCommandpool is Done
 uninitialise() : Image view is free
 uninitialise() : Images array is free
 uninitialise() : SwapchainImage_Array is free
