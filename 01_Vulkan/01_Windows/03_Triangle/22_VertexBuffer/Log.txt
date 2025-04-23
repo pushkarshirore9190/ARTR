@@ -248,6 +248,11 @@ createCommandPool() : vkCreateCommandPool() succeeded.
 initialise() : createCommandPool() succeeded
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 initialise() : createCommandBuffers() succeeded
+createVertexBuffer() : vkCreateBuffer() succeeded.
+createVertexBuffer() : vkAllocateMemory() succeeded.
+createVertexBuffer() : vkBindBufferMemory() succeeded.
+createVertexBuffer() : vkMapMemory() succeeded.
+initialise() : createVertexBuffer() succeeded
 createRenderPass() : vkCreateRenderPass() succeeded.
 initialise() : createRenderPass() succeeded
 createframeBuffers() : vkCreateFramebuffer() succeeded.
@@ -277,10 +282,24 @@ Free commandbuffers freed
 
 Free vkRenderpass freed
 
+Free vertexData_Position.vkDeviceMemory freed
+
+Free vertexData_Position.vkBuffer freed
+
 Free commandbuffers freed
 
  vkCommandPool is Freed
 
 Free swapchainImage_array images freed
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyImage-image-04882 ] Object 0: handle = 0xf56c9b0000000004, type = VK_OBJECT_TYPE_IMAGE; | MessageID = 0xd636e760 | vkDestroyImage(): image VkImage 0xf56c9b0000000004[] is a presentable image controlled by the implementation and must be destroyed with vkDestroySwapchainKHR.
-The Vulkan spec states: image must not have been acquire
+
+ vkSwapchainKHR is Freed
+
+ vkDestroyDevice() is Done
+
+vkDestroySurfaceKHR Done
+
+vkDestroyDebugReportCallbackEXT_fnptr Done
+
+vkDestroyInstance Done
+
+Uninitialize->Program Terminated Successfully.

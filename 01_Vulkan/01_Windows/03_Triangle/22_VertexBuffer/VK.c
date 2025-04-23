@@ -133,6 +133,18 @@ VkDebugReportCallbackEXT vkDebugReportCallbackEXT = VK_NULL_HANDLE;
 PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT_fnptr = NULL;
 
 
+// VertexBuffer Related Variable
+
+typedef struct
+{
+	VkBuffer vkBuffer;
+	VkDeviceMemory vkDeviceMemory;
+
+} VertexData;
+
+// poaition
+VertexData vertexData_Position;
+
 
 
 //entry_point function
@@ -388,6 +400,7 @@ VkResult initialise(void)
 	VkResult createImagesAndImageViews(void);
 	VkResult createCommandPool(void);
 	VkResult createCommandBuffers(void);
+	VkResult createVertexBuffer(void);
 	VkResult createRenderPass(void);
 	VkResult createframeBuffers(void);
 	VkResult createSemaphores(void);
@@ -505,6 +518,18 @@ VkResult initialise(void)
 	else
 	{
 		fprintf(gpFile, "initialise() : createCommandBuffers() succeeded\n");
+	}
+
+	// craete VertexBuffer
+	vkresult = createVertexBuffer();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createVertexBuffer() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createVertexBuffer() succeeded\n");
 	}
 
 	vkresult = createRenderPass();
@@ -775,8 +800,25 @@ void uninitialise(void)
 			vkDestroyRenderPass(vkDevice, vkRenderpass, NULL);
 			vkRenderpass = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFree vkRenderpass freed\n");
+		}
+
+		if (vertexData_Position.vkDeviceMemory)
+		{
+			vkFreeMemory(vkDevice, vertexData_Position.vkDeviceMemory, NULL);
+			vertexData_Position.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position.vkDeviceMemory freed\n");
 
 		}
+
+		if (vertexData_Position.vkBuffer)
+		{
+			vkDestroyBuffer(vkDevice, vertexData_Position.vkBuffer, NULL);
+			vertexData_Position.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position.vkBuffer freed\n");
+
+		}
+
+
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
 		{
 			vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_Array[i]);
@@ -2183,6 +2225,115 @@ VkResult createCommandBuffers(void)
 	}
 
 	return vkresult;
+}
+
+VkResult createVertexBuffer(void)
+{
+
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	float traingle_Position[] =
+	{
+		0.0f,1.0f,0.0f,
+		-1.0f,-1.0f,0.0f,
+		1.0f,-1.0f,0.0f
+	};
+
+	memset((void*)&vertexData_Position, 0, sizeof(VertexData));
+
+	VkBufferCreateInfo vkBufferCreateInfo;
+	memset((void*)& vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
+
+	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	vkBufferCreateInfo.pNext = NULL;
+	vkBufferCreateInfo.flags = 0;
+	vkBufferCreateInfo.size = sizeof(traingle_Position);
+	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded.\n");
+	}
+
+	VkMemoryRequirements vkMemoryRequirements;
+	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
+
+	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position.vkBuffer, &vkMemoryRequirements);
+
+	VkMemoryAllocateInfo vkMemoryAllocateInfo;
+	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
+
+	vkMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	vkMemoryAllocateInfo.pNext = NULL;
+	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
+	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
+
+	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
+	{
+		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
+		{
+			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			{
+				vkMemoryAllocateInfo.memoryTypeIndex = i; 
+				break;
+			}
+		}
+
+		vkMemoryRequirements.memoryTypeBits >>= 1;
+	
+	}
+
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position.vkDeviceMemory);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded.\n");
+	}
+
+	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded.\n");
+	}
+
+	void* data = NULL;
+
+	vkresult = vkMapMemory(vkDevice, vertexData_Position.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded.\n");
+	}
+
+	// actual memory mapped
+
+	memcpy(data, traingle_Position, sizeof(traingle_Position));
+
+	vkUnmapMemory(vkDevice, vertexData_Position.vkDeviceMemory);
+
+
+	return vkresult;
+
 }
 
 VkResult createRenderPass(void)
