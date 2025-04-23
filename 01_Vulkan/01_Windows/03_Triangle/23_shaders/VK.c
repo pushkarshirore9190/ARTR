@@ -145,6 +145,11 @@ typedef struct
 // poaition
 VertexData vertexData_Position;
 
+// shader related variables
+VkShaderModule vkShaderModule_vertex_shader = VK_NULL_HANDLE;
+
+VkShaderModule vkShaderModule_fragment_shader = VK_NULL_HANDLE;
+
 
 
 //entry_point function
@@ -401,6 +406,7 @@ VkResult initialise(void)
 	VkResult createCommandPool(void);
 	VkResult createCommandBuffers(void);
 	VkResult createVertexBuffer(void);
+	VkResult createShaders(void);
 	VkResult createRenderPass(void);
 	VkResult createframeBuffers(void);
 	VkResult createSemaphores(void);
@@ -530,6 +536,17 @@ VkResult initialise(void)
 	else
 	{
 		fprintf(gpFile, "initialise() : createVertexBuffer() succeeded\n");
+	}
+
+	vkresult = createShaders();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createShaders() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createShaders() succeeded\n");
 	}
 
 	vkresult = createRenderPass();
@@ -800,6 +817,21 @@ void uninitialise(void)
 			vkDestroyRenderPass(vkDevice, vkRenderpass, NULL);
 			vkRenderpass = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFree vkRenderpass freed\n");
+		}
+
+		// destroy shader modules
+		if (vkShaderModule_fragment_shader)
+		{
+			vkDestroyShaderModule(vkDevice, vkShaderModule_fragment_shader, NULL);
+			vkShaderModule_fragment_shader = NULL;
+			fprintf(gpFile, "\nFree vkShaderModule_fragment_shader freed\n");
+		}
+
+		if (vkShaderModule_vertex_shader)
+		{
+			vkDestroyShaderModule(vkDevice, vkShaderModule_vertex_shader, NULL);
+			vkShaderModule_vertex_shader = NULL;
+			fprintf(gpFile, "\nFree vkShaderModule_vertex_shader freed\n");
 		}
 
 		if (vertexData_Position.vkDeviceMemory)
@@ -2334,6 +2366,174 @@ VkResult createVertexBuffer(void)
 
 	return vkresult;
 
+}
+
+VkResult createShaders(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	//code
+
+	// for vertex shaders
+	const char* szfileName = "Shader.vert.spv";
+
+	FILE* fp = NULL;
+
+	size_t size;
+
+	fp = fopen(szfileName, "rb");
+
+	if (fp == NULL)
+	{
+		fprintf(gpFile, "createShaders() : createShader failed to open vertexshader.spv file\n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createShaders() : createShader succeeded to open vertexshader.spv file\n");
+	}
+
+	fseek(fp, 0L, SEEK_END);
+
+	size = ftell(fp);
+
+	if (size == 0)
+	{
+		fprintf(gpFile, "createShaders() : createShader failed and give file size of vertex shader 0\n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+
+	fseek(fp, 0L, SEEK_SET);
+
+	char* shaderData = (char*)malloc(sizeof(char) * size);
+
+	size_t retVal = fread(shaderData, size, 1, fp);
+
+	if (retVal != 1)
+	{
+		fprintf(gpFile, "createShaders() : createShader failed to read vertexshader.spv file\n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createShaders() : createShader succeeded to read vertexshader.spv file\n");
+	}
+
+	fclose(fp);
+
+	VkShaderModuleCreateInfo vkShaderModuleCreateInfo;
+	memset((void*)&vkShaderModuleCreateInfo, 0, sizeof(VkShaderModuleCreateInfo));
+
+	vkShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	vkShaderModuleCreateInfo.pNext = NULL; 
+	vkShaderModuleCreateInfo.flags = 0; // future use can be haapend but now zero
+	vkShaderModuleCreateInfo.codeSize = size;
+	vkShaderModuleCreateInfo.pCode = (uint32_t*)shaderData;
+
+	vkresult = vkCreateShaderModule(vkDevice, &vkShaderModuleCreateInfo, NULL, &vkShaderModule_vertex_shader);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createShaders() : vkCreateShaderModule() function failed.for vertex shader Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded fro vertex shader.\n");
+	}
+
+
+	if (shaderData)
+	{
+		free(shaderData);
+		shaderData = NULL;
+	}
+
+	fprintf(gpFile, "Vertexshader Module sucessfully created\n");
+
+	// for fragmnt shader
+
+	szfileName = "Shader.frag.spv";
+
+	fp = NULL;
+
+	size = 0;
+
+	fp = fopen(szfileName, "rb");
+
+	if (fp == NULL)
+	{
+		fprintf(gpFile, "createShaders() : createShader failed to open fragmentshader.spv file\n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createShaders() : createShader succeeded to open fragmentshader.spv file\n");
+	}
+
+	fseek(fp, 0L, SEEK_END);
+
+	size = ftell(fp);
+
+	if (size == 0)
+	{
+		fprintf(gpFile, "createShaders() : createShader failed and give file size of fragment shader 0\n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+
+	fseek(fp, 0L, SEEK_SET);
+
+	shaderData = (char*)malloc(sizeof(char) * size);
+
+	retVal = fread(shaderData, size, 1, fp);
+
+	if (retVal != 1)
+	{
+		fprintf(gpFile, "createShaders() : createShader failed to read fragmentshader.spv file\n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createShaders() : createShader succeeded to read fragmentshader.spv file\n");
+	}
+
+	fclose(fp);
+
+	memset((void*)&vkShaderModuleCreateInfo, 0, sizeof(VkShaderModuleCreateInfo));
+
+	vkShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	vkShaderModuleCreateInfo.pNext = NULL;
+	vkShaderModuleCreateInfo.flags = 0; // future use can be haapend but now zero
+	vkShaderModuleCreateInfo.codeSize = size;
+	vkShaderModuleCreateInfo.pCode = (uint32_t*)shaderData;
+
+	vkresult = vkCreateShaderModule(vkDevice, &vkShaderModuleCreateInfo, NULL, &vkShaderModule_fragment_shader);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createShaders() : vkCreateShaderModule() function failed. for fragment shader Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded for fragment shader.\n");
+	}
+
+
+	if (shaderData)
+	{
+		free(shaderData);
+		shaderData = NULL;
+	}
+
+	fprintf(gpFile, "fragment Module sucessfully created\n");
+
+	return vkresult;
 }
 
 VkResult createRenderPass(void)
