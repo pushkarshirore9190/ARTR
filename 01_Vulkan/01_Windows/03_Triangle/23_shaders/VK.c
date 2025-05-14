@@ -2382,7 +2382,7 @@ VkResult createShaders(void)
 
 	size_t size;
 
-	fp = fopen(szfileName, "rb");
+	fp = fopen(szfileName, "rb"); // read krycna sathi binary mdhe ughda
 
 	if (fp == NULL)
 	{
@@ -2397,7 +2397,7 @@ VkResult createShaders(void)
 
 	fseek(fp, 0L, SEEK_END);
 
-	size = ftell(fp);
+	size = ftell(fp); // size ghtla
 
 	if (size == 0)
 	{
@@ -2406,11 +2406,11 @@ VkResult createShaders(void)
 		return vkresult;
 	}
 
-	fseek(fp, 0L, SEEK_SET);
+	fseek(fp, 0L, SEEK_SET); // part begining la gelo karn aplyala read starting pasun krych aahe
 
-	char* shaderData = (char*)malloc(sizeof(char) * size);
+	char* shaderData = (char*)malloc(sizeof(char) * size);  // vertex buffer
 
-	size_t retVal = fread(shaderData, size, 1, fp);
+	size_t retVal = fread(shaderData, size, 1, fp);  // kashamdhe kiti kitne kashtun
 
 	if (retVal != 1)
 	{

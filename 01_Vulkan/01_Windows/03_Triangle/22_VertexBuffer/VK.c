@@ -2251,7 +2251,7 @@ VkResult createVertexBuffer(void)
 	vkBufferCreateInfo.size = sizeof(traingle_Position);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer);
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer); // 4th member rikama jail yetana bharun yeil
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
@@ -2262,12 +2262,12 @@ VkResult createVertexBuffer(void)
 		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded.\n");
 	}
 
-	VkMemoryRequirements vkMemoryRequirements;
+	VkMemoryRequirements vkMemoryRequirements;  // here it allocates memory in regions but here it onsiders in bytes
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
 
-	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position.vkBuffer, &vkMemoryRequirements);
+	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position.vkBuffer, &vkMemoryRequirements);  // memory cha size ghetla  ha region mdhe size deto 
 
-	VkMemoryAllocateInfo vkMemoryAllocateInfo;
+	VkMemoryAllocateInfo vkMemoryAllocateInfo;  // actual memory allocate sathi cha strcut
 	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
 
 	vkMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -2277,20 +2277,22 @@ VkResult createVertexBuffer(void)
 
 	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
 	{
-		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
+		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1) // jo size veun getla "vkGetBufferMemoryRequirements" to ithe use kela
 		{
 			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
-				vkMemoryAllocateInfo.memoryTypeIndex = i; 
+				vkMemoryAllocateInfo.memoryTypeIndex = i; // varcha index apn bharla
 				break;
 			}
 		}
 
 		vkMemoryRequirements.memoryTypeBits >>= 1;
+
+		// aplyala memory cha type pahije mhun he krt ahot
 	
 	}
 
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position.vkDeviceMemory);
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position.vkDeviceMemory); // actual memory allocation
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -2301,7 +2303,7 @@ VkResult createVertexBuffer(void)
 		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded.\n");
 	}
 
-	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
+	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0); // ithe divice memory vulkan buffer object shi bind krto
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);

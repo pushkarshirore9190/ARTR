@@ -132,6 +132,16 @@ VkDebugReportCallbackEXT vkDebugReportCallbackEXT = VK_NULL_HANDLE;
 
 PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT_fnptr = NULL;
 
+// Pipline
+VkViewport vkViewport;
+
+VkRect2D vkRect2D_Scissor;
+
+VkPipeline vkPipeline = VK_NULL_HANDLE;
+
+
+
+
 
 // VertexBuffer Related Variable
 
@@ -418,6 +428,7 @@ VkResult initialise(void)
 	VkResult createDiscriptorSetLayout(void);
 	VkResult createPiplineLayout(void);
 	VkResult createRenderPass(void);
+	VkResult createPipline(void);
 	VkResult createframeBuffers(void);
 	VkResult createSemaphores(void);
 	VkResult createFences(void);
@@ -590,6 +601,17 @@ VkResult initialise(void)
 	else
 	{
 		fprintf(gpFile, "initialise() : createRenderPass() succeeded\n");
+	}
+
+	vkresult = createPipline();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createPipline() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createPipline() succeeded\n");
 	}
 
 	vkresult = createframeBuffers();
@@ -858,6 +880,12 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFree vkPipelineLayout freed\n");
 		}
 
+		if (vkPipeline)
+		{
+			vkDestroyPipeline(vkDevice, vkPipeline, NULL);
+			vkPipeline = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vkPipeline: Pipeline freed successfully.\n");
+		}
 
 
 		if (vkRenderpass)
@@ -2498,9 +2526,8 @@ VkResult createShaders(void)
 	{
 		free(shaderData);
 		shaderData = NULL;
+		fprintf(gpFile, "Vertexshader Module sucessfully created\n");
 	}
-
-	fprintf(gpFile, "Vertexshader Module sucessfully created\n");
 
 	// for fragmnt shader
 
@@ -2577,9 +2604,8 @@ VkResult createShaders(void)
 	{
 		free(shaderData);
 		shaderData = NULL;
+		fprintf(gpFile, "fragment Module sucessfully created\n");
 	}
-
-	fprintf(gpFile, "fragment Module sucessfully created\n");
 
 	return vkresult;
 }
@@ -2721,6 +2747,234 @@ VkResult createRenderPass(void)
 	}
 
 	return vkresult;
+}
+
+VkResult createPipline(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	// vertex input state
+	VkVertexInputBindingDescription vkVertexInputBindingDescription_Array[1];
+	memset((void*)vkVertexInputBindingDescription_Array, 0, sizeof(VkVertexInputBindingDescription) * _ARRAYSIZE(vkVertexInputBindingDescription_Array));
+
+	vkVertexInputBindingDescription_Array[0].binding = 0;
+	vkVertexInputBindingDescription_Array[0].stride = sizeof(float) * 3;
+	vkVertexInputBindingDescription_Array[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	VkVertexInputAttributeDescription vkVertexInputAttributeDescription_Array[1];
+	memset((void*)vkVertexInputAttributeDescription_Array, 0, sizeof(VkVertexInputAttributeDescription) * _ARRAYSIZE(vkVertexInputAttributeDescription_Array));
+
+	vkVertexInputAttributeDescription_Array[0].binding = 0;
+	vkVertexInputAttributeDescription_Array[0].location = 0;
+	vkVertexInputAttributeDescription_Array[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	vkVertexInputAttributeDescription_Array[0].offset = 0;
+
+	VkPipelineVertexInputStateCreateInfo vkPipelineVertexInputStateCreateInfo;
+	memset((void*)&vkPipelineVertexInputStateCreateInfo, 0, sizeof(VkPipelineVertexInputStateCreateInfo));
+
+	vkPipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vkPipelineVertexInputStateCreateInfo.pNext = NULL;
+	vkPipelineVertexInputStateCreateInfo.flags = 0;
+	vkPipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = _ARRAYSIZE(vkVertexInputBindingDescription_Array);
+	vkPipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = vkVertexInputBindingDescription_Array;
+	vkPipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = _ARRAYSIZE(vkVertexInputAttributeDescription_Array);
+	vkPipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vkVertexInputAttributeDescription_Array;
+
+
+	/// Input Assembly state
+
+	VkPipelineInputAssemblyStateCreateInfo vkPipelineInputAssemblyStateCreateInfo;
+	memset((void*)&vkPipelineInputAssemblyStateCreateInfo, 0, sizeof(VkPipelineInputAssemblyStateCreateInfo));
+
+	vkPipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	vkPipelineInputAssemblyStateCreateInfo.pNext = NULL;
+	vkPipelineInputAssemblyStateCreateInfo.flags = 0;
+	vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+
+	// Rasterizer State 
+
+	VkPipelineRasterizationStateCreateInfo vkPipelineRasterizationStateCreateInfo;
+	memset((void*)&vkPipelineRasterizationStateCreateInfo, 0, sizeof(VkPipelineRasterizationStateCreateInfo));
+
+
+	vkPipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	vkPipelineRasterizationStateCreateInfo.pNext = NULL;
+	vkPipelineRasterizationStateCreateInfo.flags = 0;
+
+	vkPipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+	vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	vkPipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	vkPipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
+
+
+	// colorBlend State
+	VkPipelineColorBlendAttachmentState vkPipelineColorBlendAttachmentState_Array[1];
+	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array));
+
+	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask = 0xf; // use case
+	vkPipelineColorBlendAttachmentState_Array[0].blendEnable = VK_FALSE;
+
+
+	VkPipelineColorBlendStateCreateInfo vkPipelineColorBlendStateCreateInfo;
+	memset((void*)&vkPipelineColorBlendStateCreateInfo, 0, sizeof(VkPipelineColorBlendStateCreateInfo));
+
+	vkPipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	vkPipelineColorBlendStateCreateInfo.pNext = NULL;
+	vkPipelineColorBlendStateCreateInfo.flags = 0;
+
+	vkPipelineColorBlendStateCreateInfo.attachmentCount = _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array);
+	vkPipelineColorBlendStateCreateInfo.pAttachments = vkPipelineColorBlendAttachmentState_Array;
+
+
+	// Viewport Sessor state
+	VkPipelineViewportStateCreateInfo vkPipelineViewportStateCreateInfo;
+	memset((void*)&vkPipelineViewportStateCreateInfo, 0, sizeof(VkPipelineViewportStateCreateInfo));
+
+	vkPipelineViewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	vkPipelineViewportStateCreateInfo.pNext = NULL;
+	vkPipelineViewportStateCreateInfo.flags = 0;
+	vkPipelineViewportStateCreateInfo.viewportCount = 1;
+
+	memset((void*)&vkViewport, 0, sizeof(VkViewport));
+	vkViewport.x = 0;
+	vkViewport.y = 0;
+	vkViewport.width = (float)vkExtent2D_Swapchain.width;
+	vkViewport.height = (float)vkExtent2D_Swapchain.height;
+	vkViewport.minDepth = 0.0f;
+	vkViewport.maxDepth = 1.0f;
+
+	vkPipelineViewportStateCreateInfo.pViewports = &vkViewport;
+	vkPipelineViewportStateCreateInfo.scissorCount = 1;
+	memset((void*)&vkRect2D_Scissor, 0, sizeof(VkRect2D));
+	vkRect2D_Scissor.offset.x = 0;
+	vkRect2D_Scissor.offset.y = 0;
+	vkRect2D_Scissor.extent.width = vkExtent2D_Swapchain.width;
+	vkRect2D_Scissor.extent.height = vkExtent2D_Swapchain.height;
+	vkPipelineViewportStateCreateInfo.pScissors = &vkRect2D_Scissor;
+
+
+	// detpth stencil state
+
+	// as we dont have depth yet we can skip this
+
+
+
+	// dynamic state
+
+	// as we dont have any dynamic state so we can skip this
+
+
+	// multisample state
+	VkPipelineMultisampleStateCreateInfo vkPipelineMultisampleStateCreateInfo;
+	memset((void*)&vkPipelineMultisampleStateCreateInfo, 0, sizeof(VkPipelineMultisampleStateCreateInfo));
+
+	vkPipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	vkPipelineMultisampleStateCreateInfo.pNext = NULL;
+	vkPipelineMultisampleStateCreateInfo.flags = 0;
+	vkPipelineMultisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+	// shader state
+	VkPipelineShaderStageCreateInfo vkPipelineShaderStageCreateInfo_Array[2];
+	memset((void*)vkPipelineShaderStageCreateInfo_Array, 0, sizeof(VkPipelineShaderStageCreateInfo)* _ARRAYSIZE(vkPipelineShaderStageCreateInfo_Array));
+
+	// for vertex shader
+	vkPipelineShaderStageCreateInfo_Array[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vkPipelineShaderStageCreateInfo_Array[0].pNext = NULL;
+	vkPipelineShaderStageCreateInfo_Array[0].flags = 0;
+	vkPipelineShaderStageCreateInfo_Array[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vkPipelineShaderStageCreateInfo_Array[0].module = vkShaderModule_vertex_shader;
+	vkPipelineShaderStageCreateInfo_Array[0].pName = "main";
+	vkPipelineShaderStageCreateInfo_Array[0].pSpecializationInfo = NULL;
+
+	// for fragment shader
+	vkPipelineShaderStageCreateInfo_Array[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vkPipelineShaderStageCreateInfo_Array[1].pNext = NULL;
+	vkPipelineShaderStageCreateInfo_Array[1].flags = 0;
+	vkPipelineShaderStageCreateInfo_Array[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	vkPipelineShaderStageCreateInfo_Array[1].module = vkShaderModule_fragment_shader;
+	vkPipelineShaderStageCreateInfo_Array[1].pName = "main";
+	vkPipelineShaderStageCreateInfo_Array[1].pSpecializationInfo = NULL;
+
+
+	// tisellation state
+
+	// we dont have tisellation shaders so we can skip this state
+
+
+	// as piplines are created from pipline cache now we will create pipline cache object
+
+	VkPipelineCacheCreateInfo vkPipelineCacheCreateInfo;
+	memset((void*)&vkPipelineCacheCreateInfo, 0, sizeof(VkPipelineCacheCreateInfo));
+
+	vkPipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+	vkPipelineCacheCreateInfo.pNext = NULL;
+	vkPipelineCacheCreateInfo.flags = 0;
+
+	VkPipelineCache vkPipelineCache = VK_NULL_HANDLE;
+
+	vkresult = vkCreatePipelineCache(vkDevice, &vkPipelineCacheCreateInfo, NULL, &vkPipelineCache);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createPipline() : vkCreatePipelineCache() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createPipline() : vkCreatePipelineCache() succeeded.\n");
+	}
+
+	// create actual graphics pipline
+	VkGraphicsPipelineCreateInfo vkGraphicsPipelineCreateInfo;
+	memset((void*)&vkGraphicsPipelineCreateInfo, 0, sizeof(VkGraphicsPipelineCreateInfo));
+
+	vkGraphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	vkGraphicsPipelineCreateInfo.pNext = NULL;
+	vkGraphicsPipelineCreateInfo.flags = 0;
+
+	vkGraphicsPipelineCreateInfo.pVertexInputState = &vkPipelineVertexInputStateCreateInfo;
+	vkGraphicsPipelineCreateInfo.pInputAssemblyState = &vkPipelineInputAssemblyStateCreateInfo;
+	vkGraphicsPipelineCreateInfo.pRasterizationState = &vkPipelineRasterizationStateCreateInfo;
+	vkGraphicsPipelineCreateInfo.pColorBlendState = &vkPipelineColorBlendStateCreateInfo;
+	vkGraphicsPipelineCreateInfo.pViewportState = &vkPipelineViewportStateCreateInfo;
+	vkGraphicsPipelineCreateInfo.pDepthStencilState = NULL;
+	vkGraphicsPipelineCreateInfo.pDynamicState = NULL;
+	vkGraphicsPipelineCreateInfo.pMultisampleState = &vkPipelineMultisampleStateCreateInfo;
+	vkGraphicsPipelineCreateInfo.stageCount = _ARRAYSIZE(vkPipelineShaderStageCreateInfo_Array);
+	vkGraphicsPipelineCreateInfo.pStages = vkPipelineShaderStageCreateInfo_Array;
+	vkGraphicsPipelineCreateInfo.pTessellationState = NULL;
+	vkGraphicsPipelineCreateInfo.layout = vkPipelineLayout;
+	vkGraphicsPipelineCreateInfo.renderPass = vkRenderpass;
+	vkGraphicsPipelineCreateInfo.subpass = 0;
+	vkGraphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+	vkGraphicsPipelineCreateInfo.basePipelineIndex = 0;
+
+
+	/// Now create the pipline
+
+	vkresult = vkCreateGraphicsPipelines(vkDevice, vkPipelineCache, 1, &vkGraphicsPipelineCreateInfo, NULL, &vkPipeline);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createPipeline() : vkCreateGraphicsPipelines() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createPipeline() : vkCreateGraphicsPipelines() succeeded.\n");
+	}
+
+	// we have done with pipline cache so destroy it
+
+	if (vkPipelineCache != VK_NULL_HANDLE)
+	{
+		vkDestroyPipelineCache(vkDevice, vkPipelineCache, NULL);
+		vkPipelineCache = VK_NULL_HANDLE;
+		fprintf(gpFile, "createPipeline() : Free vkPipelineCache freed\n");
+	}
+
+	return vkresult;
+
 }
 
 
