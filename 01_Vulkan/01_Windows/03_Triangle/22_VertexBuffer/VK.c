@@ -2279,7 +2279,7 @@ VkResult createVertexBuffer(void)
 	{
 		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1) // jo size veun getla "vkGetBufferMemoryRequirements" to ithe use kela
 		{
-			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)  // cpu la memory acceible aahe ka
 			{
 				vkMemoryAllocateInfo.memoryTypeIndex = i; // varcha index apn bharla
 				break;
