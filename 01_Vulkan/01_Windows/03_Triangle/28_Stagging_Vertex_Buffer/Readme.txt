@@ -1,0 +1,1 @@
+Here this step is replaceable by 22nd step that is vertexBuffer. means we remove the stagging buffer and add the stagging buffer in place of it.
