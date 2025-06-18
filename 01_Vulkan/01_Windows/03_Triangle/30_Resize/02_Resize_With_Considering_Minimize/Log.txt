@@ -1,4 +1,5 @@
 programm started successfully...
+resize() : Initialisation yet not completed or failed
 fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 1st call succeeded. Extension count: 13
 fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 2nd call succeeded
 fillExtensionNames() : Vulkan Extension name = VK_KHR_device_group_creation
@@ -276,4 +277,109 @@ createframeBuffers() : vkCreateFramebuffer() succeeded.
 initialise() : createframeBuffer() succeeded
 createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.
 createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.
-initialise() : createSemaphores() 
+initialise() : createSemaphores() succeeded
+createFences() : vkCreateFence() succeeded.
+initialise() : createFences() succeeded
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+initialise() : buildCommandBuffers() succeeded
+******************************************* Initialise comment *****************************
+Initialised()  :  Initialisation() Complete Successfully
+Winmain() : Intialise() succeeded
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free commandbuffers freed
+
+ resize() : commandbuffers Array frred
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 784 height = 561
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+
+ vkDeviceWaitIdle() is Done
+vkDestroyFence vkFence_array i = 0 Completedestroyed!
+
+Free vkFence_array freed
+
+Free vkSemaphore_RenderComplete freed
+
+Free vkSemaphore_backbuffer freed
+
+Free commandbuffers freed
+
+Free vkDescriptorSetLayout freed
+
+Free vkPipelineLayout freed
+
+Free vkPipeline: Pipeline freed successfully.
+
+Free vkRenderpass freed
+
+Free vkShaderModule_fragment_shader freed
+
+Free vkShaderModule_vertex_shader freed
+
+Free vertexData_Position.vkDeviceMemory freed
+
+Free vertexData_Position.vkBuffer freed
+
+Free commandbuffers freed
+
+ vkCommandPool is Freed
+
+Free swapchainImage_array images freed
+
+ vkSwapchainKHR is Freed
+
+ vkDestroyDevice() is Done
+
+vkDestroySurfaceKHR Done
+
+vkDestroyDebugReportCallbackEXT_fnptr Done
+
+vkDestroyInstance Done
+
+Uninitialize->Program Terminated Successfully.

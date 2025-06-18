@@ -1,4 +1,5 @@
 programm started successfully...
+resize() : Initialisation yet not completed or failed
 fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 1st call succeeded. Extension count: 13
 fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 2nd call succeeded
 fillExtensionNames() : Vulkan Extension name = VK_KHR_device_group_creation
@@ -276,4 +277,58 @@ createframeBuffers() : vkCreateFramebuffer() succeeded.
 initialise() : createframeBuffer() succeeded
 createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.
 createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.
-initialise() : createSemaphores() 
+initialise() : createSemaphores() succeeded
+createFences() : vkCreateFence() succeeded.
+initialise() : createFences() succeeded
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+initialise() : buildCommandBuffers() succeeded
+******************************************* Initialise comment *****************************
+Initialised()  :  Initialisation() Complete Successfully
+Winmain() : Intialise() succeeded
+
+ vkDeviceWaitIdle() is Done
+vkDestroyFence vkFence_array i = 0 Completedestroyed!
+
+Free vkFence_array freed
+
+Free vkSemaphore_RenderComplete freed
+
+Free vkSemaphore_backbuffer freed
+
+Free commandbuffers freed
+
+Free vkDescriptorSetLayout freed
+
+Free vkPipelineLayout freed
+
+Free vkPipeline: Pipeline freed successfully.
+
+Free vkRenderpass freed
+
+Free vkShaderModule_fragment_shader freed
+
+Free vkShaderModule_vertex_shader freed
+
+Free vertexData_Position.vkDeviceMemory freed
+
+Free vertexData_Position.vkBuffer freed
+
+Free commandbuffers freed
+
+ vkCommandPool is Freed
+
+Free swapchainImage_array images freed
+
+ vkSwapchainKHR is Freed
+
+ vkDestroyDevice() is Done
+
+vkDestroySurfaceKHR Done
+
+vkDestroyDebugReportCallbackEXT_fnptr Done
+
+vkDestroyInstance Done
+
+Uninitialize->Program Terminated Successfully.
