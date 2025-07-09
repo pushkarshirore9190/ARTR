@@ -249,14 +249,21 @@ createCommandPool() : vkCreateCommandPool() succeeded.
 initialise() : createCommandPool() succeeded
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 initialise() : createCommandBuffers() succeeded
-createVertexBuffer() : vkCreateBuffer() succeeded.
-createVertexBuffer() : vkAllocateMemory() succeeded.
-createVertexBuffer() : vkBindBufferMemory() succeeded.
-createVertexBuffer() : vkMapMemory() succeeded.
+createVertexBuffer() : vkCreateBuffer() succeeded  for triangle 
+createVertexBuffer() : vkAllocateMemory() succeeded  for triangle
+createVertexBuffer() : vkBindBufferMemory() succeeded  for triangle
+createVertexBuffer() : vkMapMemory() succeeded for triangle 
+createVertexBuffer() : vkCreateBuffer() succeeded for rectangle 
+createVertexBuffer() : vkAllocateMemory() succeeded for rectangle
+createVertexBuffer() : vkBindBufferMemory() succeeded for rectangle
+createVertexBuffer() : vkMapMemory() succeeded for rectangle
 initialise() : createVertexBuffer() succeeded
-createUniformBuffer() : vkCreateBuffer() succeeded.
-createUniformBuffer() : vkAllocateMemory() succeeded.
-createUniformBuffer() : vkBindBufferMemory() succeeded.
+createUniformBuffer() : vkCreateBuffer() succeeded  for traingle
+createUniformBuffer() : vkAllocateMemory() succeeded  for traingle
+createUniformBuffer() : vkBindBufferMemory() succeeded  for traingle
+createUniformBuffer() : vkCreateBuffer() succeeded  for reactangle
+createUniformBuffer() : vkAllocateMemory() succeeded  for reactangle
+createUniformBuffer() : vkBindBufferMemory() succeeded  for reactangle
 createUniformBuffer() : updateUniformbuffer() succeeded.
 initialise() : createUniformBuffer() succeeded
 createShaders() : createShader succeeded to open vertexshader.spv file
@@ -274,9 +281,12 @@ createPiplineLayout() : vkCreatePipelineLayout() succeeded.
 initialise() : createPiplineLayout() succeeded
 createDescriptorpool() : vkCreateDescriptorPool() succeeded.
 initialise() : createDescriptorpool() succeeded
-createDescriptorSet() : vkCreateDescriptorPool() succeeded.
+createDescriptorSet() : vkCreateDescriptorPool() succeeded for Triangle
 
-vkUpdateDescriptorSets() succeeded.
+vkUpdateDescriptorSets() succeeded for Triangle
+createDescriptorSet() : vkCreateDescriptorPool() succeeded for reactngle
+
+vkUpdateDescriptorSets() succeededf for reactngle
 initialise() : createDescriptorset() succeeded
 createRenderPass() : vkCreateRenderPass() succeeded.
 initialise() : createRenderPass() succeeded
@@ -318,19 +328,27 @@ Free vkPipeline: Pipeline freed successfully.
 
 Free vkRenderpass freed
 
-Freed vkDescriptorPool and vkDescriptorSet
+Freed vkDescriptorPool and vkDescriptorSet for trangle and rectangle
 
 Free vkShaderModule_fragment_shader freed
 
 Free vkShaderModule_vertex_shader freed
 
-Freed uniformData.vkBuffer 
+Freed uniformData_Triangle.vkBuffer 
 
-Freed uniformData.vkDeviceMemory 
+Freed uniformData_Triangle.vkDeviceMemory 
 
-Free vertexData_Position.vkDeviceMemory freed
+Freed uniformData_Rectangle.vkBuffer 
 
-Free vertexData_Position.vkBuffer freed
+Freed uniformData_Rectangle.vkDeviceMemory 
+
+Free vertexData_Position_Rectangle.vkDeviceMemory freed
+
+Free vertexData_Position_Rectangle.vkBuffer freed
+
+Free vertexData_Position_Triangle.vkDeviceMemory freed
+
+Free vertexData_Position_Triangle.vkBuffer freed
 
 Free commandbuffers freed
 
