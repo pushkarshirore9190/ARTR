@@ -19,6 +19,7 @@ void main(void)
 {
 	// code
 	gl_Position = uMVP.projectionMatrix * uMVP.viewMatrix * uMVP.modelMatrix * vPosition;
+	out_Color = vColor;
 }
 
 
