@@ -196,8 +196,8 @@ VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
 // Descriptor set
 VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 
-
-
+// For Rotation
+float angle = 0.0f;
 
 //entry_point function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
@@ -331,7 +331,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLin
 					}
 
 					// update
-					update();
+					if (gbActive == TRUE)
+					{
+						update();
+					}
 				}
 			}
 
@@ -1103,6 +1106,11 @@ VkResult display(void)
 void update(void)
 {
 	// code
+	angle = angle + 1.5f;
+	if (angle >= 360.0f)
+	{
+		angle = angle - 360.0f;
+	}
 }
 
 
@@ -2904,8 +2912,19 @@ VkResult updateUniformbuffer(void)
 
 	// update matrices
 	myUniformData.modelMatrix = glm::mat4(1.0);
-	myUniformData.modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -3.0f));
+
+	glm::mat4 translationMatrix = glm::mat4(1.0);
+
+	translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -4.0f));
+
+	glm::mat4 rotationMatrix = glm::mat4(1.0);
+
+	rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	myUniformData.modelMatrix = translationMatrix * rotationMatrix;
+
 	myUniformData.viewMatrix = glm::mat4(1.0);
+
 	glm::mat4 perspectiveProjectionMatrix = glm::mat4(1.0);
 
 	perspectiveProjectionMatrix = glm::perspective(glm::radians(45.0f), float(winWidth) / float(winHeight), 0.1f, 100.0f);
@@ -3404,7 +3423,7 @@ VkResult createPipline(void)
 	vkPipelineRasterizationStateCreateInfo.flags = 0;
 
 	vkPipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
 	vkPipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	vkPipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
 
