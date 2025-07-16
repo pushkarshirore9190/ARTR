@@ -249,10 +249,23 @@ createCommandPool() : vkCreateCommandPool() succeeded.
 initialise() : createCommandPool() succeeded
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 initialise() : createCommandBuffers() succeeded
+Color[0] = 1.000000
+Color[1] = 0.000000
+Color[2] = 0.000000
+Color[3] = 0.000000
+Color[4] = 1.000000
+Color[5] = 0.000000
+Color[6] = 0.000000
+Color[7] = 0.000000
+Color[8] = 1.000000
 createVertexBuffer() : vkCreateBuffer() succeeded.
 createVertexBuffer() : vkAllocateMemory() succeeded.
 createVertexBuffer() : vkBindBufferMemory() succeeded.
 createVertexBuffer() : vkMapMemory() succeeded.
+createVertexBuffer() : vkCreateBuffer() succeeded for vertex color buffer
+createVertexBuffer() : vkAllocateMemory() succeeded for vertex color buffer
+createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex color buffer
+createVertexBuffer() : vkMapMemory() succeeded for vertex color buffer
 initialise() : createVertexBuffer() succeeded
 createUniformBuffer() : vkCreateBuffer() succeeded.
 createUniformBuffer() : vkAllocateMemory() succeeded.
@@ -327,6 +340,10 @@ Free vkShaderModule_vertex_shader freed
 Freed uniformData.vkBuffer 
 
 Freed uniformData.vkDeviceMemory 
+
+Free vertexData_Color.vkDeviceMemory freed
+
+FreevertexData_Color.vkBuffer freed
 
 Free vertexData_Position.vkDeviceMemory freed
 
