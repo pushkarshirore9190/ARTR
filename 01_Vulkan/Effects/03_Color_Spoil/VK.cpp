@@ -817,13 +817,13 @@ VkResult resize(int width, int heigth)
 	if (vkDevice)
 	{
 		vkDeviceWaitIdle(vkDevice);
-		fprintf(gpFile, " resize() : \n vkDeviceWaitIdle() is Done\n");
+		
 	}
 
 	// check presence of swapchain
 	if (vkSwapchainKHR == VK_NULL_HANDLE)
 	{
-		fprintf(gpFile, "\n resize() : swapchain is aleady null cannot proceed\n");
+		
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 
@@ -841,7 +841,6 @@ VkResult resize(int width, int heigth)
 	{
 		free(vkFramebuffer_Array);
 		vkFramebuffer_Array = NULL;
-		fprintf(gpFile, " resize() : \nFree commandbuffers freed\n");
 
 	}
 
@@ -850,14 +849,12 @@ VkResult resize(int width, int heigth)
 	{
 		vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_Array[i]);
 		//vkDestroyImageView(vkDevice, swapchainImageView_array[i], NULL);
-		fprintf(gpFile, "\n resize() : Free commandbuffers freed\n");
 	}
 
 	if (vkCommandBuffer_Array)
 	{
 		free(vkCommandBuffer_Array);
 		vkCommandBuffer_Array = NULL;
-		fprintf(gpFile, "\n resize() : commandbuffers Array frred\n");
 	}
 
 	// destroy pipline
@@ -865,7 +862,6 @@ VkResult resize(int width, int heigth)
 	{
 		vkDestroyPipeline(vkDevice, vkPipeline, NULL);
 		vkPipeline = VK_NULL_HANDLE;
-		fprintf(gpFile, "\n resize() : Free vkPipeline: Pipeline freed successfully.\n");
 	}
 
 	// destroy pipline layout
@@ -873,7 +869,6 @@ VkResult resize(int width, int heigth)
 	{
 		vkDestroyPipelineLayout(vkDevice, vkPipelineLayout, NULL);
 		vkPipelineLayout = VK_NULL_HANDLE;
-		fprintf(gpFile, "\n resize() : Free vkPipelineLayout freed\n");
 	}
 
 	// destroy render pass
@@ -881,14 +876,12 @@ VkResult resize(int width, int heigth)
 	{
 		vkDestroyRenderPass(vkDevice, vkRenderpass, NULL);
 		vkRenderpass = VK_NULL_HANDLE;
-		fprintf(gpFile, "\n resize() : Free vkRenderpass freed\n");
 	}
 
 	// destroy ImageView
 	for (uint32_t i = 0; i < swapchainImageCount; i++)
 	{
 		vkDestroyImageView(vkDevice, SwapchainImageView_Array[i], NULL);
-		fprintf(gpFile, "\nresize() : Free swapchainImage_array images freed\n");
 	}
 	if (SwapchainImageView_Array)
 	{
@@ -913,7 +906,6 @@ VkResult resize(int width, int heigth)
 	{
 		vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
 		vkSwapchainKHR = NULL;		//Bhanda swachha
-		fprintf(gpFile, "\n resize() : vkSwapchainKHR is Freed\n");
 
 	}
 
@@ -924,49 +916,45 @@ VkResult resize(int width, int heigth)
 	vkresult = createSwapchain(VK_FALSE);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : createSwapchain() function failed (%d)\n", vkresult);
 		return VK_ERROR_INITIALIZATION_FAILED; // Hardcoded return value
 	}
 
 	vkresult = createImagesAndImageViews();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : createImagesAndImageViews() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
 	vkresult = createRenderPass();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : createRenderPass() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
 	vkresult = createPiplineLayout();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : createPiplineLayout() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
 	vkresult = createPipline();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : createPipline() function failed (%d)\n", vkresult);
+		
 		return(vkresult);
 	}
 
 	vkresult = createframeBuffers();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : createframeBuffer() function failed (%d)\n", vkresult);
+		
 		return(vkresult);
 	}
 
 	vkresult = createCommandBuffers();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : createCommandBuffers() function failed (%d)\n", vkresult);
+		
 		return(vkresult);
 	}
 
@@ -975,7 +963,7 @@ VkResult resize(int width, int heigth)
 	vkresult = buildCommandBuffers();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, " resize() : buildCommandBuffers() function failed (%d)\n", vkresult);
+		
 		return(vkresult);
 	}
 
