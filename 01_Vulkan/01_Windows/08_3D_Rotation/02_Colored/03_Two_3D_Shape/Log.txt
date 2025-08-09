@@ -262,10 +262,21 @@ createVertexBuffer() : vkCreateBuffer() succeeded for vertex color buffer
 createVertexBuffer() : vkAllocateMemory() succeeded for vertex color buffer
 createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex color buffer
 createVertexBuffer() : vkMapMemory() succeeded for vertex color buffer
+createVertexBuffer() : vkCreateBuffer() succeeded.
+createVertexBuffer() : vkAllocateMemory() succeeded.
+createVertexBuffer() : vkBindBufferMemory() succeeded.
+createVertexBuffer() : vkMapMemory() succeeded.
+createVertexBuffer() : vkCreateBuffer() succeeded for vertex color buffer
+createVertexBuffer() : vkAllocateMemory() succeeded for vertex color buffer
+createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex color buffer
+createVertexBuffer() : vkMapMemory() succeeded for vertex color buffer
 initialise() : createVertexBuffer() succeeded
-createUniformBuffer() : vkCreateBuffer() succeeded.
-createUniformBuffer() : vkAllocateMemory() succeeded.
-createUniformBuffer() : vkBindBufferMemory() succeeded.
+createUniformBuffer() : vkCreateBuffer() succeeded  for traingle
+createUniformBuffer() : vkAllocateMemory() succeeded  for traingle
+createUniformBuffer() : vkBindBufferMemory() succeeded  for traingle
+createUniformBuffer() : vkCreateBuffer() succeeded  for reactangle
+createUniformBuffer() : vkAllocateMemory() succeeded  for reactangle
+createUniformBuffer() : vkBindBufferMemory() succeeded  for reactangle
 createUniformBuffer() : updateUniformbuffer() succeeded.
 initialise() : createUniformBuffer() succeeded
 createShaders() : createShader succeeded to open vertexshader.spv file
@@ -285,7 +296,10 @@ createDescriptorpool() : vkCreateDescriptorPool() succeeded.
 initialise() : createDescriptorpool() succeeded
 createDescriptorSet() : vkCreateDescriptorPool() succeeded.
 
-vkUpdateDescriptorSets() succeeded.
+vkUpdateDescriptorSets() succeeded for Triangle
+createDescriptorSet() : vkCreateDescriptorPool() succeeded for reactngle
+
+vkUpdateDescriptorSets() succeededf for reactngle
 initialise() : createDescriptorset() succeeded
 createRenderPass() : vkCreateRenderPass() succeeded.
 initialise() : createRenderPass() succeeded
@@ -327,23 +341,35 @@ Free vkPipeline: Pipeline freed successfully.
 
 Free vkRenderpass freed
 
-Freed vkDescriptorPool and vkDescriptorSet
+Freed vkDescriptorPool and vkDescriptorSet for trangle and rectangle
 
 Free vkShaderModule_fragment_shader freed
 
 Free vkShaderModule_vertex_shader freed
 
-Freed uniformData.vkBuffer 
+Freed uniformData_Rectangle.vkBuffer 
 
-Freed uniformData.vkDeviceMemory 
+Freed uniformData_Rectangle.vkDeviceMemory 
 
-Free vertexData_Color.vkDeviceMemory freed
+Free vertexData_Color_Rectangle.vkDeviceMemory freed
 
-FreevertexData_Color.vkBuffer freed
+Free vertexData_Color_Rectangle.vkBuffer freed
 
-Free vertexData_Position.vkDeviceMemory freed
+Freed uniformData_Triangle.vkBuffer 
 
-Free vertexData_Position.vkBuffer freed
+Freed uniformData_Triangle.vkDeviceMemory 
+
+Free vertexData_Color_Triangle.vkDeviceMemory freed
+
+Free vertexData_Color_Triangle.vkBuffer freed
+
+Free vertexData_Position_Rectangle.vkDeviceMemory freed
+
+Free vertexData_Position_Rectangle.vkBuffer freed
+
+Free vertexData_Position_Triangle.vkDeviceMemory freed
+
+Free vertexData_Position_Triangle.vkBuffer freed
 
 Free commandbuffers freed
 
