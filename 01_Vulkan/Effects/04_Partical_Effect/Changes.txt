@@ -1,0 +1,16 @@
+1) 4 variable declarations.
+
+2) in uninitialized destroy these 4 variable.
+
+3) write createTexture() function call and prototype.
+
+4) update the buildcommmad buffer for texture
+
+5) remove the color and add the texture like vertexBuffer and createPipeline.
+
+6) add globally header file related texture.
+
+7) Shader changes for the texture.
+
+
+ 
