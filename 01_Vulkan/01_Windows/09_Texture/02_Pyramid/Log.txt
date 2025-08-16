@@ -263,14 +263,16 @@ createVertexBuffer() : vkAllocateMemory() succeeded for vertex texcoord buffer
 createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex texcoord buffer
 createVertexBuffer() : vkMapMemory() succeeded for vertex texcoord buffer
 initialise() : createVertexBuffer() succeeded
-createUniformBuffer() : vkCreateBuffer() succeeded.
-createUniformBuffer() : vkAllocateMemory() succeeded.
-createUniformBuffer() : vkBindBufferMemory() succeeded.
-createUniformBuffer() : updateUniformbuffer() succeeded.
-initialise() : createUniformBuffer() succeeded
-createShaders() : createShader succeeded to open vertexshader.spv file
-createShaders() : createShader succeeded to read vertexshader.spv file
-createShaders() : vkCreateShaderModule() succeeded fro vertex shader.
-Vertexshader Module sucessfully created
-createShaders() : createShader succeeded to open fragmentshader.spv file
-createShaders() : createShader succeeded to read fragment
+createTexture() : vkCreateBuffer() succeeded.
+createTexture() : vkAllocateMemory() succeeded.
+createTexture() : vkBindBufferMemory() succeeded.
+createTexture() : vkMapMemory() succeeded for vertex texcoord buffer
+createTexture() : stbi_image_free() succeeded for image data
+createTexture() : vkCreateImageView() succeeded
+createTexture() : vkAllocateMemory() succeeded for image
+createTexture() : vkBindBufferMemory() succeeded for image
+createTexture() : vkAllocateCommandBuffers() succeeded
+createTexture() : vkBeginCommandBuffer() succeeded
+createTexture() : vkEndCommandBuffer() succeeded
+createTexture() : vkQueueSubmit() succeeded
+createTextu
