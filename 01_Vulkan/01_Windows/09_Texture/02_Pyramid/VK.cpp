@@ -648,6 +648,7 @@ VkResult initialise(void)
 	else
 	{
 		fprintf(gpFile, "initialise() : createTexture() succeeded for stone \n");
+		fflush(gpFile);
 	}
 
 	// createUniform Buffer

@@ -639,7 +639,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createVertexBuffer() succeeded\n");
 	}
 
-	vkresult = createTexture("Stone.png");
+	vkresult = createTexture("Smiley.png");
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createTexture() function failed stone (%d)\n", vkresult);
@@ -2989,52 +2989,34 @@ VkResult createVertexBuffer(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	// position
-	float pyramidVertices[] =
+	float Rectangle_Position[] =
 	{
-		// front
-		0.0f,  1.0f,  0.0f, // front-top
-	   -1.0f, -1.0f,  1.0f, // front-left
-		1.0f, -1.0f,  1.0f, // front-right
+		// first triangle
+		1.0f,1.0f,0.0f, // top right
+		-1.0f,1.0f,0.0f, // left top
+		-1.0f,-1.0f,0.0f, // left bottom
 
-		// right
-		0.0f,  1.0f,  0.0f, // right-top
-		1.0f, -1.0f,  1.0f, // right-left
-		1.0f, -1.0f, -1.0f, // right-right
+		// second triangle
+		-1.0f,-1.0f,0.0f, // left bottom
+		1.0,-1.0f,0.0f, // right bottom
+		1.0f,1.0f,0.0f // right top
 
-		// back
-		0.0f,  1.0f,  0.0f, // back-top
-		1.0f, -1.0f, -1.0f, // back-left
-	   -1.0f, -1.0f, -1.0f, // back-right
-
-	   // left
-	   0.0f,  1.0f,  0.0f, // left-top
-	  -1.0f, -1.0f, -1.0f, // left-left
-	  -1.0f, -1.0f,  1.0f, // left-right
 	};
 
 	// texcoords
-	float pyramidTexcoords[] =
+	float Rectangle_Texcoords[] =
 	{
-		// front
-		0.5, 1.0, // front-top
-		0.0, 0.0, // front-left
-		1.0, 0.0, // front-right
+		// first triangle
+		1.0f, 1.0f, // top-right  -> v0
+		0.0f, 1.0f, // top-left   -> v1
+		0.0f, 0.0f, // bottom-left -> v2
 
-		// right
-		0.5, 1.0, // right-top
-		1.0, 0.0, // right-left
-		0.0, 0.0, // right-right
-
-		// back
-		0.5, 1.0, // back-top
-		0.0, 0.0, // back-left
-		1.0, 0.0, // back-right
-
-		// left
-		0.5, 1.0, // left-top
-		1.0, 0.0, // left-left
-		0.0, 0.0, // left-right
+		// second triangle
+		0.0f, 0.0f, // bottom-left -> v3
+		1.0f, 0.0f, // bottom-right -> v4
+		1.0f, 1.0f  // top-right -> v5
 	};
+
 
 	// VERTEX POSITION BUFFER
 	memset((void*)&vertexData_Position, 0, sizeof(VertexData));
@@ -3045,7 +3027,7 @@ VkResult createVertexBuffer(void)
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(pyramidVertices);
+	vkBufferCreateInfo.size = sizeof(Rectangle_Position);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
 	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer);
@@ -3124,7 +3106,7 @@ VkResult createVertexBuffer(void)
 
 	// actual memory mapped
 
-	memcpy(data, pyramidVertices, sizeof(pyramidVertices));
+	memcpy(data, Rectangle_Position, sizeof(Rectangle_Position));
 
 	vkUnmapMemory(vkDevice, vertexData_Position.vkDeviceMemory);
 
@@ -3136,7 +3118,7 @@ VkResult createVertexBuffer(void)
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(pyramidTexcoords);
+	vkBufferCreateInfo.size = sizeof(Rectangle_Texcoords);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
 	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Texcoord.vkBuffer);
@@ -3213,7 +3195,7 @@ VkResult createVertexBuffer(void)
 
 	// actual memory mapped
 
-	memcpy(data, pyramidTexcoords, sizeof(pyramidTexcoords));
+	memcpy(data, Rectangle_Texcoords, sizeof(Rectangle_Texcoords));
 
 	vkUnmapMemory(vkDevice, vertexData_Texcoord.vkDeviceMemory);
 
@@ -4998,7 +4980,7 @@ VkResult buildCommandBuffers(void)
 		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 1, 1, &vertexData_Texcoord.vkBuffer, vkDeviceSize_Offest_Texcoord);
 
 		// Here we should call Vulkan drawing functions
-		vkCmdDraw(vkCommandBuffer_Array[i], 12, 1, 0, 0);
+		vkCmdDraw(vkCommandBuffer_Array[i], 6, 1, 0, 0);
 
 		// End the render pass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);
