@@ -3049,61 +3049,61 @@ VkResult createVertexBuffer(void)
 
 	// texcoords
 	float cubeTexcoords[] =
-{
-    // Front face
-    1.0f, 1.0f, // v0 top-right
-    0.0f, 1.0f, // v1 top-left
-    0.0f, 0.0f, // v2 bottom-left
+	{
+		// Front face
+		1.0f, 1.0f, // v0 top-right
+		0.0f, 1.0f, // v1 top-left
+		0.0f, 0.0f, // v2 bottom-left
 
-    1.0f, 1.0f, // v3 top-right
-    0.0f, 0.0f, // v4 bottom-left
-    1.0f, 0.0f, // v5 bottom-right
+		1.0f, 1.0f, // v3 top-right
+		0.0f, 0.0f, // v4 bottom-left
+		1.0f, 0.0f, // v5 bottom-right
 
-    // Right face
-    1.0f, 1.0f, // v0 top-right
-    0.0f, 1.0f, // v1 top-left
-    0.0f, 0.0f, // v2 bottom-left
+		// Right face
+		1.0f, 1.0f, // v0 top-right
+		0.0f, 1.0f, // v1 top-left
+		0.0f, 0.0f, // v2 bottom-left
 
-    1.0f, 1.0f, // v3 top-right
-    0.0f, 0.0f, // v4 bottom-left
-    1.0f, 0.0f, // v5 bottom-right
+		1.0f, 1.0f, // v3 top-right
+		0.0f, 0.0f, // v4 bottom-left
+		1.0f, 0.0f, // v5 bottom-right
 
-    // Back face
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    0.0f, 0.0f,
+		// Back face
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
 
-    1.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
 
-    // Left face
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    0.0f, 0.0f,
+		// Left face
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
 
-    1.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
 
-    // Top face
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    0.0f, 0.0f,
+		// Top face
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
 
-    1.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
 
-    // Bottom face
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    0.0f, 0.0f,
+		// Bottom face
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
 
-    1.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f
-};
+		1.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f
+	};
 
 
 	// VERTEX POSITION BUFFER
