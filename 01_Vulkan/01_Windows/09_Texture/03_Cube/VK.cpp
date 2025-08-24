@@ -174,7 +174,7 @@ typedef struct
 } VertexData;
 
 // poaition
-VertexData vertexData_Position;
+VertexData vertexData_Position_cUbe;
 
 VertexData vertexData_Texcoord;
 
@@ -1371,19 +1371,19 @@ void uninitialise(void)
 		}
 
 
-		if (vertexData_Position.vkDeviceMemory)
+		if (vertexData_Position_cUbe.vkDeviceMemory)
 		{
-			vkFreeMemory(vkDevice, vertexData_Position.vkDeviceMemory, NULL);
-			vertexData_Position.vkDeviceMemory = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertexData_Position.vkDeviceMemory freed\n");
+			vkFreeMemory(vkDevice, vertexData_Position_cUbe.vkDeviceMemory, NULL);
+			vertexData_Position_cUbe.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position_cUbe.vkDeviceMemory freed\n");
 
 		}
 
-		if (vertexData_Position.vkBuffer)
+		if (vertexData_Position_cUbe.vkBuffer)
 		{
-			vkDestroyBuffer(vkDevice, vertexData_Position.vkBuffer, NULL);
-			vertexData_Position.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertexData_Position.vkBuffer freed\n");
+			vkDestroyBuffer(vkDevice, vertexData_Position_cUbe.vkBuffer, NULL);
+			vertexData_Position_cUbe.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position_cUbe.vkBuffer freed\n");
 
 		}
 
@@ -3107,7 +3107,7 @@ VkResult createVertexBuffer(void)
 
 
 	// VERTEX POSITION BUFFER
-	memset((void*)&vertexData_Position, 0, sizeof(VertexData));
+	memset((void*)&vertexData_Position_cUbe, 0, sizeof(VertexData));
 
 	VkBufferCreateInfo vkBufferCreateInfo;
 	memset((void*)& vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
@@ -3118,7 +3118,7 @@ VkResult createVertexBuffer(void)
 	vkBufferCreateInfo.size = sizeof(cubeVertices);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer);
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position_cUbe.vkBuffer);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
@@ -3132,7 +3132,7 @@ VkResult createVertexBuffer(void)
 	VkMemoryRequirements vkMemoryRequirements;
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
 
-	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position.vkBuffer, &vkMemoryRequirements);
+	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position_cUbe.vkBuffer, &vkMemoryRequirements);
 
 	VkMemoryAllocateInfo vkMemoryAllocateInfo;
 	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
@@ -3157,7 +3157,7 @@ VkResult createVertexBuffer(void)
 	
 	}
 
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position.vkDeviceMemory);
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position_cUbe.vkDeviceMemory);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -3168,7 +3168,7 @@ VkResult createVertexBuffer(void)
 		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded.\n");
 	}
 
-	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
+	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position_cUbe.vkBuffer, vertexData_Position_cUbe.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -3181,7 +3181,7 @@ VkResult createVertexBuffer(void)
 
 	void* data = NULL;
 
-	vkresult = vkMapMemory(vkDevice, vertexData_Position.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
+	vkresult = vkMapMemory(vkDevice, vertexData_Position_cUbe.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -3196,7 +3196,7 @@ VkResult createVertexBuffer(void)
 
 	memcpy(data, cubeVertices, sizeof(cubeVertices));
 
-	vkUnmapMemory(vkDevice, vertexData_Position.vkDeviceMemory);
+	vkUnmapMemory(vkDevice, vertexData_Position_cUbe.vkDeviceMemory);
 
 	// VERTEX TEXCOORD BUFFER
 	memset((void*)&vertexData_Texcoord, 0, sizeof(VertexData));
@@ -5075,7 +5075,7 @@ VkResult buildCommandBuffers(void)
 		VkDeviceSize vkDeviceSize_Offest_Position[1];
 		memset((void*)vkDeviceSize_Offest_Position, 0, sizeof(VkDeviceSize) * ARRAYSIZE(vkDeviceSize_Offest_Position));
 
-		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position.vkBuffer, vkDeviceSize_Offest_Position);
+		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position_cUbe.vkBuffer, vkDeviceSize_Offest_Position);
 
 		// bind vertex color vertex buffer
 		VkDeviceSize vkDeviceSize_Offest_Texcoord[1];
