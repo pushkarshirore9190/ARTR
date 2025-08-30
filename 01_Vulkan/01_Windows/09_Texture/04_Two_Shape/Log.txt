@@ -346,12 +346,10 @@ createPiplineLayout() : vkCreatePipelineLayout() succeeded.
 initialise() : createPiplineLayout() succeeded
 createDescriptorpool() : vkCreateDescriptorPool() succeeded.
 initialise() : createDescriptorpool() succeeded
-createDescriptorSet() : vkCreateDescriptorPool() succeeded.
-
-vkUpdateDescriptorSets() succeeded for pyramid
-createDescriptorSet() : vkCreateDescriptorPool() succeeded for reactngle
-
-vkUpdateDescriptorSets() succeeded for cube
+createDescriptorSet() : vkAllocateDescriptorSets() succeeded for Pyramid.
+vkUpdateDescriptorSets() succeeded for Pyramid
+createDescriptorSet() : vkAllocateDescriptorSets() succeeded for Cube.
+vkUpdateDescriptorSets() succeeded for Cube
 initialise() : createDescriptorset() succeeded
 createRenderPass() : vkCreateRenderPass() succeeded.
 initialise() : createRenderPass() succeeded
@@ -442,13 +440,13 @@ Free commandbuffers freed
 Free swapchainImage_array images freed
 
  vkSwapchainKHR is Freed
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x9fde6b0000000014, type = VK_OBJECT_TYPE_IMAGE; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x176bff04550[], VkImage 0x9fde6b0000000014[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x9fde6b0000000014, type = VK_OBJECT_TYPE_IMAGE; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1b9f2514980[], VkImage 0x9fde6b0000000014[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xdd3a8a0000000015, type = VK_OBJECT_TYPE_DEVICE_MEMORY; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x176bff04550[], VkDeviceMemory 0xdd3a8a0000000015[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xdd3a8a0000000015, type = VK_OBJECT_TYPE_DEVICE_MEMORY; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1b9f2514980[], VkDeviceMemory 0xdd3a8a0000000015[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xd897d90000000016, type = VK_OBJECT_TYPE_IMAGE_VIEW; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x176bff04550[], VkImageView 0xd897d90000000016[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xd897d90000000016, type = VK_OBJECT_TYPE_IMAGE_VIEW; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1b9f2514980[], VkImageView 0xd897d90000000016[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x84c0580000000017, type = VK_OBJECT_TYPE_SAMPLER; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x176bff04550[], VkSampler 0x84c0580000000017[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x84c0580000000017, type = VK_OBJECT_TYPE_SAMPLER; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1b9f2514980[], VkSampler 0x84c0580000000017[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
 
  vkDestroyDevice() is Done

@@ -232,6 +232,12 @@ VkImageView vkImageView_Texture = VK_NULL_HANDLE;
 
 VkSampler vkSampler_Texture = VK_NULL_HANDLE;
 
+VkImageView vkImageView_Texture_Pyramid = VK_NULL_HANDLE;
+VkImageView vkImageView_Texture_Cube = VK_NULL_HANDLE;
+
+VkSampler vkSampler_Texture_Pyramid = VK_NULL_HANDLE;
+VkSampler vkSampler_Texture_Cube = VK_NULL_HANDLE;
+
 //entry_point function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -656,6 +662,9 @@ VkResult initialise(void)
 		fflush(gpFile);
 	}
 
+	vkImageView_Texture_Pyramid = vkImageView_Texture;
+	vkSampler_Texture_Pyramid = vkSampler_Texture;
+
 	vkresult = createTexture("Vijay_Kundali.png");
 	if (vkresult != VK_SUCCESS)
 	{
@@ -668,6 +677,9 @@ VkResult initialise(void)
 		fflush(gpFile);
 	}
 
+	vkImageView_Texture_Cube = vkImageView_Texture;
+	vkSampler_Texture_Cube = vkSampler_Texture;
+	
 	// createUniform Buffer
 	vkresult = createUniformBuffer();
 	if (vkresult != VK_SUCCESS)
@@ -4836,9 +4848,6 @@ VkResult createDescriptorSet(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	// code
-
-	// initialise descriptor set alloc info
-
 	VkDescriptorSetAllocateInfo vkDescriptorSetAllocateInfo;
 	memset((void*)&vkDescriptorSetAllocateInfo, 0, sizeof(VkDescriptorSetAllocateInfo));
 
@@ -4848,127 +4857,102 @@ VkResult createDescriptorSet(void)
 	vkDescriptorSetAllocateInfo.descriptorSetCount = 1;
 	vkDescriptorSetAllocateInfo.pSetLayouts = &vkDescriptorSetLayout;
 
+	// ==============================
+	// Pyramid Descriptor Set
+	// ==============================
 	vkresult = vkAllocateDescriptorSets(vkDevice, &vkDescriptorSetAllocateInfo, &vkDescriptorSet_Pyramid);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() failed. Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createDescriptorSet() : vkAllocateDescriptorSets() failed for Pyramid. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() succeeded.\n");
+		fprintf(gpFile, "createDescriptorSet() : vkAllocateDescriptorSets() succeeded for Pyramid.\n");
 	}
-	
-	
-	// describe whether we want image as uniform or buffer as unuform 
+
+	// Uniform buffer info
 	VkDescriptorBufferInfo vkdescriptorBufferInfo;
 	memset((void*)&vkdescriptorBufferInfo, 0, sizeof(VkDescriptorBufferInfo));
-
-	// for mvp unform
 	vkdescriptorBufferInfo.buffer = uniformData_Pyramid.vkBuffer;
 	vkdescriptorBufferInfo.offset = 0;
 	vkdescriptorBufferInfo.range = sizeof(MyUniformData);
 
-	// for texture image and  sampler
+	// Image + sampler info
 	VkDescriptorImageInfo vkDescriptorImageInfo;
 	memset((void*)&vkDescriptorImageInfo, 0, sizeof(VkDescriptorImageInfo));
-
 	vkDescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	vkDescriptorImageInfo.sampler = vkSampler_Texture;                          // Your created sampler
-	vkDescriptorImageInfo.imageView = vkImageView_Texture;                      // Your texture image view
+	vkDescriptorImageInfo.sampler = vkSampler_Texture_Pyramid;   // <-- Pyramid texture sampler
+	vkDescriptorImageInfo.imageView = vkImageView_Texture_Pyramid; // <-- Pyramid image view
 
-	// now upadte descriptor set directly to the shader
-
-	// for above twoo structre it is of 2 array
+	// Write descriptors
 	VkWriteDescriptorSet vkWriteDescriptorSet_Array[2];
-	memset((void*)vkWriteDescriptorSet_Array, 0, sizeof(VkWriteDescriptorSet) * _ARRAYSIZE(vkWriteDescriptorSet_Array));
-
+	memset((void*)vkWriteDescriptorSet_Array, 0, sizeof(vkWriteDescriptorSet_Array));
 
 	vkWriteDescriptorSet_Array[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	vkWriteDescriptorSet_Array[0].dstSet = vkDescriptorSet_Pyramid;
-	vkWriteDescriptorSet_Array[0].dstBinding = 0; // Matches layout(binding = 0) in shader
-	vkWriteDescriptorSet_Array[0].dstArrayElement = 0;
+	vkWriteDescriptorSet_Array[0].dstBinding = 0;
 	vkWriteDescriptorSet_Array[0].descriptorCount = 1;
 	vkWriteDescriptorSet_Array[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	vkWriteDescriptorSet_Array[0].pBufferInfo = &vkdescriptorBufferInfo;
-	vkWriteDescriptorSet_Array[0].pImageInfo = NULL;
-	vkWriteDescriptorSet_Array[0].pTexelBufferView = NULL;
 
 	vkWriteDescriptorSet_Array[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	vkWriteDescriptorSet_Array[1].dstSet = vkDescriptorSet_Pyramid;
 	vkWriteDescriptorSet_Array[1].dstBinding = 1;
-	vkWriteDescriptorSet_Array[1].dstArrayElement = 0;
 	vkWriteDescriptorSet_Array[1].descriptorCount = 1;
 	vkWriteDescriptorSet_Array[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	vkWriteDescriptorSet_Array[1].pBufferInfo = NULL;
 	vkWriteDescriptorSet_Array[1].pImageInfo = &vkDescriptorImageInfo;
-	vkWriteDescriptorSet_Array[1].pTexelBufferView = NULL;
 
 	vkUpdateDescriptorSets(vkDevice, _ARRAYSIZE(vkWriteDescriptorSet_Array), vkWriteDescriptorSet_Array, 0, NULL);
+	fprintf(gpFile, "vkUpdateDescriptorSets() succeeded for Pyramid\n");
 
-	fprintf(gpFile, "\nvkUpdateDescriptorSets() succeeded for pyramid\n");
 
-	// Rectangle
+	// ==============================
+	// Cube Descriptor Set
+	// ==============================
 	vkresult = vkAllocateDescriptorSets(vkDevice, &vkDescriptorSetAllocateInfo, &vkDescriptorSet_Cube);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() failed for Rectangle Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createDescriptorSet() : vkAllocateDescriptorSets() failed for Cube. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() succeeded for reactngle\n");
+		fprintf(gpFile, "createDescriptorSet() : vkAllocateDescriptorSets() succeeded for Cube.\n");
 	}
-	
-	
-	// describe whether we want image as uniform or buffer as unuform 
-	memset((void*)&vkdescriptorBufferInfo, 0, sizeof(VkDescriptorBufferInfo));
 
-	// for mvp unform
+	memset((void*)&vkdescriptorBufferInfo, 0, sizeof(VkDescriptorBufferInfo));
 	vkdescriptorBufferInfo.buffer = uniformData_Cube.vkBuffer;
 	vkdescriptorBufferInfo.offset = 0;
 	vkdescriptorBufferInfo.range = sizeof(MyUniformData);
 
-	// for texture image and  sampler
 	memset((void*)&vkDescriptorImageInfo, 0, sizeof(VkDescriptorImageInfo));
-
 	vkDescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	vkDescriptorImageInfo.sampler = vkSampler_Texture;                          // Your created sampler
-	vkDescriptorImageInfo.imageView = vkImageView_Texture;                      // Your texture image view
+	vkDescriptorImageInfo.sampler = vkSampler_Texture_Cube;    // <-- Cube texture sampler
+	vkDescriptorImageInfo.imageView = vkImageView_Texture_Cube; // <-- Cube image view
 
-	// now upadte descriptor set directly to the shader
-
-	// for above twoo structre it is of 2 array
-	memset((void*)vkWriteDescriptorSet_Array, 0, sizeof(VkWriteDescriptorSet) * _ARRAYSIZE(vkWriteDescriptorSet_Array));
-
+	memset((void*)vkWriteDescriptorSet_Array, 0, sizeof(vkWriteDescriptorSet_Array));
 
 	vkWriteDescriptorSet_Array[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	vkWriteDescriptorSet_Array[0].dstSet = vkDescriptorSet_Cube;
-	vkWriteDescriptorSet_Array[0].dstBinding = 0; // Matches layout(binding = 0) in shader
-	vkWriteDescriptorSet_Array[0].dstArrayElement = 0;
+	vkWriteDescriptorSet_Array[0].dstBinding = 0;
 	vkWriteDescriptorSet_Array[0].descriptorCount = 1;
 	vkWriteDescriptorSet_Array[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	vkWriteDescriptorSet_Array[0].pBufferInfo = &vkdescriptorBufferInfo;
-	vkWriteDescriptorSet_Array[0].pImageInfo = NULL;
-	vkWriteDescriptorSet_Array[0].pTexelBufferView = NULL;
 
 	vkWriteDescriptorSet_Array[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	vkWriteDescriptorSet_Array[1].dstSet = vkDescriptorSet_Cube;
 	vkWriteDescriptorSet_Array[1].dstBinding = 1;
-	vkWriteDescriptorSet_Array[1].dstArrayElement = 0;
 	vkWriteDescriptorSet_Array[1].descriptorCount = 1;
 	vkWriteDescriptorSet_Array[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	vkWriteDescriptorSet_Array[1].pBufferInfo = NULL;
 	vkWriteDescriptorSet_Array[1].pImageInfo = &vkDescriptorImageInfo;
-	vkWriteDescriptorSet_Array[1].pTexelBufferView = NULL;
 
 	vkUpdateDescriptorSets(vkDevice, _ARRAYSIZE(vkWriteDescriptorSet_Array), vkWriteDescriptorSet_Array, 0, NULL);
-
-	fprintf(gpFile, "\nvkUpdateDescriptorSets() succeeded for cube\n");
-
+	fprintf(gpFile, "vkUpdateDescriptorSets() succeeded for Cube\n");
 
 	return vkresult;
 }
+
 
 
 VkResult createRenderPass(void)
