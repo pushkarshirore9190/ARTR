@@ -1373,28 +1373,32 @@ void uninitialise(void)
 		}
 
 		// Destroy sampler (uses the image view)
-		if (vkSampler_Texture) {
+		if (vkSampler_Texture) 
+		{
 			vkDestroySampler(vkDevice, vkSampler_Texture, NULL);
 			vkSampler_Texture = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed vkSampler_Texture \n");
 		}
 
 		// Destroy image view (uses the image)
-		if (vkImageView_Texture) {
+		if (vkImageView_Texture) 
+		{
 			vkDestroyImageView(vkDevice, vkImageView_Texture, NULL);
 			vkImageView_Texture = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed vkImageView_Texture \n");
 		}
 
 		// Free memory last
-		if (vkDeviceMemory_Texture) {
+		if (vkDeviceMemory_Texture) 
+		{
 			vkFreeMemory(vkDevice, vkDeviceMemory_Texture, NULL);
 			vkDeviceMemory_Texture = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed vkDeviceMemory_Texture \n");
 		}
 
 		// Destroy image 
-		if (vkImage_Texture) {
+		if (vkImage_Texture) 
+		{
 			vkDestroyImage(vkDevice, vkImage_Texture, NULL);
 			vkImage_Texture = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed VkImage_Texture \n");
