@@ -371,6 +371,46 @@ initialise() : buildCommandBuffers() succeeded
 ******************************************* Initialise comment *****************************
 Initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() succeeded
+ resize() : 
+ vkDeviceWaitIdle() is Done
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 1280 height = 720
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
 
  vkDeviceWaitIdle() is Done
 vkDestroyFence vkFence_array i = 0 Completedestroyed!
@@ -391,41 +431,42 @@ Free vkPipeline: Pipeline freed successfully.
 
 Free vkRenderpass freed
 
-Freed vkDescriptorPool and vkDescriptorSet for trangle and rectangle
+Freed vkDescriptorPool and vkDescriptorSet
 
 Free vkShaderModule_fragment_shader freed
 
 Free vkShaderModule_vertex_shader freed
 
-Freed uniformData_Cube.vkBuffer 
-
 Freed uniformData_Cube.vkDeviceMemory 
 
-Freed uniformData_Pyramid.vkBuffer 
+Freed uniformData_Cube.vkBuffer 
 
 Freed uniformData_Pyramid.vkDeviceMemory 
+
+Freed uniformData_Pyramid.vkBuffer 
 
 Freed vkSampler_Texture 
 
 Freed vkImageView_Texture 
 
-Freed vkDeviceMemory_Texture 
+Freed VkDeviceMemory_Texture 
 
 Freed VkImage_Texture 
-
-Free vertexData_Texcoord_Pyramid.vkDeviceMemory freed
-ertexData_Texcoord_Pyramid.vkBuffer freed
-
-Free vertexData_Position_Pyramid.vkDeviceMemory freed
-
-Free vertexData_Position_Pyramid.vkBuffer freed
 
 Free vertexData_Texcoord_Cube.vkDeviceMemory freed
 ertexData_Texcoord_Cube.vkBuffer freed
 
+Free vertexData_Texcoord_Pyramid.vkDeviceMemory freed
+
+Free vertexData_Texcoord_Pyramid.vkBuffer freed
+
 Free vertexData_Position_Cube.vkDeviceMemory freed
 
 Free vertexData_Position_Cube.vkBuffer freed
+
+Free vertexData_Position_Pyramid.vkDeviceMemory freed
+
+Free vertexData_Position_Pyramid.vkBuffer freed
 
 Free commandbuffers freed
 
@@ -440,13 +481,13 @@ Free commandbuffers freed
 Free swapchainImage_array images freed
 
  vkSwapchainKHR is Freed
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x9fde6b0000000014, type = VK_OBJECT_TYPE_IMAGE; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x2732decbae0[], VkImage 0x9fde6b0000000014[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x9fde6b0000000014, type = VK_OBJECT_TYPE_IMAGE; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1ce19f0d5f0[], VkImage 0x9fde6b0000000014[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xdd3a8a0000000015, type = VK_OBJECT_TYPE_DEVICE_MEMORY; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x2732decbae0[], VkDeviceMemory 0xdd3a8a0000000015[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xdd3a8a0000000015, type = VK_OBJECT_TYPE_DEVICE_MEMORY; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1ce19f0d5f0[], VkDeviceMemory 0xdd3a8a0000000015[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xd897d90000000016, type = VK_OBJECT_TYPE_IMAGE_VIEW; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x2732decbae0[], VkImageView 0xd897d90000000016[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0xd897d90000000016, type = VK_OBJECT_TYPE_IMAGE_VIEW; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1ce19f0d5f0[], VkImageView 0xd897d90000000016[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
-PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x84c0580000000017, type = VK_OBJECT_TYPE_SAMPLER; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x2732decbae0[], VkSampler 0x84c0580000000017[] has not been destroyed.
+PRS_Validation : debugReportCallback() :  Validation (0) = Validation Error: [ VUID-vkDestroyDevice-device-05137 ] Object 0: handle = 0x84c0580000000017, type = VK_OBJECT_TYPE_SAMPLER; | MessageID = 0x4872eaa0 | vkDestroyDevice():  OBJ ERROR : For VkDevice 0x1ce19f0d5f0[], VkSampler 0x84c0580000000017[] has not been destroyed.
 The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkDestroyDevice-device-05137)
 
  vkDestroyDevice() is Done

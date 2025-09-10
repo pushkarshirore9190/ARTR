@@ -230,13 +230,15 @@ VkDeviceMemory vkDeviceMemory_Texture = VK_NULL_HANDLE;
 
 VkImageView vkImageView_Texture = VK_NULL_HANDLE;
 
-VkSampler vkSampler_Texture = VK_NULL_HANDLE;
-
 VkImageView vkImageView_Texture_Pyramid = VK_NULL_HANDLE;
 VkImageView vkImageView_Texture_Cube = VK_NULL_HANDLE;
 
+VkSampler vkSampler_Texture = VK_NULL_HANDLE;
+
 VkSampler vkSampler_Texture_Pyramid = VK_NULL_HANDLE;
 VkSampler vkSampler_Texture_Cube = VK_NULL_HANDLE;
+
+
 
 //entry_point function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
@@ -662,8 +664,8 @@ VkResult initialise(void)
 		fflush(gpFile);
 	}
 
-	vkImageView_Texture_Pyramid = vkImageView_Texture;
-	vkSampler_Texture_Pyramid = vkSampler_Texture;
+	 vkImageView_Texture_Pyramid = vkImageView_Texture;
+	 vkSampler_Texture_Pyramid = vkSampler_Texture;
 
 	vkresult = createTexture("Vijay_Kundali.png");
 	if (vkresult != VK_SUCCESS)
@@ -1324,8 +1326,9 @@ void uninitialise(void)
 			vkDescriptorPool = VK_NULL_HANDLE;
 			vkDescriptorSet_Cube = VK_NULL_HANDLE;
 			vkDescriptorSet_Pyramid = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed vkDescriptorPool and vkDescriptorSet for trangle and rectangle\n");
+			fprintf(gpFile, "\nFreed vkDescriptorPool and vkDescriptorSet\n");
 		}
+
 
 		// destroy shader modules
 		if (vkShaderModule_fragment_shader)
@@ -1342,13 +1345,7 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFree vkShaderModule_vertex_shader freed\n");
 		}
 
-		// Destroy uniform buffer for triangle
-		if (uniformData_Cube.vkBuffer)
-		{
-			vkDestroyBuffer(vkDevice, uniformData_Cube.vkBuffer, NULL);
-			uniformData_Cube.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed uniformData_Cube.vkBuffer \n");
-		}
+		// Destroy uniform buffer
 
 		if (uniformData_Cube.vkDeviceMemory)
 		{
@@ -1357,12 +1354,11 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFreed uniformData_Cube.vkDeviceMemory \n");
 		}
 
-		// Destroy uniform buffer for recatngle
-		if (uniformData_Pyramid.vkBuffer)
+		if (uniformData_Cube.vkBuffer)
 		{
-			vkDestroyBuffer(vkDevice, uniformData_Pyramid.vkBuffer, NULL);
-			uniformData_Pyramid.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed uniformData_Pyramid.vkBuffer \n");
+			vkDestroyBuffer(vkDevice, uniformData_Cube.vkBuffer, NULL);
+			uniformData_Cube.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFreed uniformData_Cube.vkBuffer \n");
 		}
 
 		if (uniformData_Pyramid.vkDeviceMemory)
@@ -1372,72 +1368,47 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFreed uniformData_Pyramid.vkDeviceMemory \n");
 		}
 
-		// Destroy sampler (uses the image view)
-		if (vkSampler_Texture) 
+		if (uniformData_Pyramid.vkBuffer)
+		{
+			vkDestroyBuffer(vkDevice, uniformData_Pyramid.vkBuffer, NULL);
+			uniformData_Pyramid.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFreed uniformData_Pyramid.vkBuffer \n");
+		}
+
+		// Destroy the sampler
+		if (vkSampler_Texture)
 		{
 			vkDestroySampler(vkDevice, vkSampler_Texture, NULL);
 			vkSampler_Texture = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed vkSampler_Texture \n");
 		}
 
-		// Destroy image view (uses the image)
-		if (vkImageView_Texture) 
+		// Destroy the image view
+		if (vkImageView_Texture
 		{
 			vkDestroyImageView(vkDevice, vkImageView_Texture, NULL);
 			vkImageView_Texture = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed vkImageView_Texture \n");
 		}
 
-		// Free memory last
-		if (vkDeviceMemory_Texture) 
+		// Free the image memory
+		if (vkDeviceMemory_Texture)
 		{
 			vkFreeMemory(vkDevice, vkDeviceMemory_Texture, NULL);
 			vkDeviceMemory_Texture = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed vkDeviceMemory_Texture \n");
+			fprintf(gpFile, "\nFreed VkDeviceMemory_Texture \n");
 		}
 
-		// Destroy image 
-		if (vkImage_Texture) 
+		// Destroy the image
+		if (vkImage_Texture)
 		{
-			vkDestroyImage(vkDevice, vkImage_Texture, NULL);
+			vkDestroyImage(vkDevice, vkImage_Texture, nullptr);
 			vkImage_Texture = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed VkImage_Texture \n");
 		}
 
+
 		// free color buffer
-		if (vertexData_Texcoord_Pyramid.vkDeviceMemory)
-		{
-			vkFreeMemory(vkDevice, vertexData_Texcoord_Pyramid.vkDeviceMemory, NULL);
-			vertexData_Texcoord_Pyramid.vkDeviceMemory = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertexData_Texcoord_Pyramid.vkDeviceMemory freed\n");
-
-		}
-
-		if (vertexData_Texcoord_Pyramid.vkBuffer)
-		{
-			vkDestroyBuffer(vkDevice, vertexData_Texcoord_Pyramid.vkBuffer, NULL);
-			vertexData_Texcoord_Pyramid.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\vertexData_Texcoord_Pyramid.vkBuffer freed\n");
-
-		}
-
-		// for triangle
-		if (vertexData_Position_Pyramid.vkDeviceMemory)
-		{
-			vkFreeMemory(vkDevice, vertexData_Position_Pyramid.vkDeviceMemory, NULL);
-			vertexData_Position_Pyramid.vkDeviceMemory = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertexData_Position_Pyramid.vkDeviceMemory freed\n");
-
-		}
-
-		if (vertexData_Position_Pyramid.vkBuffer)
-		{
-			vkDestroyBuffer(vkDevice, vertexData_Position_Pyramid.vkBuffer, NULL);
-			vertexData_Position_Pyramid.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertexData_Position_Pyramid.vkBuffer freed\n");
-
-		}
-
 		if (vertexData_Texcoord_Cube.vkDeviceMemory)
 		{
 			vkFreeMemory(vkDevice, vertexData_Texcoord_Cube.vkDeviceMemory, NULL);
@@ -1454,7 +1425,23 @@ void uninitialise(void)
 
 		}
 
-		// for rectgnle
+		if (vertexData_Texcoord_Pyramid.vkDeviceMemory)
+		{
+			vkFreeMemory(vkDevice, vertexData_Texcoord_Pyramid.vkDeviceMemory, NULL);
+			vertexData_Texcoord_Pyramid.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Texcoord_Pyramid.vkDeviceMemory freed\n");
+
+		}
+
+		if (vertexData_Texcoord_Pyramid.vkBuffer)
+		{
+			vkDestroyBuffer(vkDevice, vertexData_Texcoord_Pyramid.vkBuffer, NULL);
+			vertexData_Texcoord_Pyramid.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Texcoord_Pyramid.vkBuffer freed\n");
+
+		}
+
+
 		if (vertexData_Position_Cube.vkDeviceMemory)
 		{
 			vkFreeMemory(vkDevice, vertexData_Position_Cube.vkDeviceMemory, NULL);
@@ -1470,14 +1457,30 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFree vertexData_Position_Cube.vkBuffer freed\n");
 
 		}
-	
+
+		if (vertexData_Position_Pyramid.vkDeviceMemory)
+		{
+			vkFreeMemory(vkDevice, vertexData_Position_Pyramid.vkDeviceMemory, NULL);
+			vertexData_Position_Pyramid.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position_Pyramid.vkDeviceMemory freed\n");
+
+		}
+
+		if (vertexData_Position_Pyramid.vkBuffer)
+		{
+			vkDestroyBuffer(vkDevice, vertexData_Position_Pyramid.vkBuffer, NULL);
+			vertexData_Position_Pyramid.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position_Pyramid.vkBuffer freed\n");
+
+		}
+
+
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
 		{
 			vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_Array[i]);
 			//vkDestroyImageView(vkDevice, swapchainImageView_array[i], NULL);
 			fprintf(gpFile, "\nFree commandbuffers freed\n");
 		}
-
 		if (vkCommandBuffer_Array)
 		{
 			free(vkCommandBuffer_Array);
@@ -1512,6 +1515,7 @@ void uninitialise(void)
 			fprintf(gpFile, "\n[Depth] vkImage_Depth freed.\n");
 
 		}
+
 
 
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
@@ -1594,6 +1598,7 @@ void uninitialise(void)
 	}
 
 }
+
 
 //////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
 
@@ -4846,7 +4851,7 @@ VkResult createDescriptorpool(void)
 	return vkresult;
 }
 
-VkResult createDescriptorSet(void)
+ VkResult createDescriptorSet(void)
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -4956,7 +4961,6 @@ VkResult createDescriptorSet(void)
 
 	return vkresult;
 }
-
 
 
 VkResult createRenderPass(void)
