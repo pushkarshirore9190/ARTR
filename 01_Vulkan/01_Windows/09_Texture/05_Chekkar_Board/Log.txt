@@ -338,46 +338,6 @@ initialise() : buildCommandBuffers() succeeded
 ******************************************* Initialise comment *****************************
 Initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() succeeded
- resize() : 
- vkDeviceWaitIdle() is Done
-getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
-getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
-getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
-getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
-createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
-createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
-
-minImageCount
-
-
-
-16 1 1 !!!
-createSwapchain() : swapchain image width = 1280 height = 720
-getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
-getPhysicalDevicePresentMode(): Found 3 present modes
-getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
-getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
-getPhysicalDevicePresentMode(): Memory freed, function completed successfully
-createSwapchain() : getPhysicalDevicePresentMode() succeeded
-createSwapchain() : vkCreateSwapchainKHR() succeeded
-createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
-createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
-createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
-createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
-createImagesAndImageViews() : vkCreateImage() succeeded for iteration
-createImagesAndImageViews() : vkAllocateMemory() succeeded.
-createImagesAndImageViews() : vkBindImageMemory() succeeded.
-createImagesAndImageViews() : VkCreateImageView() succeeded.
-createRenderPass() : vkCreateRenderPass() succeeded.
-createPiplineLayout() : vkCreatePipelineLayout() succeeded.
-createPipline() : vkCreatePipelineCache() succeeded.
-createPipeline() : vkCreateGraphicsPipelines() succeeded.
-createPipeline() : Free vkPipelineCache freed
-createframeBuffers() : vkCreateFramebuffer() succeeded.
-createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
 
  vkDeviceWaitIdle() is Done
 vkDestroyFence vkFence_array i = 0 Completedestroyed!

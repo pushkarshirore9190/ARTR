@@ -2934,75 +2934,57 @@ VkResult createVertexBuffer(void)
 	float cubeVertices[] =
 	{
 		// right wall
-		1.0f,  1.0f,  1.0f,   // top-front-right
-		1.0f,  1.0f, -5.0f,   // top-back-right
-		1.0f, -1.0f, -5.0f,   // bottom-back-right
-		1.0f, -1.0f,  1.0f,   // bottom-front-right
-
-		// left wall
-		-1.0f,  1.0f, -5.0f,   // top-back-left
-		-1.0f,  1.0f,  1.0f,   // top-front-left
-		-1.0f, -1.0f,  1.0f,   // bottom-front-left
-		-1.0f, -1.0f, -5.0f,   // bottom-back-left
-
+		10.0f,  5.0f,  0.0f,   // top-front-right
+		10.0f,  5.0f, -18.0f,  // top-back-right
+		10.0f, -5.0f, -18.0f,  // bottom-back-right
+		10.0f, -5.0f,  0.0f,   // bottom-front-right
+		
 		// back wall
-		1.0f,  1.0f, -5.0f,   // top-right-back
-		-1.0f,  1.0f, -5.0f,   // top-left-back
-		-1.0f, -1.0f, -5.0f,   // bottom-left-back
-		1.0f, -1.0f, -5.0f,   // bottom-right-back
+		10.0f,  5.0f, -18.0f,  // top-right-back
+		-10.0f,  5.0f, -18.0f,  // top-left-back
+		-10.0f, -5.0f, -18.0f,  // bottom-left-back
+		10.0f, -5.0f, -18.0f,  // bottom-right-back
 
-		// ceiling (top)
-		1.0f,  1.0f, -5.0f,   // back-right-top
-		1.0f,  1.0f,  1.0f,   // front-right-top
-		-1.0f,  1.0f,  1.0f,   // front-left-top
-		-1.0f,  1.0f, -5.0f,   // back-left-top
+		// ceiling
+		10.0f,  5.0f, -18.0f,  // back-right-top
+		10.0f,  5.0f,  0.0f,   // front-right-top
+		-10.0f,  5.0f,  0.0f,   // front-left-top
+		-10.0f,  5.0f, -18.0f,  // back-left-top
 
-		// floor (bottom)
-		1.0f, -1.0f,  1.0f,   // front-right-bottom
-		1.0f, -1.0f, -5.0f,   // back-right-bottom
-		-1.0f, -1.0f, -5.0f,   // back-left-bottom
-		-1.0f, -1.0f,  1.0f,   // front-left-bottom
+		// floor
+		10.0f, -5.0f,  0.0f,   // front-right-bottom
+		10.0f, -5.0f, -18.0f,  // back-right-bottom
+		-10.0f, -5.0f, -18.0f,  // back-left-bottom
+		-10.0f, -5.0f,  0.0f,   // front-left-bottom
 	};
-
 
 	float cubeColors[] =
 	{
-		// front
-		1.0f, 0.0f, 0.0f, // top-right of front
-		1.0f, 0.0f, 0.0f, // top-left of front
-		1.0f, 0.0f, 0.0f, // bottom-left of front
-		1.0f, 0.0f, 0.0f, // bottom-right of front
+		// right wall (blue)
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
 
-		// right
-		0.0f, 0.0f, 1.0f, // top-right of right
-		0.0f, 0.0f, 1.0f, // top-left of right
-		0.0f, 0.0f, 1.0f, // bottom-left of right
-		0.0f, 0.0f, 1.0f, // bottom-right of right
+		// back wall (yellow)
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
 
-		// back
-		1.0f, 1.0f, 0.0f, // top-right of back
-		1.0f, 1.0f, 0.0f, // top-left of back
-		1.0f, 1.0f, 0.0f, // bottom-left of back
-		1.0f, 1.0f, 0.0f, // bottom-right of back
+		// ceiling (green)
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
 
-		// left
-		1.0f, 0.0f, 1.0f, // top-right of left
-		1.0f, 0.0f, 1.0f, // top-left of left
-		1.0f, 0.0f, 1.0f, // bottom-left of left
-		1.0f, 0.0f, 1.0f, // bottom-right of left
-
-		// top
-		0.0f, 1.0f, 0.0f, // top-right of top
-		0.0f, 1.0f, 0.0f, // top-left of top
-		0.0f, 1.0f, 0.0f, // bottom-left of top
-		0.0f, 1.0f, 0.0f, // bottom-right of top
-
-		// bottom
-		1.0f, 0.5f, 0.0f, // top-right of bottom
-		1.0f, 0.5f, 0.0f, // top-left of bottom
-		1.0f, 0.5f, 0.0f, // bottom-left of bottom
-		1.0f, 0.5f, 0.0f, // bottom-right of bottom
+		// floor (orange)
+		1.0f, 0.5f, 0.0f,
+		1.0f, 0.5f, 0.0f,
+		1.0f, 0.5f, 0.0f,
+		1.0f, 0.5f, 0.0f,
 	};
+
 
 	// VERTEX POSITION BUFFER
 	memset((void*)&vertexData_Position, 0, sizeof(VertexData));

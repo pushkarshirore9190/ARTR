@@ -160,10 +160,6 @@ VkRect2D vkRect2D_Scissor;
 
 VkPipeline vkPipeline = VK_NULL_HANDLE;
 
-
-
-
-
 // VertexBuffer Related Variable
 
 typedef struct
@@ -223,8 +219,6 @@ VkDeviceMemory vkDeviceMemory_Texture = VK_NULL_HANDLE;
 VkImageView vkImageView_Texture = VK_NULL_HANDLE;
 
 VkSampler vkSampler_Texture = VK_NULL_HANDLE;
-
-
 
 
 //entry_point function
