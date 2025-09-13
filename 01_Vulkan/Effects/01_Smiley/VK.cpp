@@ -1165,11 +1165,11 @@ VkResult display(void)
 void update(void)
 {
 	// code
-	angle = angle + 1.5f;
-	if (angle >= 360.0f)
-	{
-		angle = angle - 360.0f;
-	}
+	// angle = angle + 1.5f;
+	// if (angle >= 360.0f)
+	// {
+	// 	angle = angle - 360.0f;
+	// }
 }
 
 
