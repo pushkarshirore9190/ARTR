@@ -158,10 +158,6 @@ VkRect2D vkRect2D_Scissor;
 
 VkPipeline vkPipeline = VK_NULL_HANDLE;
 
-
-
-
-
 // VertexBuffer Related Variable
 
 typedef struct
@@ -213,6 +209,7 @@ VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 // For Rotation
 float angle = 0.0f;
 
+int keyPressed = 0;
 
 //entry_point function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
@@ -422,6 +419,16 @@ LRESULT CALLBACK Wndproc(HWND hwnd , UINT iMsg, WPARAM wParam, LPARAM lParam)
 				gbFullscreen = FALSE;
 			}
 			break;
+		case 'X':
+		case 'x':
+			keyPressed++;  // move forward
+			break;
+
+		case 'Y':
+		case 'y':
+			keyPressed--;  // move backward
+			break;
+
 		}
 		break;
 
@@ -3278,45 +3285,53 @@ VkResult updateUniformbuffer(void)
 	MyUniformData myUniformData;
 	memset((void*)&myUniformData, 0, sizeof(MyUniformData));
 
-	// update matrices
-	myUniformData.modelMatrix = glm::mat4(1.0);
+	// ------------------------
+	// model matrix
+	// ------------------------
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -4.0f));
 
-	glm::mat4 translationMatrix = glm::mat4(1.0);
-
-	translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -4.0f));
-
-	glm::mat4 rotationMatrix_X = glm::mat4(1.0);
-
-	rotationMatrix_X = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)); // x axis rotation
-
-	glm::mat4 rotationMatrix_Y = glm::mat4(1.0);
-
-	rotationMatrix_Y = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f)); // Y axis rotation
-
-	glm::mat4 rotationMatrix_Z = glm::mat4(1.0);
-
-	rotationMatrix_Z = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Z axis rotation
+	glm::mat4 rotationMatrix_X = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 rotationMatrix_Y = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 rotationMatrix_Z = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	glm::mat4 rotationMatrix = rotationMatrix_X * rotationMatrix_Y * rotationMatrix_Z;
 
-	glm::mat4 scaleMatrix = glm::mat4(1.0);
-
-	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.75f, 0.75f, 0.75f)); // Y axis rotation
+	glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.75f, 0.75f, 0.75f));
 
 	myUniformData.modelMatrix = translationMatrix * scaleMatrix * rotationMatrix;
 
-	myUniformData.viewMatrix = glm::mat4(1.0);
+	// ------------------------
+	// view matrix (camera movement with keyPressed)
+	// ------------------------
+	static float cameraZ = 0.0f;   // persistent camera Z position
+	float cameraStep = 0.05f;      // movement step
 
-	glm::mat4 perspectiveProjectionMatrix = glm::mat4(1.0);
+	// apply movement from keyPressed (already set in key handler)
+	cameraZ += (float)keyPressed * cameraStep;
 
-	perspectiveProjectionMatrix = glm::perspective(glm::radians(45.0f), float(winWidth) / float(winHeight), 0.1f, 100.0f);
+	// reset keyPressed so only one step per press
+	keyPressed = 0;
 
-	perspectiveProjectionMatrix[1][1] = perspectiveProjectionMatrix[1][1] * (-1.0f);
+	// build view matrix
+	myUniformData.viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, cameraZ));
+
+	// ------------------------
+	// projection matrix
+	// ------------------------
+	glm::mat4 perspectiveProjectionMatrix = glm::perspective(
+		glm::radians(45.0f),
+		float(winWidth) / float(winHeight),
+		0.1f,
+		100.0f
+	);
+
+	perspectiveProjectionMatrix[1][1] *= -1.0f; // flip Y for Vulkan
 
 	myUniformData.projectionMatrix = perspectiveProjectionMatrix;
 
-	// map unifrom buffer
-
+	// ------------------------
+	// map uniform buffer
+	// ------------------------
 	void* data = NULL;
 
 	vkresult = vkMapMemory(vkDevice, uniformData.vkDeviceMemory, 0, sizeof(MyUniformData), 0, &data);
@@ -3326,13 +3341,14 @@ VkResult updateUniformbuffer(void)
 		return vkresult;
 	}
 
-	// actual memory mapped
 	memcpy(data, &myUniformData, sizeof(myUniformData));
 
 	vkUnmapMemory(vkDevice, uniformData.vkDeviceMemory);
 
 	return vkresult;
 }
+
+
 
 
 VkResult createShaders(void)
