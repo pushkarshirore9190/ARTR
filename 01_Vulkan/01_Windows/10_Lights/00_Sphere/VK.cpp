@@ -3277,12 +3277,12 @@ VkResult createIndexBuffer(void)
 	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Index.vkBuffer);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createIndexBuffer() : vkCreateBuffer() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded position index buffer \n");
+		fprintf(gpFile, "createIndexBuffer() : vkCreateBuffer() succeeded position index buffer \n");
 	}
 
 
@@ -3317,23 +3317,23 @@ VkResult createIndexBuffer(void)
 	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Index.vkDeviceMemory);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createIndexBuffer() : vkAllocateMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded for position index buffer \n");
+		fprintf(gpFile, "createIndexBuffer() : vkAllocateMemory() succeeded for position index buffer \n");
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Index.vkBuffer, vertexData_Index.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createIndexBuffer() : vkBindBufferMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded for position index buffer\n");
+		fprintf(gpFile, "createIndexBuffer() : vkBindBufferMemory() succeeded for position index buffer\n");
 	}
 
 	void* data = NULL;
@@ -3341,12 +3341,12 @@ VkResult createIndexBuffer(void)
 	vkresult = vkMapMemory(vkDevice, vertexData_Index.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createIndexBuffer() : vkMapMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded for position index buffer\n");
+		fprintf(gpFile, "createIndexBuffer() : vkMapMemory() succeeded for position index buffer\n");
 	}
 
 	// actual memory mapped
@@ -3426,6 +3426,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkAllocateMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, uniformData.vkBuffer, uniformData.vkDeviceMemory, 0);
@@ -3437,6 +3438,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkBindBufferMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// call updateUnifomBuffer
@@ -3449,6 +3451,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : updateUniformbuffer() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
@@ -4425,7 +4428,7 @@ VkResult buildCommandBuffers(void)
 		// for index
 		vkCmdBindIndexBuffer(vkCommandBuffer_Array[i], vertexData_Index.vkBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-		vkCmdDrawIndexed(vkCommandBuffer_Array[i], numElements, 1, 0, 0, 0);
+		vkCmdDrawIndexed(vkCommandBuffer_Array[i], numElements, 1, 0, 0, 1);
 
 		// end the renderpass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);
