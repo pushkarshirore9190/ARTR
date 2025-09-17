@@ -19,7 +19,7 @@ layout(binding=0) uniform UniformData
     vec4 materialAmbient;
     vec4 materialDiffuse;
     vec4 materialSpecular;
-    vec4 materialShininess;
+    float materialShininess;
 
 
 	//key Press related uniform
@@ -42,7 +42,7 @@ void main(void)
         vec4 eyeCoordinates = u_UniformData.viewMatrix *u_UniformData.modelMatrix * vPosition;
         mat3 normalMatrix = mat3(transpose(inverse(u_UniformData.viewMatrix * u_UniformData.modelMatrix)));
         out_transformedNormal = normalMatrix * vNormal;
-        out_lightDirection = vec3(u_UniformData.lightPosition - eyeCoordinates);
+        out_lightDirection = vec3(u_UniformData.lightPosition) - eyeCoordinates.xyz;
         out_viwerVector = -eyeCoordinates.xyz;
     }
 }

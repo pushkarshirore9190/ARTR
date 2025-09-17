@@ -26,7 +26,7 @@ layout(binding=0) uniform UniformData
     vec4 materialAmbient;
     vec4 materialDiffuse;
     vec4 materialSpecular;
-    vec4 materialShininess;
+    float materialShininess;
 
 
 	//key Press related uniform
@@ -50,8 +50,7 @@ void main(void)
 		vec3 reflectionVector = reflect(-normalisedLightDirection,normalisedTransformedNormal);
 		vec3 specularLight = vec3(u_UniformData.lightSpecular) 
                    * vec3(u_UniformData.materialSpecular) 
-                   * pow(max(dot(reflectionVector, normalisedViewerVector), 0.0), 
-                         u_UniformData.materialShininess.x);
+                   * pow(max(dot(reflectionVector, normalisedViewerVector), 0.0),u_UniformData.materialShininess);
 
 		phong_ads_light = ambientLight + diffuseLight + specularLight;
 	}

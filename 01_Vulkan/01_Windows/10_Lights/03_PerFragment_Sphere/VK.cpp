@@ -817,7 +817,7 @@ VkResult initialise(void)
 
 	vkClearColorValue.float32[0] = 0.0f;
 	vkClearColorValue.float32[1] = 0.0f;
-	vkClearColorValue.float32[2] = 1.0f;
+	vkClearColorValue.float32[2] = 0.0f;
 	vkClearColorValue.float32[3] = 1.0f;  // analogse to glclear color
 
 	memset((void*)&vkClearDepthStencilValue, 0, sizeof(VkClearDepthStencilValue));
@@ -4042,9 +4042,9 @@ VkResult createPipline(void)
 	vkVertexInputBindingDescription_Array[1].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	// Texture
-	vkVertexInputBindingDescription_Array[0].binding = 2;
-	vkVertexInputBindingDescription_Array[0].stride = sizeof(float) * 2;
-	vkVertexInputBindingDescription_Array[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	vkVertexInputBindingDescription_Array[2].binding = 2;
+	vkVertexInputBindingDescription_Array[2].stride = sizeof(float) * 2;
+	vkVertexInputBindingDescription_Array[2].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 
 	VkVertexInputAttributeDescription vkVertexInputAttributeDescription_Array[3];
@@ -4057,17 +4057,16 @@ VkResult createPipline(void)
 	vkVertexInputAttributeDescription_Array[0].offset = 0;
 
 	// Normal
-	vkVertexInputAttributeDescription_Array[0].binding = 1;
-	vkVertexInputAttributeDescription_Array[0].location = 1;
-	vkVertexInputAttributeDescription_Array[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	vkVertexInputAttributeDescription_Array[0].offset = 0;
+	vkVertexInputAttributeDescription_Array[1].binding = 1;
+	vkVertexInputAttributeDescription_Array[1].location = 1;
+	vkVertexInputAttributeDescription_Array[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	vkVertexInputAttributeDescription_Array[1].offset = 0;
 
 	// TEXTCOORD
-	vkVertexInputAttributeDescription_Array[0].binding = 2;
-	vkVertexInputAttributeDescription_Array[0].location = 2;
-	vkVertexInputAttributeDescription_Array[0].format = VK_FORMAT_R32G32_SFLOAT;
-	vkVertexInputAttributeDescription_Array[0].offset = 0;
-
+	vkVertexInputAttributeDescription_Array[2].binding = 2;
+	vkVertexInputAttributeDescription_Array[2].location = 2;
+	vkVertexInputAttributeDescription_Array[2].format = VK_FORMAT_R32G32_SFLOAT;
+	vkVertexInputAttributeDescription_Array[2].offset = 0;
 
 	VkPipelineVertexInputStateCreateInfo vkPipelineVertexInputStateCreateInfo;
 	memset((void*)&vkPipelineVertexInputStateCreateInfo, 0, sizeof(VkPipelineVertexInputStateCreateInfo));
@@ -4113,7 +4112,7 @@ VkResult createPipline(void)
 	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array));
 
 	vkPipelineColorBlendAttachmentState_Array[0].blendEnable = VK_FALSE;
-	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask = VK_COLOR_COMPONENT_G_BIT;
+	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask = 0xf;
 
 
 	VkPipelineColorBlendStateCreateInfo vkPipelineColorBlendStateCreateInfo;
