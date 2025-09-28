@@ -147,9 +147,6 @@ VkRect2D vkRect2D_Scissor;
 VkPipeline vkPipeline = VK_NULL_HANDLE;
 
 
-
-
-
 // VertexBuffer Related Variable
 
 typedef struct
@@ -172,9 +169,6 @@ struct MyUniformData {
 	float time;
 	glm::vec3 padding;
 };
-
-
-
 
 struct UniformData
 {
