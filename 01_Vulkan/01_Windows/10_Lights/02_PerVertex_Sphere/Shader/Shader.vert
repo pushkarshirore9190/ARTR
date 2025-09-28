@@ -1,50 +1,54 @@
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
+
 layout(location=0) in vec4 vPosition;
 layout(location=1) in vec3 vNormal;
+
 layout(binding=0) uniform UniformData
 {
-    //matrices related uniform
     mat4 modelMatrix;
     mat4 viewMatrix;
     mat4 projectionMatrix;
 
-	//Light related Uniforms
-	vec4 lightAmbient;
-	vec4 lightDiffused;
+    vec4 lightAmbient;
+    vec4 lightDiffuse;
     vec4 lightSpecular;
     vec4 lightPosition;
 
-    // matrical unforom
     vec4 materialAmbient;
     vec4 materialDiffuse;
     vec4 materialSpecular;
     float materialShininess;
 
-
-	//key Press related uniform
-	uint LKeyIsPressed;
-
+    uint LKeyIsPressed;
 } u_UniformData;
 
-layout(location=0) out vec3 out_transformedNormal;
-
-layout(location=1) out vec3 out_lightDirection;
-
-layout(location=2) out vec3 out_viwerVector;
+layout(location=0) out vec3 out_phong_ads_light;
 
 void main(void)
 {
-    // Transform vertex position using MVP matrices
     gl_Position = u_UniformData.projectionMatrix * u_UniformData.viewMatrix * u_UniformData.modelMatrix * vPosition;
+
     if(u_UniformData.LKeyIsPressed == 1)
     {
-        vec4 eyeCoordinates = u_UniformData.viewMatrix *u_UniformData.modelMatrix * vPosition;
+        vec4 eyeCoordinates = u_UniformData.viewMatrix * u_UniformData.modelMatrix * vPosition;
         mat3 normalMatrix = mat3(transpose(inverse(u_UniformData.viewMatrix * u_UniformData.modelMatrix)));
-        out_transformedNormal = normalMatrix * vNormal;
-        out_lightDirection = vec3(u_UniformData.lightPosition) - eyeCoordinates.xyz;
-        out_viwerVector = -eyeCoordinates.xyz;
+        vec3 transformedNormal = normalize(normalMatrix * vNormal);
+        vec3 lightDirection = normalize(vec3(u_UniformData.lightPosition) - eyeCoordinates.xyz);
+        vec3 viewerVector = normalize(-eyeCoordinates.xyz);
+
+        vec3 ambientLight = vec3(u_UniformData.lightAmbient) * vec3(u_UniformData.materialAmbient);
+        vec3 diffuseLight = vec3(u_UniformData.lightDiffuse) * vec3(u_UniformData.materialDiffuse) * max(dot(lightDirection, transformedNormal),0.0);
+        vec3 reflectionVector = reflect(-lightDirection, transformedNormal);
+        vec3 specularLight = vec3(u_UniformData.lightSpecular) 
+                           * vec3(u_UniformData.materialSpecular) 
+                           * pow(max(dot(reflectionVector, viewerVector), 0.0), u_UniformData.materialShininess);
+
+        out_phong_ads_light = ambientLight + diffuseLight + specularLight;
+    }
+    else
+    {
+        out_phong_ads_light = vec3(1.0,1.0,1.0);
     }
 }
-
 
