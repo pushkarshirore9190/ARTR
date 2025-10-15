@@ -2468,6 +2468,7 @@ VkResult getPhysicalDevicePresentMode(void)
 	else
 	{
 		fprintf(gpFile, "getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded\n");
+        fflush(gpFile);
 	}
 
 	// Check if no present modes are found
