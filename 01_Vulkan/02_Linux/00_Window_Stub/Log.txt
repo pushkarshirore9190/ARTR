@@ -1,0 +1,3 @@
+ main() : Programm Started Successfully. 
+Found Number Of iNumFBConfig = 504
+main(): initialize() Succeded 
