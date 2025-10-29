@@ -249,6 +249,12 @@ int main(int argc, char *argv[])
         fprintf(gpFile," main() : Programm Started Successfully. \n");
     }
 
+	if (XInitThreads() == 0) {
+        fprintf(gpFile, "main(): XInitThreads() failed\n");
+        uninitialise();
+        exit(1);
+    }
+
     // Open the connection with x-server interface and get gpDisplay interface
     gpDisplay = XOpenDisplay(NULL);
     if(gpDisplay == NULL)
@@ -344,19 +350,6 @@ int main(int argc, char *argv[])
     screenWidth = XWidthOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
     screenHeight = XHeightOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
     XMoveWindow(gpDisplay,window,(screenWidth - WIN_WIDTH) / 2 , (screenHeight - WIN_HEIGHT) / 2);
-
-    // initialise Window
-    int iResult = initialise();
-    if(iResult != 0)
-    {
-        fprintf(gpFile,"main(): initialise() Failed \n");
-        uninitialise();
-        exit(1);
-    }
-    else
-    {
-        fprintf(gpFile,"main(): initialise() Succeded \n");
-    }
 
     // Event Loop
     while (bDone == False)
