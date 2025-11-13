@@ -272,6 +272,32 @@ createIndexBuffer() : vkAllocateMemory() succeeded for position index buffer
 createIndexBuffer() : vkBindBufferMemory() succeeded for position index buffer
 createIndexBuffer() : vkMapMemory() succeeded for position index buffer
 initialise() : createIndexBuffer() succeeded
+createTexture() : vkCreateBuffer() succeeded.
+createTexture() : vkAllocateMemory() succeeded.
+createTexture() : vkBindBufferMemory() succeeded.
+createTexture() : vkMapMemory() succeeded for vertex texcoord buffer
+createTexture() : stbi_image_free() succeeded for image data
+createTexture() : vkCreateImageView() succeeded
+createTexture() : vkAllocateMemory() succeeded for image
+createTexture() : vkBindBufferMemory() succeeded for image
+createTexture() : vkAllocateCommandBuffers() succeeded
+createTexture() : vkBeginCommandBuffer() succeeded
+createTexture() : vkEndCommandBuffer() succeeded
+createTexture() : vkQueueSubmit() succeeded
+createTexture() : vkQueueWaitIdle() succeeded
+createTexture() : vkAllocateCommandBuffers() succeeded for buffer to image
+createTexture() : vkBeginCommandBuffer() succeeded for image to copy
+createTexture() : vkEndCommandBuffer() succeeded buffer to image 
+createTexture() : vkQueueSubmit() succeeded buffer to image
+createTexture() : vkQueueWaitIdle() succeeded buffer to image
+createTexture() : vkAllocateCommandBuffers() succeeded
+createTexture() : vkBeginCommandBuffer() succeeded
+createTexture() : vkEndCommandBuffer() succeeded
+createTexture() : vkQueueSubmit() succeeded
+createTexture() : vkQueueWaitIdle() succeeded
+createTexture() : VkCreateImageView() succeeded.
+createTexture() : vkCreateSampler() succeeded.
+initialise() : createTexture() succeeded for marble 
 createUniformBuffer() : vkCreateBuffer() succeeded.
 createUniformBuffer() : vkAllocateMemory() succeeded.
 createUniformBuffer() : vkBindBufferMemory() succeeded.
@@ -345,6 +371,14 @@ Free vkShaderModule_vertex_shader freed
 Freed uniformData.vkBuffer 
 
 Freed uniformData.vkDeviceMemory 
+
+Freed vkSampler_Texture 
+
+Freed vkImageView_Texture 
+
+Freed VkDeviceMemory_Texture 
+
+Freed VkImage_Texture 
 
 Free vertexData_Index.vkDeviceMemory freed
 
