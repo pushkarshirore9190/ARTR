@@ -247,6 +247,38 @@ BOOL bLight = FALSE;
 
 char choosenShader = 'V';
 
+// declare near other function prototypes
+VkResult rebuildCommandBuffersIfReady(void);
+
+// implement somewhere after your other functions (or above Wndproc)
+VkResult rebuildCommandBuffersIfReady(void)
+{
+	VkResult buildCommandBuffers(void);
+	
+    VkResult vkresult = VK_SUCCESS;
+
+    // don't try to rebuild until initialization finished
+    if (!bInitialised)
+        return VK_SUCCESS;
+
+    // Wait for device so we can safely reset/record command buffers
+    if (vkDevice)
+        vkDeviceWaitIdle(vkDevice);
+
+    vkresult = buildCommandBuffers();
+    if (vkresult != VK_SUCCESS)
+    {
+        fprintf(gpFile, "rebuildCommandBuffersIfReady(): buildCommandBuffers() failed (%d)\n", vkresult);
+    }
+    else
+    {
+        fprintf(gpFile, "rebuildCommandBuffersIfReady(): command buffers re-recorded for shader '%c'\n", choosenShader);
+    }
+
+    return vkresult;
+}
+
+
 
 //entry_point function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
@@ -463,14 +495,17 @@ LRESULT CALLBACK Wndproc(HWND hwnd , UINT iMsg, WPARAM wParam, LPARAM lParam)
 
         // Shader selection
         case 'V':
-        case 'v':
-            choosenShader = 'V'; // Per-Vertex
-            break;
+		case 'v':
+			choosenShader = 'V'; // Per-Vertex
+			rebuildCommandBuffersIfReady();
+			break;
 
-        case 'P':
-        case 'p':
-            choosenShader = 'F'; // Per-Fragment
-            break;
+		case 'P':
+		case 'p':
+			choosenShader = 'F'; // Per-Fragment
+			rebuildCommandBuffersIfReady();
+			break;
+
     }
     break;
 
