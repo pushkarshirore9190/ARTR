@@ -259,10 +259,10 @@ createVertexBuffer() : vkAllocateMemory() succeeded for texcoord
 createVertexBuffer() : vkBindBufferMemory() succeeded for texcoord
 createVertexBuffer() : vkMapMemory() succeeded for texcoord
 initialise() : createVertexBuffer() succeeded
-createIndexBuffer() : vkCreateBuffer() succeeded position index buffer 
-createIndexBuffer() : vkAllocateMemory() succeeded for position index buffer 
-createIndexBuffer() : vkBindBufferMemory() succeeded for position index buffer
-createIndexBuffer() : vkMapMemory() succeeded for position index buffer
+createVertexBuffer() : vkCreateBuffer() succeeded position index buffer 
+createVertexBuffer() : vkAllocateMemory() succeeded for position index buffer 
+createVertexBuffer() : vkBindBufferMemory() succeeded for position index buffer
+createVertexBuffer() : vkMapMemory() succeeded for position index buffer
 initialise() : createIndexBuffer() succeeded
 createUniformBuffer() : vkCreateBuffer() succeeded.
 createUniformBuffer() : vkAllocateMemory() succeeded.

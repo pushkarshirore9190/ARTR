@@ -194,9 +194,25 @@ VertexData vertexData_Index;
 // uniform related declarations
 struct MyUniformData
 {
+	// matrices related to uniform
 	glm::mat4 modelMatrix;
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
+
+	// light related uniform
+	float lightAmbient[4];
+	float lightDiffuse[4];
+	float lightSpecular[4];
+	float lightPosition[4];
+
+	// material related uniform
+	float materialAmbient[4];
+	float materialDiffuse[4];
+	float materialSpecular[4];
+	float materialShininess;
+
+	// keypressed related uniform
+	unsigned int lKeyIsPressed;
 };
 
 struct UniformData
@@ -225,6 +241,7 @@ VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
 // Descriptor set
 VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 
+Bool bLight = False;
 
 
 // entry point function
@@ -422,6 +439,17 @@ int main(int argc, char *argv[])
                             bFullscreen = False;
                         }
                         break;
+					case 'L':
+					case 'l':
+						if (bLight == False)
+						{
+							bLight = True;
+						}
+						else
+						{
+							bLight = False;
+						}
+						break;
 
                         default:
                             break;
@@ -1314,6 +1342,7 @@ void uninitialise(void)
 	//because any resources related to vulkan device ae all done so resource freeing 
 
 	//Destroy vulkan device
+	//Destroy vulkan device
 	if (vkDevice)
 	{
 		vkDeviceWaitIdle(vkDevice);
@@ -1616,6 +1645,7 @@ void uninitialise(void)
 	}
 
 }
+
 
 //////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
 
@@ -3396,12 +3426,12 @@ VkResult createIndexBuffer(void)
 	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Index.vkBuffer);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkCreateBuffer() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkCreateBuffer() succeeded position index buffer \n");
+		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded position index buffer \n");
 	}
 
 
@@ -3436,23 +3466,23 @@ VkResult createIndexBuffer(void)
 	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Index.vkDeviceMemory);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkAllocateMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkAllocateMemory() succeeded for position index buffer \n");
+		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded for position index buffer \n");
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Index.vkBuffer, vertexData_Index.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkBindBufferMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkBindBufferMemory() succeeded for position index buffer\n");
+		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded for position index buffer\n");
 	}
 
 	void* data = NULL;
@@ -3460,12 +3490,12 @@ VkResult createIndexBuffer(void)
 	vkresult = vkMapMemory(vkDevice, vertexData_Index.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkMapMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createIndexBuffer() : vkMapMemory() succeeded for position index buffer\n");
+		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded for position index buffer\n");
 	}
 
 	// actual memory mapped
@@ -3545,7 +3575,6 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkAllocateMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, uniformData.vkBuffer, uniformData.vkDeviceMemory, 0);
@@ -3557,7 +3586,6 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkBindBufferMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	// call updateUnifomBuffer
@@ -3570,7 +3598,6 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : updateUniformbuffer() succeeded.\n");
-		fflush(gpFile);
 	}
 
 
@@ -3608,6 +3635,57 @@ VkResult updateUniformbuffer(void)
 	perspectiveProjectionMatrix[1][1] = perspectiveProjectionMatrix[1][1] * (-1.0f);
 
 	myUniformData.projectionMatrix = perspectiveProjectionMatrix;
+
+	// update lighting related uniform
+	myUniformData.lightAmbient[0] = 0.1f;
+	myUniformData.lightAmbient[1] = 0.1f;
+	myUniformData.lightAmbient[2] = 0.1f;
+	myUniformData.lightAmbient[3] = 1.0f;
+
+	myUniformData.lightDiffuse[0] = 1.0f;
+	myUniformData.lightDiffuse[1] = 1.0f;
+	myUniformData.lightDiffuse[2] = 1.0f;
+	myUniformData.lightDiffuse[3] = 1.0f;
+
+	myUniformData.lightSpecular[0] = 1.0f;
+	myUniformData.lightSpecular[1] = 1.0f;
+	myUniformData.lightSpecular[2] = 1.0f;
+	myUniformData.lightSpecular[3] = 1.0f;
+
+	myUniformData.lightPosition[0] = 100.0f;
+	myUniformData.lightPosition[1] = 100.0f;
+	myUniformData.lightPosition[2] = 100.0f;
+	myUniformData.lightPosition[3] = 1.0f;
+
+	// update material uniform
+	myUniformData.materialAmbient[0] = 0.0f;
+	myUniformData.materialAmbient[1] = 0.0f;
+	myUniformData.materialAmbient[2] = 0.0f;
+	myUniformData.materialAmbient[3] = 1.0f;
+
+	myUniformData.materialDiffuse[0] = 0.5f;
+	myUniformData.materialDiffuse[1] = 0.2f;
+	myUniformData.materialDiffuse[2] = 0.7f;
+	myUniformData.materialDiffuse[3] = 1.0f;
+
+	myUniformData.materialSpecular[0] = 0.7f;
+	myUniformData.materialSpecular[1] = 0.7f;
+	myUniformData.materialSpecular[2] = 0.7f;
+	myUniformData.materialSpecular[3] = 1.0f;
+
+	myUniformData.materialShininess = 128.0f;
+
+
+	// update key press related unifrom
+
+	if(bLight == True)
+	{
+		myUniformData.lKeyIsPressed = 1;
+	}
+	else
+	{
+		myUniformData.lKeyIsPressed = 0;
+	}
 
 
 	// map unifrom buffer
@@ -3810,7 +3888,7 @@ VkResult createDiscriptorSetLayout(void)
 	vkdescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	vkdescriptorSetLayoutBinding.binding = 0;  // this 0 is related with the binding  = 0 of vertex shader
 	vkdescriptorSetLayoutBinding.descriptorCount = 1;
-	vkdescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	vkdescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	vkdescriptorSetLayoutBinding.pImmutableSamplers = NULL;
 
 
@@ -4108,7 +4186,6 @@ VkResult createPipline(void)
 	vkVertexInputAttributeDescription_Array[2].location = 2;
 	vkVertexInputAttributeDescription_Array[2].format = VK_FORMAT_R32G32_SFLOAT;
 	vkVertexInputAttributeDescription_Array[2].offset = 0;
-
 
 	VkPipelineVertexInputStateCreateInfo vkPipelineVertexInputStateCreateInfo;
 	memset((void*)&vkPipelineVertexInputStateCreateInfo, 0, sizeof(VkPipelineVertexInputStateCreateInfo));
@@ -4547,7 +4624,7 @@ VkResult buildCommandBuffers(void)
 		// for index
 		vkCmdBindIndexBuffer(vkCommandBuffer_Array[i], vertexData_Index.vkBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-		vkCmdDrawIndexed(vkCommandBuffer_Array[i], numElements, 1, 0, 0, 1);
+		vkCmdDrawIndexed(vkCommandBuffer_Array[i], numElements, 1, 0, 0, 0);
 
 		// end the renderpass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);
