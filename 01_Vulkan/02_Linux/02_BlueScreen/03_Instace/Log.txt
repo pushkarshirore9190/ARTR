@@ -27,6 +27,11 @@ fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found
 fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME found
 fillExtensionNames() : enabled Vulkan extension name = VK_KHR_surface
 fillExtensionNames() : enabled Vulkan extension name = VK_KHR_xlib_surface
-initialise() : fillExtensionNames() succeeded
+createVulkanInstance() : fillExtensionNames() succeeded
+createVulkanInstance() : vkCreateInstance() function succeeded
+initialise() : createVulkanInstance() succeeded
+******************************************* initialise comment *****************************
+initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() Succeded. 
+uninitialise() : vkDestroyInstance() succeeded
 uninitialise() : programm is sucessfully ended

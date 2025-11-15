@@ -24,9 +24,17 @@ fillExtensionNames() : Vulkan Extension name = VK_EXT_debug_utils
 fillExtensionNames() : Vulkan Extension name = VK_KHR_portability_enumeration
 fillExtensionNames() : Vulkan Extension name = VK_LUNARG_direct_driver_loading
 fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found
-fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME found
+fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME found
 fillExtensionNames() : enabled Vulkan extension name = VK_KHR_surface
 fillExtensionNames() : enabled Vulkan extension name = VK_KHR_xlib_surface
-initialise() : fillExtensionNames() succeeded
+createVulkanInstance() : fillExtensionNames() succeeded
+createVulkanInstance() : vkCreateInstance() function succeeded
+initialise() : createVulkanInstance() succeeded
+getSupportedSurface() : vkCreateWin32SurfaceKHR succeded 
+initialise() : getSupportedSurface() succeeded
+******************************************* initialise comment *****************************
+initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() Succeded. 
+uninitialise() : vkDestroySurfaceKHR() succeeded
+uninitialise() : vkDestroyInstance() succeeded
 uninitialise() : programm is sucessfully ended

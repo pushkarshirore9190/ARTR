@@ -1,36 +1,50 @@
-// windows header files
-#include<windows.h>
-#include"VK.h"
-#include<stdio.h> // for file IO
-#include<stdlib.h> // for exit
+// standard header file
+#include<stdio.h> // for prinf()
+#include<stdlib.h>  // for exit()
+#include<memory.h> // for memset()
+#include<limits.h>
 
-#define VK_USE_PLATFORM_WIN32_KHR  // tells in which platform you are
+
+// X11 header files
+#include<X11/Xlib.h> // for all XWindow APIs
+#include<X11/Xutil.h> // for XVisiualInfo and related API
+#include<X11/XKBlib.h>
+#include <X11/keysym.h>
+#include<X11/Xatom.h> // for XA_ATOM
+
+#define VK_USE_PLATFORM_XLIB_KHR
 #include<vulkan/vulkan.h>
-
-// vulkun related libraries
-#pragma comment(lib, "vulkan-1.lib")
-
 
 
 // Macros
-#define Win_WIDTH 800
-#define Win_HEIGHT 600
+#define WIN_WIDTH 800
+#define WIN_HEIGHT 600
+#define ARRAY_SIZE(x) sizeof(x)/sizeof(x[0])
+
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#define max(a,b) ((a) > (b) ? (a) : (b))
 
 
-//global function declaration
-LRESULT CALLBACK Wndproc(HWND, UINT, WPARAM, LPARAM);
 
-const char* gpszAppName = "ARTR";
-
-// global variable declaration
-FILE* gpFile = NULL; 
+// global varialble declaration
+const char * gpszAppName = "ARTR";
 
 
-HWND ghwnd = NULL;
-BOOL gbActive = FALSE;
-DWORD dwstyle = 0;
-WINDOWPLACEMENT wprev;
-BOOL gbFullscreen = FALSE;
+Display *gpDisplay = NULL;
+Colormap colormap;
+Window window;
+XVisualInfo *gpXvisualInfo = NULL;
+
+
+int winWidth = WIN_WIDTH;
+int winHeight = WIN_HEIGHT;
+
+Bool bActiveWIndow = False;
+Bool bEscapeKeyIsPressed = False;
+Bool bFullscreen = False;
+Bool bWindowMinimized = False;
+
+FILE * gpFile = NULL;
 
 
 // vulkun related global variables
@@ -81,9 +95,6 @@ VkColorSpaceKHR vkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 // presentation mode
 VkPresentModeKHR vkPresentModeKHR = VK_PRESENT_MODE_FIFO_KHR;
 
-int winWidth = Win_WIDTH;
-int winHeight = Win_HEIGHT;
-
 //swap chain related global variables
 VkSwapchainKHR vkSwapchainKHR = VK_NULL_HANDLE;
 VkExtent2D vkExtent2D_Swapchain;
@@ -94,248 +105,391 @@ uint32_t SwapchainImageCount = UINT32_MAX;  // Fixed 'unit32_t' to 'uint32_t' an
 VkImage* SwapchainImage_Array = NULL;
 VkImageView* SwapchainImageView_Array = NULL;
 
-
 // command pool 
 VkCommandPool vkcommandpool = VK_NULL_HANDLE;
 
+// command buffer
+VkCommandBuffer* vkCommandBuffer_Array = NULL;
 
-//entry_point function
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
+// render pass
+VkRenderPass vkRenderpass = VK_NULL_HANDLE;
+
+// frameBuffer
+VkFramebuffer* vkFramebuffer_Array = NULL;
+
+// Semaphore
+VkSemaphore vkSemaphore_backbuffer = VK_NULL_HANDLE;
+VkSemaphore vkSemaphore_rendercomplete = VK_NULL_HANDLE;
+
+// Fence
+VkFence* vkFence_Array = NULL;
+
+
+
+// entry point function
+int main(int argc, char *argv[])
 {
-	// Function Declaration 
+    // Function Declaration 
 	VkResult initialise(void);
 	void uninitialise(void);
 	void display(void);
 	void update(void);
-
-	// local variable declarations
-	WNDCLASSEX wndclass;
-	HWND hwnd;
-	MSG msg;
-	TCHAR szAppName[255];
-	int iResult = 0;
-	BOOL bDone = FALSE;
-
-	VkResult vkresult = VK_SUCCESS;
-
-	//int height = 600;
-	//int width = 800;
-	int window_x_coordinate = GetSystemMetrics(SM_CXSCREEN);
-	int window_y_coordinate = GetSystemMetrics(SM_CYSCREEN);
-	int y;
-	int x;
-	x = (window_x_coordinate / 2) - Win_WIDTH / 2;
-	y = (window_y_coordinate / 2) - Win_HEIGHT / 2;
-
-	//code
-	gpFile = fopen("Log.txt", "w");
-	if (gpFile == NULL)
-	{
-		MessageBox(NULL, TEXT("log file cannot be open"), TEXT("Eroor"), MB_OK | MB_ICONERROR);
-		exit(0);
-	}
-	fprintf(gpFile, "programm started successfully...\n");
-
-	wsprintf(szAppName, TEXT("%s"), gpszAppName);
-
-	//WndclassEX initialisation
-
-	wndclass.cbSize = sizeof(WNDCLASSEX);
-	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wndclass.cbClsExtra = 0;
-	wndclass.cbWndExtra = 0;
-	wndclass.lpfnWndProc = Wndproc;
-	wndclass.hInstance = hInstance;
-	wndclass.hbrBackground= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wndclass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndclass.lpszClassName = szAppName;
-	wndclass.lpszMenuName = NULL;
-	wndclass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-
-	//register wndclassEX
-
-	RegisterClassEx(&wndclass);
+	void toggleFullScreen(void);
+	void resize(int, int);
+    Bool isWindowMinimized(void);
 
 
-	// create window
-	hwnd = CreateWindowEx(WS_EX_APPWINDOW, 
-		szAppName,
-		TEXT("PRS : Vulkun"),
-		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+    VkResult vkresult = VK_SUCCESS;
 
 
-		x,// upperleft x-coordinate
-		y,// upperleft y-coordinate
-		Win_WIDTH,// width
-		Win_HEIGHT,// height
+    // Local Variable Declation
+    XVisualInfo XvisualInfo;
+    int iNumFBConfig = 0;
+    XSetWindowAttributes WindowAttributes;
+    int defaultScreen;
+    int defaultDepth;
+    Status status;
+    XSetWindowAttributes windowAttribute;
+    int styleMask;
+    Atom windowManagerDelete;
+    XEvent event;
+    KeySym keysym;
+    int screenWidth;
+    int screenHeight;
+    char keys[26];
+    Bool bDone = False;
 
-		NULL,
-		NULL,
-		hInstance,
-		NULL);
+    // code
 
-	ghwnd = hwnd;
+    gpFile = fopen("Log.txt","w");
+    if(gpFile == NULL)
+    {
+        printf(" main(): Log File Can Not Be Created. Exiting Now ...\n");
+        exit(1);
+    }
+    else
+    {
+        fprintf(gpFile," main() : Programm Started Successfully. \n");
+    }
 
-	// INITIALISATION
+	if (XInitThreads() == 0) {
+        fprintf(gpFile, "main(): XInitThreads() failed\n");
+        uninitialise();
+        exit(1);
+    }
 
-	vkresult = initialise();
+    // Open the connection with x-server interface and get gpDisplay interface
+    gpDisplay = XOpenDisplay(NULL);
+    if(gpDisplay == NULL)
+    {
+        fprintf(gpFile, "main(): XOpenDisplay Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    // Get Default screen from above gpDisplay
+    defaultScreen = XDefaultScreen(gpDisplay);
+
+    // Get Default Depth from above two 
+    //defaultDepth = XDefaultDepth(gpDisplay,defaultScreen);
+
+    // Get Visiualinfo from above three
+    memset((void*)&XvisualInfo,0,sizeof(XVisualInfo));
+
+    XvisualInfo.screen = defaultScreen;
+    gpXvisualInfo = XGetVisualInfo(gpDisplay,VisualScreenMask,&XvisualInfo,&iNumFBConfig);
+
+    if(gpXvisualInfo == NULL)
+    {
+        fprintf(gpFile,"main(): XGetVisualInfo Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    fprintf(gpFile, "Found Number Of iNumFBConfig = %d\n",iNumFBConfig);
+
+    // create colormap
+    colormap = XCreateColormap(gpDisplay,
+    XRootWindow(gpDisplay,XvisualInfo.screen),gpXvisualInfo->visual,AllocNone);
+
+    // set Window attributes / Properties
+    memset((void*)&windowAttribute,0,sizeof(XSetWindowAttributes));
+
+    windowAttribute.border_pixel = 0;
+    windowAttribute.background_pixel = XBlackPixel(gpDisplay,defaultScreen);
+    windowAttribute.background_pixmap = 0;
+    windowAttribute.colormap = colormap;
+    windowAttribute.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | KeyPressMask | PointerMotionMask | StructureNotifyMask | PropertyChangeMask | FocusChangeMask;
+     // set the style of window
+    styleMask = CWBorderPixel | CWBackPixel | CWColormap | CWEventMask;
+
+    // Now finally create window
+    window = XCreateWindow(gpDisplay,
+    XRootWindow(gpDisplay,XvisualInfo.screen),
+    0,
+    0,
+    WIN_WIDTH,
+    WIN_HEIGHT,
+    0,
+    gpXvisualInfo->depth,
+    InputOutput,
+    gpXvisualInfo->visual,
+    styleMask,
+    &windowAttribute);
+
+    if(!window)
+    {
+        fprintf(gpFile,"main(): XCreateWindow Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    vkresult = initialise();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "WinMain() : Initialise functioon failed\n");
-		DestroyWindow(hwnd);
-		hwnd = NULL;
+		fprintf(gpFile, "Winmain() : Intialise() failed with error code : %d\n", vkresult);
+        uninitialise();
+        exit(0);
 	}
 	else
 	{
-		fprintf(gpFile, "Winmain() : Intialise() succeeded\n");
+		fprintf(gpFile, "Winmain() : Intialise() Succeded. \n");
 	}
 
-	// show the window
-	ShowWindow(hwnd, iCmdShow);
+    // Give caption to window
+    XStoreName(gpDisplay,window,"PRS : Vulkan");
 
-	SetForegroundWindow(hwnd);
-	SetFocus(hwnd);
+    // specify window manager delete atom
+    windowManagerDelete = XInternAtom(gpDisplay,"WM_DELETE_WINDOW",True);
 
-	
+    // set above atom as protocol for window manager
+    XSetWMProtocols(gpDisplay,window,&windowManagerDelete,1);
 
-	// gameloop
-	while (bDone == FALSE)
-	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-				bDone = TRUE;
+     // show / map the window
+    XMapWindow(gpDisplay,window);
 
-			else
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
 
-			}
+    // Center the Window
+    screenWidth = XWidthOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
+    screenHeight = XHeightOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
+    XMoveWindow(gpDisplay,window,(screenWidth - WIN_WIDTH) / 2 , (screenHeight - WIN_HEIGHT) / 2);
 
-		}
+    // Event Loop
+    while (bDone == False)
+    {
+        while (XPending(gpDisplay))
+        {
+           
+            XNextEvent(gpDisplay,&event);
+            switch (event.type)
+            {
+                case MapNotify:
+                    break;
+                case FocusIn: // simlar to WM_SETFOCUS
+                    bActiveWIndow = True;
+                    break;
+                case FocusOut: // simlar to WM_KILLFOCUS
+                    bActiveWIndow = False;
+                    break;
+                case KeyPress :
+                    keysym = XkbKeycodeToKeysym(gpDisplay,event.xkey.keycode,0,0);
 
-		else
-		{
-			if (gbActive == TRUE)
-			{
-				// RENDER
+                switch (keysym)
+                {
+                    case XK_Escape:
+                        bEscapeKeyIsPressed = True;
+                        break; 
+
+                    default:
+                        break;   
+                }
+
+                XLookupString(&event.xkey,keys,sizeof(keys),NULL,NULL);
+
+                switch(keys[0])
+                {
+                    case 'F':
+                    case 'f':
+                        if(bFullscreen == False)
+                        {
+                            toggleFullScreen();
+                            bFullscreen = True;
+                        }
+                        else
+                        {
+                            toggleFullScreen();
+                            bFullscreen = False;
+                        }
+                        break;
+
+                        default:
+                            break;
+                        
+                }
+                break;
+
+                case ConfigureNotify: // similar to WM_SIZE
+                    winWidth = event.xconfigure.width;
+                    winHeight = event.xconfigure.height;
+                    resize(winWidth,winHeight);
+                    break;
+
+                case PropertyNotify:
+                    if (isWindowMinimized() == True)
+                    {
+                        bWindowMinimized = True;
+                    }
+                    else
+                    {
+                        bWindowMinimized = False;
+                    }
+                    break;
+
+                case DestroyNotify:
+                    break;
+    
+                case 33 : // for WM_DESTROY
+                    bDone = True;
+                    break;
+                break;
+                default:
+                break;
+            }
+        }
+
+        if (bActiveWIndow == True)
+        {
+            if (bEscapeKeyIsPressed == True)
+            {
+                bDone = True;
+            }
+
+            // Display
+            if (bWindowMinimized == False)
+            {
+               // RENDER
 				display();
 
-				// update
-				update();
-			}
+                // update
+                update();
+            }
+        }
+    }
 
-		}
-	}
+    uninitialise();
 
-	// UNINITIALISATION
-	uninitialise();
+    printf("End of the programm\n");
 
-	return((int)msg.wParam);
+    return 0; 
 }
 
-
-//callback function
-LRESULT CALLBACK Wndproc(HWND hwnd , UINT iMsg, WPARAM wParam, LPARAM lParam)
+void toggleFullScreen(void)
 {
-	// function declaration
-	void ToggleFullscreen(void);
-	void resize(int, int);
+    // Local Variable Declaration
+    Atom windowManagerStateNormal;
+    Atom windowManagerStateFullscreen;
+    XEvent event; 
 
-	// code
-	switch (iMsg)
-	{
-	case WM_SETFOCUS:
-		gbActive = TRUE;
-		break;
-	case WM_KILLFOCUS:
-		gbActive = FALSE;
-		break;
-	case WM_CREATE:
-		memset(&wprev, 0, sizeof(WINDOWPLACEMENT));
-		wprev.length = sizeof(WINDOWPLACEMENT);
-		break;
-	case WM_SIZE:
-		resize(LOWORD(lParam), HIWORD(lParam));
-		break;
-	case WM_ERASEBKGND:
-		return(0);
-	case WM_KEYDOWN:
-		switch (LOWORD(wParam))
-		{
-		case VK_ESCAPE:
-			DestroyWindow(hwnd);
-			break;
-		}
-		break;
+    // code
+    windowManagerStateNormal = XInternAtom(gpDisplay,"_NET_WM_STATE",False);
 
+    windowManagerStateFullscreen = XInternAtom(gpDisplay,"_NET_WM_STATE_FULLSCREEN",False);
 
-	case WM_CHAR:
-		switch (LOWORD(wParam))
-		{
-		case 'F':
-		case 'f':
-			if (gbFullscreen == FALSE)
-			{
-				ToggleFullscreen();
-				gbFullscreen = TRUE;
-			}
-			else
-			{
-				ToggleFullscreen();
-				gbFullscreen = FALSE;
-			}
-			break;
-		}
-		break;
+    // memeset event struct and fill it with above two atoms
+    memset((void*)&event,0,sizeof(XEvent));
 
-	case WM_CLOSE:
-		DestroyWindow(hwnd);
-		break;
+    event.type = ClientMessage;
+    event.xclient.window = window;
+    event.xclient.message_type = windowManagerStateNormal;
+    event.xclient.format = 32;
+    event.xclient.data.l[0] = bFullscreen?0:1;
+    event.xclient.data.l[1] = windowManagerStateFullscreen;
 
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
+    // send the event
+    XSendEvent(gpDisplay,
+    XRootWindow(gpDisplay,gpXvisualInfo->screen),
+    False,
+    SubstructureNotifyMask,
+    &event);
 
-	default:
-		break;
-
-	}
-	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
 
 }
 
-void ToggleFullscreen(void)
+Bool isWindowMinimized(void)
 {
-	// local variable decalration
-	MONITORINFO mi = { sizeof(MONITORINFO) };
+    // function declaration
+    void uninitialise(void);
 
-	//code
-	if (gbFullscreen == FALSE)
-	{
-		dwstyle = GetWindowLong(ghwnd, GWL_STYLE);
+    // Local Varible Delcaration
+    Bool windowMinimized = False;
+    int iResult = -1;
+    Atom Return_Property_Type = None;
+    int Return_Property_Format = -1;
+    unsigned long number_of_returned_items = 0;
+    unsigned long number_of_bytes_remained = 0;
+    unsigned char *returned_property_data_array = NULL;
+    Atom wm_state = XInternAtom(gpDisplay,"_NET_WM_STATE", True);
 
-		if (dwstyle & WS_OVERLAPPEDWINDOW)
-		{
-			if (GetWindowPlacement(ghwnd, &wprev) && GetMonitorInfo(MonitorFromWindow(ghwnd, MONITORINFOF_PRIMARY), &mi))
-			{
-				SetWindowLong(ghwnd, GWL_STYLE, dwstyle & ~WS_OVERLAPPEDWINDOW);
-				SetWindowPos(ghwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOZORDER | SWP_FRAMECHANGED);
-			}
-		}
-		ShowCursor(FALSE);
-	}
-	else
-	{
-		SetWindowPlacement(ghwnd, &wprev);
-		SetWindowLong(ghwnd, GWL_STYLE, dwstyle | WS_OVERLAPPEDWINDOW);
-		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
-		ShowCursor(TRUE);
+    if(wm_state == None)
+    {
+        fprintf(gpFile,"isWindowMinimized(): XInternAtom Failed To Find _NET_WM_STATE \n");
+        uninitialise();
+        exit(1);
+    }
 
-	}
+    Atom wm_state_hidden = XInternAtom(gpDisplay,"_NET_WM_STATE_HIDDEN", True);
+    if(wm_state_hidden == None)
+    {
+        fprintf(gpFile,"isWindowMinimized(): XInternAtom Failed To Find _NET_WM_STATE_HIDDEN \n");
+        uninitialise();
+        exit(1);
+    }
 
+    iResult = XGetWindowProperty(gpDisplay,
+                                 window,
+                                 wm_state,
+                                 0L,
+                                 1024,
+                                 False,
+                                 XA_ATOM,
+                                 &Return_Property_Type,
+                                 &Return_Property_Format,
+                                 &number_of_returned_items,
+                                 &number_of_bytes_remained,
+                                 &returned_property_data_array);
+
+    if(iResult != Success || returned_property_data_array == NULL)
+    {
+        if(returned_property_data_array != NULL)
+        {
+            XFree(returned_property_data_array);
+            returned_property_data_array = NULL;
+        }
+
+        return False;
+    }
+    else
+    {
+        // loop the returned array to get required property
+        Atom *atomArray = (Atom *)returned_property_data_array;
+        for(unsigned long i = 0; i < number_of_returned_items; i++)
+        {
+            // check whether array contain hidden property or not
+            if(atomArray[i] == wm_state_hidden)
+            {
+                windowMinimized = True;
+                break;
+            }
+        }
+    }
+
+    if(returned_property_data_array != NULL)
+    {
+        XFree(returned_property_data_array);
+        returned_property_data_array = NULL;
+    }
+
+    return windowMinimized;
 }
 
 VkResult initialise(void)
@@ -351,6 +505,13 @@ VkResult initialise(void)
 	VkResult createSwapchain(VkBool32);
 	VkResult createImagesAndImageViews(void);
 	VkResult createCommandPool(void);
+	VkResult createCommandBuffers(void);
+	VkResult createRenderPass(void);
+	VkResult createframeBuffers(void);
+	VkResult createSemaphores(void);
+	VkResult createFences(void);
+
+
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -453,7 +614,70 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createCommandPool() succeeded\n");
 	}
 
-	fprintf(gpFile, "******************************************* Initialise comment *****************************\n");
+	vkresult = createCommandBuffers();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createCommandBuffers() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createCommandBuffers() succeeded\n");
+	}
+
+
+	vkresult = createRenderPass();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createRenderPass() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createRenderPass() succeeded\n");
+	}
+
+
+	vkresult = createframeBuffers();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createframeBuffer() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createframeBuffer() succeeded\n");
+	}
+
+	// craete semaphores
+	vkresult = createSemaphores();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createSemaphores() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createSemaphores() succeeded\n");
+	}
+
+	//create Fences
+	vkresult = createFences();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createFences() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createFences() succeeded\n");
+	}
+
+	// initialisation is completed
+	
+	fprintf(gpFile, "******************************************* initialise comment *****************************\n");
+
+	fprintf(gpFile, "initialised()  :  Initialisation() Complete Successfully\n");
 
 	return(vkresult);
 }
@@ -478,114 +702,177 @@ void update(void)
 	// code
 }
 
+
 void uninitialise(void)
 {
-	// function declaration
-	void ToggleFullscreen(void);
-	//code
-	//if appliacation is exitting in fullscreen
-	if (gbFullscreen == TRUE)
-	{
-		ToggleFullscreen();
-		gbFullscreen = FALSE;
-	}
+	// Function declarations
+	void toggleFullScreen(void);
 
-	// Destroywindow
-	if (ghwnd)
-	{
-		DestroyWindow(ghwnd);
-		ghwnd = NULL;
-	}
+    // restore fullscreen
+    if(bFullscreen == True)
+    {
+        toggleFullScreen();
+        bFullscreen = False;
+    }
+
+    if(window)
+    {
+        XDestroyWindow(gpDisplay,window);
+    }
+
 
 	// no need to destroy / unitialise device queue
 
-
-	// Destroy Vulkan Device
+	//Destroy vulkan device
 	if (vkDevice)
 	{
 		vkDeviceWaitIdle(vkDevice);
-		fprintf(gpFile, "uninitialise() : vkDeviceWaitIdle is Done\n");
+		fprintf(gpFile, "\n vkDeviceWaitIdle() is Done\n");
 
-		// destroy command pool
-		if (vkcommandpool)
+
+		if (vkSemaphore_rendercomplete)
 		{
-			vkDestroyCommandPool(vkDevice, vkcommandpool, NULL);
-			vkcommandpool = VK_NULL_HANDLE;
-			fprintf(gpFile, "uninitialise() : VkDestroyCommandpool is Done\n");
+			vkDestroySemaphore(vkDevice, vkSemaphore_rendercomplete, NULL);
+			vkSemaphore_rendercomplete = VK_NULL_HANDLE;
+			fprintf(gpFile, "vkSemaphore_rendercomplete freed\n");
+		}
+
+		if (vkSemaphore_backbuffer)
+		{
+			vkDestroySemaphore(vkDevice, vkSemaphore_backbuffer, NULL);
+			vkSemaphore_backbuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "vkSemaphore_backbuffer freed\n");
+		}
+
+		// Destroy Fences
+		if (vkFence_Array)
+		{
+			for (uint32_t i = 0; i < SwapchainImageCount; i++)
+			{
+				vkDestroyFence(vkDevice, vkFence_Array[i], NULL);
+				fprintf(gpFile, "Free Fences Array freed\n");
+			}
+
+			free(vkFence_Array);
+			vkFence_Array = NULL;
+			fprintf(gpFile, "vkFence_Array freed\n");
 		}
 
 
-		// destroy image views
+		//Free swapchain Images
 		for (uint32_t i = 0; i < SwapchainImageCount; i++)
 		{
 			vkDestroyImageView(vkDevice, SwapchainImageView_Array[i], NULL);
-			fprintf(gpFile, "uninitialise() : Image view is free\n");
+			fprintf(gpFile, "\nFree swapchainImage_array images freed\n");
 		}
 
 		if (SwapchainImageView_Array)
 		{
 			free(SwapchainImageView_Array);
 			SwapchainImageView_Array = NULL;
-			fprintf(gpFile, "uninitialise() : Images array is free\n");
 		}
 
-		// free swapchain images 
-		//for (uint32_t i = 0; i < SwapchainImageCount; i++) 
-		//{
-		//	vkDestroyImage(vkDevice, SwapchainImage_Array[i], NULL); // Fixed 'VkDestroyImage' to 'vkDestroyImage'
-		//	fprintf(gpFile, "uninitialise() : VkDestroyImage is Done\n");
-		//}
 
+		/*for (uint32_t i = 0; i < swapchainImageCount; i++)
+		{
+			vkDestroyImage(vkDevice, swapchainImage_array[i], NULL);
+			fprintf(gpFile, "\nFree swapchainImage_array images freed\n");
+		}*/
 
-		// free actual image view array
 		if (SwapchainImage_Array)
 		{
 			free(SwapchainImage_Array);
 			SwapchainImage_Array = NULL;
-			fprintf(gpFile, "uninitialise() : SwapchainImage_Array is free\n");
 		}
 
-		// destroy swapchain
+		for (uint32_t i = 0; i < SwapchainImageCount; i++)
+		{
+			vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_Array[i]);
+			//vkDestroyImageView(vkDevice, swapchainImageView_array[i], NULL);
+			fprintf(gpFile, "\nFree commandbuffers freed\n");
+		}
+
+		//Framebuffer free
+		for (uint32_t i = 0; i < SwapchainImageCount; i++)
+		{
+			vkDestroyFramebuffer(vkDevice, vkFramebuffer_Array[i], NULL);
+
+		}
+		if (vkFramebuffer_Array)
+		{
+			free(vkFramebuffer_Array);
+			fprintf(gpFile, "\nFree vkFramebuffer_Array freed\n");
+
+		}
+
+		if (vkRenderpass)
+		{
+			vkDestroyRenderPass(vkDevice, vkRenderpass, NULL);
+			vkRenderpass = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vkRenderpass freed\n");
+
+		}
+
+		//Command buffer free
+		//actual array free
+		if (vkCommandBuffer_Array)
+		{
+			free(vkCommandBuffer_Array);
+			vkCommandBuffer_Array = NULL;
+		}
+
+		if (vkcommandpool)
+		{
+			vkDestroyCommandPool(vkDevice, vkcommandpool, NULL);
+			vkcommandpool = VK_NULL_HANDLE;
+			fprintf(gpFile, "\n vkcommandpool is Freed\n");
+
+		}
+
+		//destroy 	swapchain
 		if (vkSwapchainKHR)
 		{
 			vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
-			vkSwapchainKHR = VK_NULL_HANDLE;
-			fprintf(gpFile, "uninitialise() : vkDestroySwapchainKHR is Done\n");
+			vkSwapchainKHR = VK_NULL_HANDLE;	
+			fprintf(gpFile, "\n vkSwapchainKHR is Freed\n");
+
 		}
+
 
 		vkDestroyDevice(vkDevice, NULL);
 		vkDevice = VK_NULL_HANDLE;
-		fprintf(gpFile, "uninitialise() : vkDestroyDevice is Done\n");
-	}
+		fprintf(gpFile, "\n vkDestroyDevice() is Done\n");
 
-	// No need to destroy selected physical device
+	}
+	//No need to Destroy selected physical device
+
 
 
 	if (vkSurfaceKHR)
 	{
 		vkDestroySurfaceKHR(vkInstance, vkSurfaceKHR, NULL);
 		vkSurfaceKHR = VK_NULL_HANDLE;
-		fprintf(gpFile, "uninitialise() : vkDestroySurfaceKHR() succeeded\n");
-
+		fprintf(gpFile, "vkDestroySurfaceKHR Succeded\n");
 	}
 
-	// destroy Vulkan instance
+	//uninitialize/destroy vulkan instance
 	if (vkInstance)
 	{
 		vkDestroyInstance(vkInstance, NULL);
 		vkInstance = VK_NULL_HANDLE;
-		fprintf(gpFile, "uninitialise() : vkDestroyInstance() succeeded\n");
+		fprintf(gpFile, "vkDestroyInstance Succeded\n");
 	}
 
-	// closed log file
-	if (gpFile)
 
+	if (gpFile)
 	{
-		fprintf(gpFile, "uninitialise() : programm is sucessfully ended\n");
+		fprintf(gpFile, "Uninitialize->Program Terminated Successfully.\n");
 		fclose(gpFile);
 		gpFile = NULL;
 	}
+
 }
+
 
 //////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
 
@@ -733,10 +1020,10 @@ VkResult fillExtensionNames(void)
 			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
 		}
 
-		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_WIN32_SURFACE_EXTENSION_NAME) == 0)
+		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_XLIB_SURFACE_EXTENSION_NAME) == 0)
 		{
 			win32SurfaceExtensionFound = VK_TRUE;
-			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
 		}
 	}
 
@@ -786,16 +1073,16 @@ VkResult getSupportedSurface(void)
 {
 	VkResult vkresult = VK_SUCCESS;
 
-	VkWin32SurfaceCreateInfoKHR vkWin32SurfaceCreateInfoKHR;
-	memset((void*)&vkWin32SurfaceCreateInfoKHR, 0, sizeof(VkWin32SurfaceCreateInfoKHR));
+	VkXlibSurfaceCreateInfoKHR vkXlibSurfaceCreateInfoKHR;
+	memset((void*)&vkXlibSurfaceCreateInfoKHR, 0, sizeof(VkXlibSurfaceCreateInfoKHR));
 
-	vkWin32SurfaceCreateInfoKHR.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	vkWin32SurfaceCreateInfoKHR.pNext = NULL;
-	vkWin32SurfaceCreateInfoKHR.flags = 0;
-	vkWin32SurfaceCreateInfoKHR.hinstance = (HINSTANCE)GetWindowLongPtr(ghwnd, GWLP_HINSTANCE);
-	vkWin32SurfaceCreateInfoKHR.hwnd = ghwnd;
+	vkXlibSurfaceCreateInfoKHR.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+	vkXlibSurfaceCreateInfoKHR.pNext = NULL;
+	vkXlibSurfaceCreateInfoKHR.flags = 0;
+	vkXlibSurfaceCreateInfoKHR.dpy = gpDisplay;
+	vkXlibSurfaceCreateInfoKHR.window = window;
 
-	vkresult = vkCreateWin32SurfaceKHR(vkInstance, &vkWin32SurfaceCreateInfoKHR, NULL, &vkSurfaceKHR);
+	vkresult = vkCreateXlibSurfaceKHR(vkInstance, &vkXlibSurfaceCreateInfoKHR, NULL, &vkSurfaceKHR);
 	if(vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "getSupportedSurface() : vkCreateWin32SurfaceKHR Failed\n");
@@ -809,6 +1096,7 @@ VkResult getSupportedSurface(void)
 	return vkresult;
 
 }
+
 
 VkResult getPhysicalDevice(void)
 {
@@ -1138,6 +1426,7 @@ VkResult fillDeviceExtensionNames(void)
 
     return vkresult;
 }
+
 
 VkResult createVulkanDevice(void)
 {
@@ -1623,6 +1912,245 @@ VkResult createCommandPool(void)
 
 	return vkresult;
 }
+
+
+VkResult createCommandBuffers(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	// Command buffer allocation structure initialization
+	VkCommandBufferAllocateInfo vkCommandBufferAllocateInfo;
+	memset(&vkCommandBufferAllocateInfo, 0, sizeof(VkCommandBufferAllocateInfo));
+
+	vkCommandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	vkCommandBufferAllocateInfo.pNext = NULL;
+	vkCommandBufferAllocateInfo.commandPool = vkcommandpool;
+	vkCommandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	vkCommandBufferAllocateInfo.commandBufferCount = SwapchainImageCount;
+
+	// Allocate memory for command buffer array
+	vkCommandBuffer_Array = (VkCommandBuffer*)malloc(sizeof(VkCommandBuffer) * SwapchainImageCount);
+
+	// Allocate command buffers
+	vkresult = vkAllocateCommandBuffers(vkDevice, &vkCommandBufferAllocateInfo, vkCommandBuffer_Array);
+
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createCommandBuffers() : vkAllocateCommandBuffers() function failed. Error Code: (%d)\n", vkresult);
+		free(vkCommandBuffer_Array);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createCommandBuffers() : vkAllocateCommandBuffers() succeeded.\n");
+	}
+
+	return vkresult;
+}
+
+VkResult createRenderPass(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	VkAttachmentDescription vkAttachmentDescription_array[1];
+
+	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) *ARRAY_SIZE(vkAttachmentDescription_array));
+	vkAttachmentDescription_array[0].flags = 0;
+	vkAttachmentDescription_array[0].format = vkFormat_color;
+	vkAttachmentDescription_array[0].samples = VK_SAMPLE_COUNT_1_BIT;   //No multi sampling so 1 bit is enough
+	vkAttachmentDescription_array[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	vkAttachmentDescription_array[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;				//color attachment related
+	vkAttachmentDescription_array[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;			//This is for both Depth and Stencil although it is for stencil
+	vkAttachmentDescription_array[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	vkAttachmentDescription_array[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;													//Image data when in and when out
+	vkAttachmentDescription_array[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+
+
+
+	//Declare and initialize vkAttachmentReference structure
+	VkAttachmentReference vkAttachmentRederence;
+	memset((void*)&vkAttachmentRederence, 0, sizeof(VkAttachmentReference));
+	vkAttachmentRederence.attachment = 0;			//This means above given array 0th Ataachment reference, O means it is the index number
+	vkAttachmentRederence.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;		//Tis means this attachment i can use it color attachment so keep it optimal
+
+
+	//Step 3 : Declare and Initialize vkSubpassDescription
+
+	VkSubpassDescription vkSubpassDesciption;
+	memset((void*)&vkSubpassDesciption, 0, sizeof(VkSubpassDescription));
+	vkSubpassDesciption.flags = 0;
+	vkSubpassDesciption.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	vkSubpassDesciption.inputAttachmentCount = 0;
+	vkSubpassDesciption.pInputAttachments = NULL;
+	vkSubpassDesciption.colorAttachmentCount =ARRAY_SIZE(vkAttachmentDescription_array);
+	vkSubpassDesciption.pColorAttachments = &vkAttachmentRederence;
+	vkSubpassDesciption.pResolveAttachments = NULL;
+	vkSubpassDesciption.pDepthStencilAttachment = NULL;
+	vkSubpassDesciption.preserveAttachmentCount = 0;
+	vkSubpassDesciption.pPreserveAttachments = NULL;
+
+	//Step 4: Declare and initialize vkrenderpass create info structure
+	VkRenderPassCreateInfo vkRenderPassCreateInfo;
+	memset((void*)&vkRenderPassCreateInfo, 0, sizeof(VkRenderPassCreateInfo));
+	vkRenderPassCreateInfo.flags = 0;
+	vkRenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	vkRenderPassCreateInfo.pNext = NULL;
+	vkRenderPassCreateInfo.attachmentCount =ARRAY_SIZE(vkAttachmentDescription_array);
+	vkRenderPassCreateInfo.pAttachments = vkAttachmentDescription_array;
+	vkRenderPassCreateInfo.subpassCount = 1;
+	vkRenderPassCreateInfo.pSubpasses = &vkSubpassDesciption;
+	vkRenderPassCreateInfo.pDependencies = NULL;
+
+	// Create render pass
+	vkresult = vkCreateRenderPass(vkDevice, &vkRenderPassCreateInfo, NULL, &vkRenderpass);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() succeeded.\n");
+	}
+
+	return vkresult;
+}
+
+
+VkResult createframeBuffers(void)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	// Declare array of VkImageView
+	VkImageView vkImageView_Attchment_Array[1];
+	memset((void*)vkImageView_Attchment_Array, 0, sizeof(VkImageView) *ARRAY_SIZE(vkImageView_Attchment_Array)); 
+
+	VkFramebufferCreateInfo vkFramebufferCreateInfo;
+	memset((void*)&vkFramebufferCreateInfo, 0, sizeof(VkFramebufferCreateInfo));
+
+	vkFramebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	vkFramebufferCreateInfo.pNext = NULL;
+	vkFramebufferCreateInfo.flags = 0;
+	vkFramebufferCreateInfo.renderPass = vkRenderpass;
+	vkFramebufferCreateInfo.attachmentCount =ARRAY_SIZE(vkImageView_Attchment_Array); 
+	vkFramebufferCreateInfo.pAttachments = vkImageView_Attchment_Array;
+	vkFramebufferCreateInfo.width = vkExtent2D_Swapchain.width;
+	vkFramebufferCreateInfo.height = vkExtent2D_Swapchain.height;
+	vkFramebufferCreateInfo.layers = 1;
+
+	// Allocate framebuffer array
+	vkFramebuffer_Array = (VkFramebuffer*)malloc(sizeof(VkFramebuffer) * SwapchainImageCount);
+	
+
+	for (uint32_t i = 0; i < SwapchainImageCount; i++)
+	{
+		vkImageView_Attchment_Array[0] = SwapchainImageView_Array[i];
+
+		vkresult = vkCreateFramebuffer(vkDevice, &vkFramebufferCreateInfo, NULL, &vkFramebuffer_Array[i]);
+		if (vkresult != VK_SUCCESS)
+		{
+			fprintf(gpFile, "createframeBuffers() : vkCreateFramebuffer() function failed. Error Code: (%d)\n", vkresult);
+			return vkresult;
+		}
+		else
+		{
+			fprintf(gpFile, "createframeBuffers() : vkCreateFramebuffer() succeeded.\n");
+		}
+	}
+
+	return vkresult;
+}
+
+VkResult createSemaphores(void)
+{
+	// code
+
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	VkSemaphoreCreateInfo vkSemaphoreCreateInfo;
+	memset((void*)&vkSemaphoreCreateInfo, 0, sizeof(VkSemaphoreCreateInfo));
+
+	vkSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	vkSemaphoreCreateInfo.pNext = NULL;
+	vkSemaphoreCreateInfo.flags = 0; // must be zero
+
+	vkresult = vkCreateSemaphore(vkDevice, &vkSemaphoreCreateInfo, NULL, &vkSemaphore_backbuffer);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() function failed for backbuffer. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.\n");
+	}
+
+	vkresult = vkCreateSemaphore(vkDevice, &vkSemaphoreCreateInfo, NULL, &vkSemaphore_rendercomplete);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() function failed for rendercomplete. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.\n");
+	}
+
+	return vkresult;
+}
+
+
+
+VkResult createFences(void)
+{
+	// code
+
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	VkFenceCreateInfo vkFenceCreateInfo;
+	memset(&vkFenceCreateInfo, 0, sizeof(VkFenceCreateInfo));
+
+	vkFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	vkFenceCreateInfo.pNext = NULL;
+	vkFenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	vkFence_Array = (VkFence*)malloc(sizeof(VkFence) * SwapchainImageCount);
+
+	for (uint32_t i = 0; i < SwapchainImageCount; i++)
+	{
+		vkresult = vkCreateFence(vkDevice, &vkFenceCreateInfo, NULL, &vkFence_Array[i]);
+		if (vkresult != VK_SUCCESS)
+		{
+			fprintf(gpFile, "createFences() : vkCreateFence() function failed. Error Code: (%d)\n", vkresult);
+			return vkresult;
+		}
+		else
+		{
+			fprintf(gpFile, "createFences() : vkCreateFence() succeeded.\n");
+		}
+	}
+
+	return vkresult;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

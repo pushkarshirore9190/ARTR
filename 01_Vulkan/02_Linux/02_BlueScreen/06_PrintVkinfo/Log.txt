@@ -24,9 +24,38 @@ fillExtensionNames() : Vulkan Extension name = VK_EXT_debug_utils
 fillExtensionNames() : Vulkan Extension name = VK_KHR_portability_enumeration
 fillExtensionNames() : Vulkan Extension name = VK_LUNARG_direct_driver_loading
 fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found
-fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME found
+fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME found
 fillExtensionNames() : enabled Vulkan extension name = VK_KHR_surface
 fillExtensionNames() : enabled Vulkan extension name = VK_KHR_xlib_surface
-initialise() : fillExtensionNames() succeeded
+createVulkanInstance() : fillExtensionNames() succeeded
+createVulkanInstance() : vkCreateInstance() function succeeded
+initialise() : createVulkanInstance() succeeded
+getSupportedSurface() : vkCreateWin32SurfaceKHR succeded 
+initialise() : getSupportedSurface() succeeded
+getPhysicalDevice() 1st call : vkEnumeratePhysicalDevices succeeded 
+getPhysicalDevice() 2nd call  : vkEnumeratePhysicalDevices succeeded 
+getPhysicalDevice succeeded to select the required physical device with graphics enabled
+getPhysicalDevice supports tessellation shader
+getPhysicalDevice supports geometry shader
+initialise() : getPhysicalDevice() succeeded
+********************** VULKAN INFORMATION *****************************
+apiVersion    = 1.2.182
+deviceName    = AMD RADV RENOIR
+deviceType    = integratedGPU (iGPU)
+vendorID      = 0x1002
+deviceID      = 0x164c
+--------------------------------------------------------------------
+apiVersion    = 1.1.182
+deviceName    = llvmpipe (LLVM 12.0.0, 256 bits)
+deviceType    = CPU
+vendorID      = 0x10005
+deviceID      = 0x0000
+--------------------------------------------------------------------
+printVkInfo(): Physical Device memory freed.
+initialise() : printVkInfo() succeeded
+******************************************* initialise comment *****************************
+initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() Succeded. 
+uninitialise() : vkDestroySurfaceKHR() succeeded
+uninitialise() : vkDestroyInstance() succeeded
 uninitialise() : programm is sucessfully ended
