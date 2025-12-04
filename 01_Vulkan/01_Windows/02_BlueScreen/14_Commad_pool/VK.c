@@ -1630,9 +1630,3 @@ VkResult createCommandPool(void)
 
 
 
-
-
-
-
-
-

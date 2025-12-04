@@ -1,0 +1,37 @@
+ main() : Programm Started Successfully. 
+Found Number Of iNumFBConfig = 504
+fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 1st call succeeded. Extension count: 21
+fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 2nd call succeeded
+fillExtensionNames() : Vulkan Extension name = VK_KHR_device_group_creation
+fillExtensionNames() : Vulkan Extension name = VK_KHR_display
+fillExtensionNames() : Vulkan Extension name = VK_KHR_external_fence_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_external_memory_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_external_semaphore_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_get_display_properties2
+fillExtensionNames() : Vulkan Extension name = VK_KHR_get_physical_device_properties2
+fillExtensionNames() : Vulkan Extension name = VK_KHR_get_surface_capabilities2
+fillExtensionNames() : Vulkan Extension name = VK_KHR_surface
+fillExtensionNames() : Vulkan Extension name = VK_KHR_surface_protected_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_wayland_surface
+fillExtensionNames() : Vulkan Extension name = VK_KHR_xcb_surface
+fillExtensionNames() : Vulkan Extension name = VK_KHR_xlib_surface
+fillExtensionNames() : Vulkan Extension name = VK_EXT_acquire_drm_display
+fillExtensionNames() : Vulkan Extension name = VK_EXT_acquire_xlib_display
+fillExtensionNames() : Vulkan Extension name = VK_EXT_debug_report
+fillExtensionNames() : Vulkan Extension name = VK_EXT_direct_mode_display
+fillExtensionNames() : Vulkan Extension name = VK_EXT_display_surface_counter
+fillExtensionNames() : Vulkan Extension name = VK_EXT_debug_utils
+fillExtensionNames() : Vulkan Extension name = VK_KHR_portability_enumeration
+fillExtensionNames() : Vulkan Extension name = VK_LUNARG_direct_driver_loading
+fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found
+fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME found
+fillExtensionNames() : enabled Vulkan extension name = VK_KHR_surface
+fillExtensionNames() : enabled Vulkan extension name = VK_KHR_xlib_surface
+createVulkanInstance() : fillExtensionNames() succeeded
+createVulkanInstance() : vkCreateInstance() function succeeded
+initialise() : createVulkanInstance() succeeded
+******************************************* initialise comment *****************************
+initialised()  :  Initialisation() Complete Successfully
+Winmain() : Intialise() Succeded. 
+uninitialise() : vkDestroyInstance() succeeded
+uninitialise() : programm is sucessfully ended

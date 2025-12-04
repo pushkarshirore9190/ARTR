@@ -1,0 +1,283 @@
+ main() : Programm Started Successfully. 
+Found Number Of iNumFBConfig = 504
+fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 1st call succeeded. Extension count: 21
+fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 2nd call succeeded
+fillExtensionNames() : Vulkan Extension name = VK_KHR_device_group_creation
+fillExtensionNames() : Vulkan Extension name = VK_KHR_display
+fillExtensionNames() : Vulkan Extension name = VK_KHR_external_fence_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_external_memory_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_external_semaphore_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_get_display_properties2
+fillExtensionNames() : Vulkan Extension name = VK_KHR_get_physical_device_properties2
+fillExtensionNames() : Vulkan Extension name = VK_KHR_get_surface_capabilities2
+fillExtensionNames() : Vulkan Extension name = VK_KHR_surface
+fillExtensionNames() : Vulkan Extension name = VK_KHR_surface_protected_capabilities
+fillExtensionNames() : Vulkan Extension name = VK_KHR_wayland_surface
+fillExtensionNames() : Vulkan Extension name = VK_KHR_xcb_surface
+fillExtensionNames() : Vulkan Extension name = VK_KHR_xlib_surface
+fillExtensionNames() : Vulkan Extension name = VK_EXT_acquire_drm_display
+fillExtensionNames() : Vulkan Extension name = VK_EXT_acquire_xlib_display
+fillExtensionNames() : Vulkan Extension name = VK_EXT_debug_report
+fillExtensionNames() : Vulkan Extension name = VK_EXT_direct_mode_display
+fillExtensionNames() : Vulkan Extension name = VK_EXT_display_surface_counter
+fillExtensionNames() : Vulkan Extension name = VK_EXT_debug_utils
+fillExtensionNames() : Vulkan Extension name = VK_KHR_portability_enumeration
+fillExtensionNames() : Vulkan Extension name = VK_LUNARG_direct_driver_loading
+fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found
+fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME found
+fillExtensionNames() : enabled Vulkan extension name = VK_KHR_surface
+fillExtensionNames() : enabled Vulkan extension name = VK_KHR_xlib_surface
+createVulkanInstance() : fillExtensionNames() succeeded
+createVulkanInstance() : vkCreateInstance() function succeeded
+initialise() : createVulkanInstance() succeeded
+getSupportedSurface() : vkCreateWin32SurfaceKHR succeded 
+initialise() : getSupportedSurface() succeeded
+getPhysicalDevice() 1st call : vkEnumeratePhysicalDevices succeeded 
+getPhysicalDevice() 2nd call  : vkEnumeratePhysicalDevices succeeded 
+getPhysicalDevice succeeded to select the required physical device with graphics enabled
+getPhysicalDevice supports tessellation shader
+getPhysicalDevice supports geometry shader
+initialise() : getPhysicalDevice() succeeded
+********************** VULKAN INFORMATION *****************************
+apiVersion    = 1.2.182
+deviceName    = AMD RADV RENOIR
+deviceType    = integratedGPU (iGPU)
+vendorID      = 0x1002
+deviceID      = 0x164c
+--------------------------------------------------------------------
+apiVersion    = 1.1.182
+deviceName    = llvmpipe (LLVM 12.0.0, 256 bits)
+deviceType    = CPU
+vendorID      = 0x10005
+deviceID      = 0x0000
+--------------------------------------------------------------------
+printVkInfo(): Physical Device memory freed.
+initialise() : printVkInfo() succeeded
+fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call succeeded. Device extension count: 124
+fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call succeeded
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_8bit_storage
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_16bit_storage
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_bind_memory2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_buffer_device_address
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_copy_commands2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_create_renderpass2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_dedicated_allocation
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_deferred_host_operations
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_depth_stencil_resolve
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_descriptor_update_template
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_device_group
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_draw_indirect_count
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_driver_properties
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_external_fence
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_external_fence_fd
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_external_memory
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_external_memory_fd
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_external_semaphore
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_external_semaphore_fd
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_get_memory_requirements2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_image_format_list
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_imageless_framebuffer
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_incremental_present
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_maintenance1
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_maintenance2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_maintenance3
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_multiview
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_pipeline_executable_properties
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_push_descriptor
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_relaxed_block_layout
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_sampler_mirror_clamp_to_edge
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_sampler_ycbcr_conversion
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_separate_depth_stencil_layouts
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_atomic_int64
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_clock
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_draw_parameters
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_float16_int8
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_float_controls
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_non_semantic_info
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_subgroup_extended_types
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_subgroup_uniform_control_flow
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_shader_terminate_invocation
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_spirv_1_4
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_storage_buffer_storage_class
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_swapchain
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_swapchain_mutable_format
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_timeline_semaphore
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_uniform_buffer_standard_layout
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_variable_pointers
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_vulkan_memory_model
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_workgroup_memory_explicit_layout
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_KHR_zero_initialize_workgroup_memory
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_4444_formats
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_buffer_device_address
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_calibrated_timestamps
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_color_write_enable
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_conditional_rendering
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_conservative_rasterization
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_custom_border_color
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_depth_clip_enable
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_depth_range_unrestricted
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_descriptor_indexing
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_discard_rectangles
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_display_control
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_extended_dynamic_state
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_extended_dynamic_state2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_external_memory_dma_buf
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_external_memory_host
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_global_priority
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_global_priority_query
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_host_query_reset
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_image_drm_format_modifier
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_image_robustness
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_index_type_uint8
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_inline_uniform_block
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_line_rasterization
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_memory_budget
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_memory_priority
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_multi_draw
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_pci_bus_info
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_physical_device_drm
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_pipeline_creation_cache_control
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_pipeline_creation_feedback
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_private_data
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_provoking_vertex
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_queue_family_foreign
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_robustness2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_sample_locations
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_sampler_filter_minmax
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_scalar_block_layout
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_shader_atomic_float
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_shader_demote_to_helper_invocation
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_shader_image_atomic_int64
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_shader_stencil_export
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_shader_subgroup_ballot
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_shader_subgroup_vote
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_shader_viewport_index_layer
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_subgroup_size_control
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_texel_buffer_alignment
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_transform_feedback
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_vertex_attribute_divisor
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_EXT_ycbcr_image_arrays
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_buffer_marker
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_device_coherent_memory
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_draw_indirect_count
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_gcn_shader
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_gpu_shader_half_float
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_gpu_shader_int16
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_memory_overallocation_behavior
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_mixed_attachment_samples
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_ballot
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_core_properties
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_core_properties2
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_explicit_vertex_parameter
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_fragment_mask
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_image_load_store_lod
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_info
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_shader_trinary_minmax
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_AMD_texture_gather_bias_lod
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_GOOGLE_decorate_string
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_GOOGLE_hlsl_functionality1
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_GOOGLE_user_type
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_NV_compute_shader_derivatives
+fillDeviceExtensionNames(): Vulkan Device Extension = VK_VALVE_mutable_descriptor_type
+fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME found
+fillDeviceExtensionNames(): Enabled Vulkan Device Extension = VK_KHR_swapchain
+createVulkanDevice() : fillDeviceExtensionNames() succeeded
+createVulkanDevice() : vkCreateDevice() succeeded
+initialise() : createVulkanDevice() succeeded
+getDeviceQueue() : vkGetDeviceQueue() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 2 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+0 3 3 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 4 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = MAILBOX_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+initialise() : createSwapchain() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 5
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (1)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (2)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (3)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (4)
+initialise() : createImagesAndImageViews() succeeded
+createCommandPool() : vkCreateCommandPool() succeeded.
+initialise() : createCommandPool() succeeded
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+initialise() : createCommandBuffers() succeeded
+createRenderPass() : vkCreateRenderPass() succeeded.
+initialise() : createRenderPass() succeeded
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+initialise() : createframeBuffer() succeeded
+createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.
+createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.
+initialise() : createSemaphores() succeeded
+createFences() : vkCreateFence() succeeded.
+createFences() : vkCreateFence() succeeded.
+createFences() : vkCreateFence() succeeded.
+createFences() : vkCreateFence() succeeded.
+createFences() : vkCreateFence() succeeded.
+initialise() : createFences() succeeded
+******************************************* initialise comment *****************************
+initialised()  :  Initialisation() Complete Successfully
+Winmain() : Intialise() Succeded. 
+
+ vkDeviceWaitIdle() is Done
+vkSemaphore_rendercomplete freed
+vkSemaphore_backbuffer freed
+Free Fences Array freed
+Free Fences Array freed
+Free Fences Array freed
+Free Fences Array freed
+Free Fences Array freed
+vkFence_Array freed
+
+Free swapchainImage_array images freed
+
+Free swapchainImage_array images freed
+
+Free swapchainImage_array images freed
+
+Free swapchainImage_array images freed
+
+Free swapchainImage_array images freed
+
+Free commandbuffers freed
+
+Free commandbuffers freed
+
+Free commandbuffers freed
+
+Free commandbuffers freed
+
+Free commandbuffers freed
+
+Free vkFramebuffer_Array freed
+
+Free vkRenderpass freed
+
+ vkcommandpool is Freed
+
+ vkSwapchainKHR is Freed
+
+ vkDestroyDevice() is Done
+vkDestroySurfaceKHR Succeded
+vkDestroyInstance Succeded
+Uninitialize->Program Terminated Successfully.
