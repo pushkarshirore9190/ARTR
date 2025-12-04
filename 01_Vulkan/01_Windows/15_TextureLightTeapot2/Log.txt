@@ -1,4 +1,5 @@
 programm started successfully...
+resize() : Initialisation yet not completed or failed
 fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 1st call succeeded. Extension count: 13
 fillExtensionNames() : vkEnumerateInstanceExtensionProperties() 2nd call succeeded
 fillExtensionNames() : Vulkan Extension name = VK_KHR_device_group_creation
@@ -243,6 +244,11 @@ initialise() : createSwapchain() succeeded
 createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
 createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
 createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
 initialise() : createImagesAndImageViews() succeeded
 createCommandPool() : vkCreateCommandPool() succeeded.
 initialise() : createCommandPool() succeeded
@@ -252,20 +258,51 @@ createVertexBuffer() : vkCreateBuffer() succeeded.
 createVertexBuffer() : vkAllocateMemory() succeeded.
 createVertexBuffer() : vkBindBufferMemory() succeeded.
 createVertexBuffer() : vkMapMemory() succeeded.
-createVertexBuffer() : vkCreateBuffer() succeeded.
-createVertexBuffer() : vkAllocateMemory() succeeded.
-createVertexBuffer() : vkBindBufferMemory() succeeded.
-createVertexBuffer() : vkAllocateCommandBuffers() succeeded to crreateCommandBuffer for BufferCopy 
-createVertexBuffer() : vkBeginCommandBuffer() succeeded 
-createVertexBuffer() : vkCmdCopyBuffer() succeeded 
-createVertexBuffer() : vkEndCommandBuffer() succeeded 
-createVertexBuffer() : vkQueueSubmit() succeeded 
-createVertexBuffer() : vkQueueWaitIdle() succeeded 
-
-Free commandbuffers freed
-Local staging buffer vertexData_StaggingBuffer_Position.vkBuffer destroyed
-Local staging buffer vertexData_StaggingBuffer_Position.vkDeviceMemory freed
+createVertexBuffer() : vkCreateBuffer() succeeded for normal
+createVertexBuffer() : vkAllocateMemory() succeeded for normal
+createVertexBuffer() : vkBindBufferMemory() succeeded for normal
+createVertexBuffer() : vkMapMemory() succeeded for normal
+createVertexBuffer() : vkCreateBuffer() succeeded for texcoord
+createVertexBuffer() : vkAllocateMemory() succeeded for texcoord
+createVertexBuffer() : vkBindBufferMemory() succeeded for texcoord
+createVertexBuffer() : vkMapMemory() succeeded for texcoord
 initialise() : createVertexBuffer() succeeded
+createIndexBuffer() : vkCreateBuffer() succeeded position index buffer 
+createIndexBuffer() : vkAllocateMemory() succeeded for position index buffer 
+createIndexBuffer() : vkBindBufferMemory() succeeded for position index buffer
+createIndexBuffer() : vkMapMemory() succeeded for position index buffer
+initialise() : createIndexBuffer() succeeded
+createTexture() : vkCreateBuffer() succeeded.
+createTexture() : vkAllocateMemory() succeeded.
+createTexture() : vkBindBufferMemory() succeeded.
+createTexture() : vkMapMemory() succeeded for vertex texcoord buffer
+createTexture() : stbi_image_free() succeeded for image data
+createTexture() : vkCreateImageView() succeeded
+createTexture() : vkAllocateMemory() succeeded for image
+createTexture() : vkBindBufferMemory() succeeded for image
+createTexture() : vkAllocateCommandBuffers() succeeded
+createTexture() : vkBeginCommandBuffer() succeeded
+createTexture() : vkEndCommandBuffer() succeeded
+createTexture() : vkQueueSubmit() succeeded
+createTexture() : vkQueueWaitIdle() succeeded
+createTexture() : vkAllocateCommandBuffers() succeeded for buffer to image
+createTexture() : vkBeginCommandBuffer() succeeded for image to copy
+createTexture() : vkEndCommandBuffer() succeeded buffer to image 
+createTexture() : vkQueueSubmit() succeeded buffer to image
+createTexture() : vkQueueWaitIdle() succeeded buffer to image
+createTexture() : vkAllocateCommandBuffers() succeeded
+createTexture() : vkBeginCommandBuffer() succeeded
+createTexture() : vkEndCommandBuffer() succeeded
+createTexture() : vkQueueSubmit() succeeded
+createTexture() : vkQueueWaitIdle() succeeded
+createTexture() : VkCreateImageView() succeeded.
+createTexture() : vkCreateSampler() succeeded.
+initialise() : createTexture() succeeded for marble 
+createUniformBuffer() : vkCreateBuffer() succeeded.
+createUniformBuffer() : vkAllocateMemory() succeeded.
+createUniformBuffer() : vkBindBufferMemory() succeeded.
+createUniformBuffer() : updateUniformbuffer() succeeded.
+initialise() : createUniformBuffer() succeeded
 createShaders() : createShader succeeded to open vertexshader.spv file
 createShaders() : createShader succeeded to read vertexshader.spv file
 createShaders() : vkCreateShaderModule() succeeded fro vertex shader.
@@ -276,4 +313,117 @@ createShaders() : vkCreateShaderModule() succeeded for fragment shader.
 fragment Module sucessfully created
 initialise() : createShaders() succeeded
 createDescriptorSetLayout() : vkCreateDescriptorSetLayout() succeeded.
-initialise() : createDis
+initialise() : createDiscriptorSetLayout() succeeded
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+initialise() : createPiplineLayout() succeeded
+createDescriptorpool() : vkCreateDescriptorPool() succeeded.
+initialise() : createDescriptorpool() succeeded
+createDescriptorSet() : vkCreateDescriptorPool() succeeded.
+
+vkUpdateDescriptorSets() succeeded.
+initialise() : createDescriptorset() succeeded
+createRenderPass() : vkCreateRenderPass() succeeded.
+initialise() : createRenderPass() succeeded
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+initialise() : createPipline() succeeded
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+initialise() : createframeBuffer() succeeded
+createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.
+createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.
+initialise() : createSemaphores() succeeded
+createFences() : vkCreateFence() succeeded.
+initialise() : createFences() succeeded
+buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
+buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
+buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
+initialise() : buildCommandBuffers() succeeded
+******************************************* Initialise comment *****************************
+Initialised()  :  Initialisation() Complete Successfully
+Winmain() : Intialise() succeeded
+
+ vkDeviceWaitIdle() is Done
+vkDestroyFence vkFence_array i = 0 Completedestroyed!
+
+Free vkFence_array freed
+
+Free vkSemaphore_RenderComplete freed
+
+Free vkSemaphore_backbuffer freed
+
+Free commandbuffers freed
+
+Free vkDescriptorSetLayout freed
+
+Free vkPipelineLayout freed
+
+Free vkPipeline: Pipeline freed successfully.
+
+Free vkRenderpass freed
+
+Freed vkDescriptorPool and vkDescriptorSet
+
+Free vkShaderModule_fragment_shader freed
+
+Free vkShaderModule_vertex_shader freed
+
+Freed uniformData.vkBuffer 
+
+Freed uniformData.vkDeviceMemory 
+
+Freed vkSampler_Texture 
+
+Freed vkImageView_Texture 
+
+Freed VkDeviceMemory_Texture 
+
+Freed VkImage_Texture 
+
+Free vertexData_Index.vkDeviceMemory freed
+
+Free vertexData_Index.vkBuffer freed
+
+Free vertexData_Texcoord.vkDeviceMemory freed
+
+Free vertexData_Texcoord.vkBuffer freed
+
+Free vertexData_Normal.vkDeviceMemory freed
+
+Free vertexData_Normal.vkBuffer freed
+
+Free vertexData_Position.vkDeviceMemory freed
+
+Free vertexData_Position.vkBuffer freed
+
+Free pElements freed
+
+Free pTexcoords freed
+
+Free pNormal freed
+
+Free pPositions freed
+
+Free commandbuffers freed
+
+ vkCommandPool is Freed
+
+[Depth] VkImageView destroyed.
+
+[Depth] VkDeviceMemory freed.
+
+[Depth] vkImage_Depth freed.
+
+Free swapchainImage_array images freed
+
+ vkSwapchainKHR is Freed
+
+ vkDestroyDevice() is Done
+
+vkDestroySurfaceKHR Done
+
+vkDestroyDebugReportCallbackEXT_fnptr Done
+
+vkDestroyInstance Done
+
+Uninitialize->Program Terminated Successfully.
