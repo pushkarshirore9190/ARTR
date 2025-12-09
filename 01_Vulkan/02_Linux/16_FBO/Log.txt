@@ -242,59 +242,85 @@ createImagesAndImageViews() : vkAllocateMemory() succeeded.
 createImagesAndImageViews() : vkBindImageMemory() succeeded.
 createImagesAndImageViews() : VkCreateImageView() succeeded.
 initialise() : createImagesAndImageViews() succeeded
+createImagesAndImageViews_fbo() : vkCreateImageView() succeeded
+createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded for image
+createImagesAndImageViews_fbo() : vkBindBufferMemory() succeeded for image
+createImagesAndImageViews_fbo() : VkCreateImageView() succeeded.
+createImagesAndImageViews_fbo() : vkCreateSampler() succeeded.
+createImagesAndImageViews_fbo() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded.
+createImagesAndImageViews_fbo() : vkBindImageMemory() succeeded.
+createImagesAndImageViews_fbo() : VkCreateImageView() succeeded.
+initialise() : createImagesAndImageViews_fbo() succeeded
 createCommandPool() : vkCreateCommandPool() succeeded.
 initialise() : createCommandPool() succeeded
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 initialise() : createCommandBuffers() succeeded
+createCommandBuffer_fbo() : vkAllocateCommandBuffers() succeeded.
+initialise() : createCommandBuffer_fbo() succeeded
 createVertexBuffer() : vkCreateBuffer() succeeded.
 createVertexBuffer() : vkAllocateMemory() succeeded.
 createVertexBuffer() : vkBindBufferMemory() succeeded.
 createVertexBuffer() : vkMapMemory() succeeded.
-createVertexBuffer() : vkCreateBuffer() succeeded for normal
-createVertexBuffer() : vkAllocateMemory() succeeded for normal
-createVertexBuffer() : vkBindBufferMemory() succeeded for normal
-createVertexBuffer() : vkMapMemory() succeeded for normal
-createVertexBuffer() : vkCreateBuffer() succeeded for texcoord
-createVertexBuffer() : vkAllocateMemory() succeeded for texcoord
-createVertexBuffer() : vkBindBufferMemory() succeeded for texcoord
-createVertexBuffer() : vkMapMemory() succeeded for texcoord
+createVertexBuffer() : vkCreateBuffer() succeeded for vertex texcoord buffer
+createVertexBuffer() : vkAllocateMemory() succeeded for vertex texcoord buffer
+createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex texcoord buffer
+createVertexBuffer() : vkMapMemory() succeeded for vertex texcoord buffer
 initialise() : createVertexBuffer() succeeded
-createIndexBuffer() : vkCreateBuffer() succeeded position index buffer 
-createIndexBuffer() : vkAllocateMemory() succeeded for position index buffer 
-createIndexBuffer() : vkBindBufferMemory() succeeded for position index buffer
-createIndexBuffer() : vkMapMemory() succeeded for position index buffer
-initialise() : createIndexBuffer() succeeded
+createVertexBuffer_fbo() : vkCreateBuffer() succeeded.
+createVertexBuffer_fbo() : vkAllocateMemory() succeeded.
+createVertexBuffer_fbo() : vkBindBufferMemory() succeeded.
+createVertexBuffer_fbo() : vkMapMemory() succeeded.
+createVertexBuffer_fbo() : vkCreateBuffer() succeeded for normal
+createVertexBuffer_fbo() : vkAllocateMemory() succeeded for normal
+createVertexBuffer_fbo() : vkBindBufferMemory() succeeded for normal
+createVertexBuffer_fbo() : vkMapMemory() succeeded for normal
+createVertexBuffer_fbo() : vkCreateBuffer() succeeded for texcoord
+createVertexBuffer_fbo() : vkAllocateMemory() succeeded for texcoord
+createVertexBuffer_fbo() : vkBindBufferMemory() succeeded for texcoord
+createVertexBuffer_fbo() : vkMapMemory() succeeded for texcoord
+initialise() : createVertexBuffer_fbo() succeeded
+createIndexBuffer_fbo() : vkCreateBuffer() succeeded position index buffer 
+createIndexBuffer_fbo() : vkAllocateMemory() succeeded for position index buffer 
+createIndexBuffer_fbo() : vkBindBufferMemory() succeeded for position index buffer
+createIndexBuffer_fbo() : vkMapMemory() succeeded for position index buffer
+initialise() : createIndexBuffer_fbo() succeeded
+createTexture_fbo() : vkCreateBuffer() succeeded.
+createTexture_fbo() : vkAllocateMemory() succeeded.
+createTexture_fbo() : vkBindBufferMemory() succeeded.
+createTexture_fbo() : vkMapMemory() succeeded for vertex texcoord buffer
+createTexture_fbo() : stbi_image_free() succeeded for image data
+createTexture_fbo() : vkCreateImage() succeeded
+createTexture_fbo() : vkAllocateMemory() succeeded for image
+createTexture_fbo() : vkBindBufferMemory() succeeded for image
+createTexture_fbo() : vkAllocateCommandBuffers() succeeded
+createTexture_fbo() : vkBeginCommandBuffer() succeeded
+createTexture_fbo() : vkEndCommandBuffer() succeeded
+createTexture_fbo() : vkQueueSubmit() succeeded
+createTexture_fbo() : vkQueueWaitIdle() succeeded
+createTexture_fbo() : vkAllocateCommandBuffers() succeeded for buffer to image
+createTexture_fbo() : vkBeginCommandBuffer() succeeded for image to copy
+createTexture_fbo() : vkEndCommandBuffer() succeeded buffer to image 
+createTexture_fbo() : vkQueueSubmit() succeeded buffer to image
+createTexture_fbo() : vkQueueWaitIdle() succeeded buffer to image
+createTexture_fbo() : vkAllocateCommandBuffers() succeeded
+createTexture_fbo() : vkBeginCommandBuffer() succeeded
+createTexture_fbo() : vkEndCommandBuffer() succeeded
+createTexture_fbo() : vkQueueSubmit() succeeded
+createTexture_fbo() : vkQueueWaitIdle() succeeded
+createTexture_fbo() : VkCreateImageView() succeeded.
+createTexture_fbo() : vkCreateSampler() succeeded.
+initialise() : createTexture_fbo() succeeded
 createUniformBuffer() : vkCreateBuffer() succeeded.
 createUniformBuffer() : vkAllocateMemory() succeeded.
 createUniformBuffer() : vkBindBufferMemory() succeeded.
 createUniformBuffer() : updateUniformbuffer() succeeded.
 initialise() : createUniformBuffer() succeeded
-createTexture() : vkCreateBuffer() succeeded.
-createTexture() : vkAllocateMemory() succeeded.
-createTexture() : vkBindBufferMemory() succeeded.
-createTexture() : vkMapMemory() succeeded for vertex texcoord buffer
-createTexture() : stbi_image_free() succeeded for image data
-createTexture() : vkCreateImageView() succeeded
-createTexture() : vkAllocateMemory() succeeded for image
-createTexture() : vkBindBufferMemory() succeeded for image
-createTexture() : vkAllocateCommandBuffers() succeeded
-createTexture() : vkBeginCommandBuffer() succeeded
-createTexture() : vkEndCommandBuffer() succeeded
-createTexture() : vkQueueSubmit() succeeded
-createTexture() : vkQueueWaitIdle() succeeded
-createTexture() : vkAllocateCommandBuffers() succeeded for buffer to image
-createTexture() : vkBeginCommandBuffer() succeeded for image to copy
-createTexture() : vkEndCommandBuffer() succeeded buffer to image 
-createTexture() : vkQueueSubmit() succeeded buffer to image
-createTexture() : vkQueueWaitIdle() succeeded buffer to image
-createTexture() : vkAllocateCommandBuffers() succeeded
-createTexture() : vkBeginCommandBuffer() succeeded
-createTexture() : vkEndCommandBuffer() succeeded
-createTexture() : vkQueueSubmit() succeeded
-createTexture() : vkQueueWaitIdle() succeeded
-createTexture() : VkCreateImageView() succeeded.
-createTexture() : vkCreateSampler() succeeded.
-initialise() : createTexture() succeeded for marble 
+createUniformBuffer_fbo() : vkCreateBuffer_fbo() succeeded.
+createUniformBuffer_fbo() : vkAllocateMemory_fbo() succeeded.
+createUniformBuffer_fbo() : vkBindBufferMemory_fbo() succeeded.
+createUniformBuffer_fbo() : updateUniformbuffer_fbo() succeeded.
+initialise() : createUniformBuffer_fbo() succeeded
 createShaders() : createShader succeeded to open vertexshader.spv file
 createShaders() : createShader succeeded to read vertexshader.spv file
 createShaders() : vkCreateShaderModule() succeeded fro vertex shader.
@@ -304,90 +330,108 @@ createShaders() : createShader succeeded to read fragmentshader.spv file
 createShaders() : vkCreateShaderModule() succeeded for fragment shader.
 fragment Module sucessfully created
 initialise() : createShaders() succeeded
+createShaders_fbo() : createShader succeeded to open vertexshader.spv file
+createShaders_fbo() : createShader succeeded to read vertexshader.spv file
+createShaders_fbo() : vkCreateShaderModule() succeeded fro vertex shader.
+Vertexshader Module sucessfully created
+createShaders_fbo() : createShader succeeded to open fragmentshader.spv file
+createShaders_fbo() : createShader succeeded to read fragmentshader.spv file
+createShaders_fbo() : vkCreateShaderModule() succeeded for fragment shader.
+fragment Module sucessfully created
+initialise() : createShaders_fbo() succeeded
 createDescriptorSetLayout() : vkCreateDescriptorSetLayout() succeeded.
 initialise() : createDiscriptorSetLayout() succeeded
+createDiscriptorSetLayout_fbo() : vkCreateDescriptorSetLayout() succeeded.
+initialise() : createDiscriptorSetLayout_fbo() succeeded
 createPiplineLayout() : vkCreatePipelineLayout() succeeded.
 initialise() : createPiplineLayout() succeeded
+createPiplineLayout_fbo() : vkCreatePipelineLayout() succeeded.
+initialise() : createPiplineLayout_fbo() succeeded
 createDescriptorpool() : vkCreateDescriptorPool() succeeded.
 initialise() : createDescriptorpool() succeeded
+createDescriptorpool_fbo() : vkCreateDescriptorPool() succeeded.
+initialise() : createDescriptorpool_fbo() succeeded
 createDescriptorSet() : vkCreateDescriptorPool() succeeded.
 
 vkUpdateDescriptorSets() succeeded.
 initialise() : createDescriptorset() succeeded
+createDescriptorSet_fbo() : vkCreateDescriptorPool() succeeded.
+
+vkUpdateDescriptorSets() succeeded.
+initialise() : createDescriptorSet_fbo() succeeded
 createRenderPass() : vkCreateRenderPass() succeeded.
 initialise() : createRenderPass() succeeded
+createRenderPass_fbo() : vkCreateRenderPass_fbo() succeeded.
+initialise() : createRenderPass_fbo() succeeded
 createPipline() : vkCreatePipelineCache() succeeded.
 createPipeline() : vkCreateGraphicsPipelines() succeeded.
 createPipeline() : Free vkPipelineCache freed
 initialise() : createPipline() succeeded
+createPipline_fbo() : vkCreatePipelineCache() succeeded.
+createPipline_fbo() : vkCreateGraphicsPipelines() succeeded.
+createPipline_fbo() : Free vkPipelineCache freed
+initialise() : createPipline_fbo() succeeded
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 initialise() : createframeBuffer() succeeded
+createframeBuffers_fbo() : vkCreateFramebuffer() succeeded.
+initialise() : createframeBuffer_fbo() succeeded
 createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.
 createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.
 initialise() : createSemaphores() succeeded
+createSemaphores_fbo() : vkCreateSemaphore() succeeded for backbuffer.
+initialise() : createSemaphore_fbo() succeeded
 createFences() : vkCreateFence() succeeded.
 createFences() : vkCreateFence() succeeded.
 createFences() : vkCreateFence() succeeded.
 createFences() : vkCreateFence() succeeded.
 createFences() : vkCreateFence() succeeded.
 initialise() : createFences() succeeded
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[4].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[4].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[4].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
 initialise() : buildCommandBuffers() succeeded
-******************************************* initialise comment *****************************
-initialised()  :  Initialisation() Complete Successfully
+buildCommandBuffers_fbo() : vkResetCommandBuffer() successedbuildCommandBuffers_fbo() : vkBeginCommandBuffer() successed.
+buildCommandBuffers_fbo() : vkEndCommandBuffer() successed.
+initialise() : buildCommandBuffer_fbo() succeeded
+******************************************* Initialise comment *****************************
+Initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() Succeded. 
+createImagesAndImageViews_fbo() : vkCreateImageView() succeeded
+createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded for image
+createImagesAndImageViews_fbo() : vkBindBufferMemory() succeeded for image
+createImagesAndImageViews_fbo() : VkCreateImageView() succeeded.
+createImagesAndImageViews_fbo() : vkCreateSampler() succeeded.
+createImagesAndImageViews_fbo() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded.
+createImagesAndImageViews_fbo() : vkBindImageMemory() succeeded.
+createImagesAndImageViews_fbo() : VkCreateImageView() succeeded.
+createRenderPass_fbo() : vkCreateRenderPass_fbo() succeeded.
+createPiplineLayout_fbo() : vkCreatePipelineLayout() succeeded.
+createPipline_fbo() : vkCreatePipelineCache() succeeded.
+createPipline_fbo() : vkCreateGraphicsPipelines() succeeded.
+createPipline_fbo() : Free vkPipelineCache freed
+createframeBuffers_fbo() : vkCreateFramebuffer() succeeded.
+createCommandBuffer_fbo() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers_fbo() : vkResetCommandBuffer() successedbuildCommandBuffers_fbo() : vkBeginCommandBuffer() successed.
+buildCommandBuffers_fbo() : vkEndCommandBuffer() successed.
  resize() : 
  vkDeviceWaitIdle() is Done
- resize() : 
-Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : commandbuffers Array frred
-
- resize() : Free vkPipeline: Pipeline freed successfully.
-
- resize() : Free vkPipelineLayout freed
-
- resize() : Free vkRenderpass freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
- resize() : vkSwapchainKHR is Freed
 getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
 getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 2 surface formats
 getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
@@ -431,55 +475,44 @@ createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[4].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[4].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[4].
+createDescriptorSet() : vkCreateDescriptorPool() succeeded.
+
+vkUpdateDescriptorSets() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
+createImagesAndImageViews_fbo() : vkCreateImageView() succeeded
+createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded for image
+createImagesAndImageViews_fbo() : vkBindBufferMemory() succeeded for image
+createImagesAndImageViews_fbo() : VkCreateImageView() succeeded.
+createImagesAndImageViews_fbo() : vkCreateSampler() succeeded.
+createImagesAndImageViews_fbo() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded.
+createImagesAndImageViews_fbo() : vkBindImageMemory() succeeded.
+createImagesAndImageViews_fbo() : VkCreateImageView() succeeded.
+createRenderPass_fbo() : vkCreateRenderPass_fbo() succeeded.
+createPiplineLayout_fbo() : vkCreatePipelineLayout() succeeded.
+createPipline_fbo() : vkCreatePipelineCache() succeeded.
+createPipline_fbo() : vkCreateGraphicsPipelines() succeeded.
+createPipline_fbo() : Free vkPipelineCache freed
+createframeBuffers_fbo() : vkCreateFramebuffer() succeeded.
+createCommandBuffer_fbo() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers_fbo() : vkResetCommandBuffer() successedbuildCommandBuffers_fbo() : vkBeginCommandBuffer() successed.
+buildCommandBuffers_fbo() : vkEndCommandBuffer() successed.
  resize() : 
  vkDeviceWaitIdle() is Done
- resize() : 
-Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : Free commandbuffers freed
-
- resize() : commandbuffers Array frred
-
- resize() : Free vkPipeline: Pipeline freed successfully.
-
- resize() : Free vkPipelineLayout freed
-
- resize() : Free vkRenderpass freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
-resize() : Free swapchainImage_array images freed
-
- resize() : vkSwapchainKHR is Freed
 getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
 getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 2 surface formats
 getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
@@ -523,23 +556,96 @@ createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[2].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[3].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[4].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[4].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[4].
+createDescriptorSet() : vkCreateDescriptorPool() succeeded.
+
+vkUpdateDescriptorSets() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
 
  vkDeviceWaitIdle() is Done
+
+Free vkSemaphore_fbo freed
+
+Free vkFramebuffer_fbo freed
+
+Free vkDescriptorSetLayout_fbo freed
+
+Free vkPipelineLayout_fbo freed
+
+Free vkPipeline_fbo: Pipeline freed successfully.
+
+Free vkRenderpass_fbo freed
+
+Freed vkDescriptorPool_fbo and vkDescriptorSet
+
+Free vkShaderModule_fragment_shader_fbo freed
+
+Free vkShaderModule_vertex_shader_fbo freed
+
+Freed uniformData_fbo.vkBuffer 
+
+Freed uniformData_fbo.vkDeviceMemory 
+
+Freed vkSampler_Texture_fbo 
+
+Freed vkImageView_Texture_fbo 
+
+Freed VkDeviceMemory_fbo 
+
+Freed vkDeviceMemory_Texture_fbo
+
+Freed VkImage_Texture_fbo 
+
+Free vertexData_Index_fbo.vkDeviceMemory freed
+
+Free vertexData_Index_fbo.vkBuffer freed
+
+Free vertexData_Texcoord_fbo.vkDeviceMemory freed
+
+Free vertexData_Texcoord_fbo.vkBuffer freed
+
+Free vertexData_Normal_fbo.vkDeviceMemory freed
+
+Free vertexData_Normal_fbo.vkBuffer freed
+
+Free vertexData_Position_fbo.vkDeviceMemory freed
+
+Free vertexData_Position_fbo.vkBuffer freed
+
+Free pElements freed
+
+Free pTexcoords freed
+
+Free pNormal freed
+
+Free pPositions freed
+
+ vkCommandBuffer_fbo is Freed
+
+[Depth] VkImageView destroyed.
+
+[Depth] VkDeviceMemory freed.
+
+[Depth] vkImage_Depth_fbo freed.
+
+ vkSampler_fbo is Freed
+
+ vkImageView_fbo is Freed
+
+ vkImage_fbo is Freed
 vkDestroyFence vkFence_array i = 0 Completedestroyed!
 vkDestroyFence vkFence_array i = 1 Completedestroyed!
 vkDestroyFence vkFence_array i = 2 Completedestroyed!
@@ -572,37 +678,12 @@ Freed uniformData.vkBuffer
 
 Freed uniformData.vkDeviceMemory 
 
-Freed vkSampler_Texture 
-
-Freed vkImageView_Texture 
-
-Freed VkDeviceMemory_Texture 
-
-Freed VkImage_Texture 
-
-Free vertexData_Index.vkDeviceMemory freed
-
-Free vertexData_Index.vkBuffer freed
-
 Free vertexData_Texcoord.vkDeviceMemory freed
+ertexData_Texcoord.vkBuffer freed
 
-Free vertexData_Texcoord.vkBuffer freed
+Free vertexData_Position_cUbe.vkDeviceMemory freed
 
-Free vertexData_Normal.vkDeviceMemory freed
-
-Free vertexData_Normal.vkBuffer freed
-
-Free vertexData_Position.vkDeviceMemory freed
-
-Free vertexData_Position.vkBuffer freed
-
-Free pElements freed
-
-Free pTexcoords freed
-
-Free pNormal freed
-
-Free pPositions freed
+Free vertexData_Position_cUbe.vkBuffer freed
 
 Free commandbuffers freed
 
