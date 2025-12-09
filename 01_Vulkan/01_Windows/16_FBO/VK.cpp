@@ -797,16 +797,6 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createCommandPool() succeeded\n");
 	}
 
-	vkresult = createCommandBuffer_fbo();
-	if (vkresult != VK_SUCCESS)
-	{
-		fprintf(gpFile, "initialise() : createCommandBuffer_fbo() function failed (%d)\n", vkresult);
-		return(vkresult);
-	}
-	else
-	{
-		fprintf(gpFile, "initialise() : createCommandBuffer_fbo() succeeded\n");
-	}
 
 	vkresult = createCommandBuffers();
 	if (vkresult != VK_SUCCESS)
@@ -829,8 +819,6 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createCommandBuffer_fbo() succeeded\n");
 	}
-
-	
 
 	// craete VertexBuffer
 	vkresult = createVertexBuffer();
@@ -895,6 +883,32 @@ VkResult initialise(void)
 	else
 	{
 		fprintf(gpFile, "initialise() : createVertexBuffer_fbo() succeeded\n");
+	}
+
+	vkresult = createIndexBuffer_fbo();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createIndexBuffer_fbo() function failed (%d)\n", vkresult);
+		return(vkresult);
+		fflush(gpFile);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createIndexBuffer_fbo() succeeded\n");
+		fflush(gpFile);
+	}
+
+	vkresult = createTexture_fbo("marble.png");
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createTexture_fbo() function failed (%d)\n", vkresult);
+		return(vkresult);
+		fflush(gpFile);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createTexture_fbo() succeeded\n");
+		fflush(gpFile);
 	}
 	
 
@@ -5210,6 +5224,15 @@ void uninitialise_fbo(void)
 		fprintf(gpFile, "\nFreed VkDeviceMemory_fbo \n");
 	}
 
+	// Free the texture image memory
+	if (vkDeviceMemory_Texture_fbo)
+	{
+		vkFreeMemory(vkDevice, vkDeviceMemory_Texture_fbo, NULL);
+		vkDeviceMemory_Texture_fbo = VK_NULL_HANDLE;
+		fprintf(gpFile, "\nFreed vkDeviceMemory_Texture_fbo\n");
+	}
+
+
 	// Destroy the image
 	if (vkImage_Texture_fbo)
 	{
@@ -5442,23 +5465,23 @@ VkResult createImagesAndImageViews_fbo(void)
 	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo_Image, NULL, &vkDeviceMemory_fbo);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createTexture_fbo() : vkAllocateMemory() function failed for image Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkAllocateMemory() function failed for image Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createTexture_fbo() : vkAllocateMemory() succeeded for image\n");
+		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded for image\n");
 	}
 
 	vkresult = vkBindImageMemory(vkDevice, vkImage_fbo, vkDeviceMemory_fbo, 0);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createTexture_fbo() : vkBindBufferMemory() function failed for image Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkBindBufferMemory() function failed for image Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createTexture_fbo() : vkBindBufferMemory() succeeded for image\n");
+		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkBindBufferMemory() succeeded for image\n");
 
 	}
 
@@ -5544,10 +5567,12 @@ VkResult createImagesAndImageViews_fbo(void)
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkCreateImage() function failed for iteration (%d)\n", vkresult);
 		return vkresult;
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkCreateImage() succeeded for iteration\n");
+		fflush(gpFile);
 	}
 
 	// memory reqirement for depth image
@@ -5584,10 +5609,12 @@ VkResult createImagesAndImageViews_fbo(void)
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkAllocateMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkBindImageMemory(vkDevice, vkImage_Depth_fbo, vkDeviceMemory_Depth_fbo, 0);
@@ -5595,10 +5622,12 @@ VkResult createImagesAndImageViews_fbo(void)
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkBindImageMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : vkBindImageMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// crateImageView For above image view
@@ -5621,10 +5650,12 @@ VkResult createImagesAndImageViews_fbo(void)
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : VkCreateImageView() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews_fbo() : VkCreateImageView() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
@@ -5645,7 +5676,7 @@ VkResult createCommandBuffer_fbo(void)
 	vkCommandBufferAllocateInfo.pNext = NULL;
 	vkCommandBufferAllocateInfo.commandPool = vkcommandpool;
 	vkCommandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	vkCommandBufferAllocateInfo.commandBufferCount = swapchainImageCount;
+	vkCommandBufferAllocateInfo.commandBufferCount = 1;
 
 	
 	// Allocate command buffers
@@ -5656,10 +5687,12 @@ VkResult createCommandBuffer_fbo(void)
 		fprintf(gpFile, "createCommandBuffer_fbo() : vkAllocateCommandBuffers() function failed. Error Code: (%d)\n", vkresult);
 		free(vkCommandBuffer_fbo);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createCommandBuffer_fbo() : vkAllocateCommandBuffers() succeeded.\n");
+			fflush(gpFile);
 	}
 
 	return vkresult;
@@ -5688,10 +5721,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkCreateBuffer() succeeded.\n");
+			fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
@@ -5727,10 +5762,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkAllocateMemory() succeeded.\n");
+			fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position_fbo.vkBuffer, vertexData_Position_fbo.vkDeviceMemory, 0);
@@ -5738,10 +5775,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkBindBufferMemory() succeeded.\n");
+			fflush(gpFile);
 	}
 
 	void* data = NULL;
@@ -5751,10 +5790,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkMapMemory() succeeded.\n");
+			fflush(gpFile);
 	}
 
 	// actual memory mapped
@@ -5780,10 +5821,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkCreateBuffer() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkCreateBuffer() succeeded for normal\n");
+			fflush(gpFile);
 	}
 
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
@@ -5817,10 +5860,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkAllocateMemory() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkAllocateMemory() succeeded for normal\n");
+			fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Normal_fbo.vkBuffer, vertexData_Normal_fbo.vkDeviceMemory, 0);
@@ -5828,10 +5873,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkBindBufferMemory() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkBindBufferMemory() succeeded for normal\n");
+			fflush(gpFile);
 	}
 
 	data = NULL;
@@ -5841,10 +5888,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkMapMemory() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkMapMemory() succeeded for normal\n");
+			fflush(gpFile);
 	}
 
 	// actual memory mapped
@@ -5871,10 +5920,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkCreateBuffer() function failed for texcoord Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkCreateBuffer() succeeded for texcoord\n");
+			fflush(gpFile);
 	}
 
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
@@ -5908,10 +5959,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkAllocateMemory() function failed for texcoord Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkAllocateMemory() succeeded for texcoord\n");
+			fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Texcoord_fbo.vkBuffer, vertexData_Texcoord_fbo.vkDeviceMemory, 0);
@@ -5919,10 +5972,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkBindBufferMemory() function failed for texcoord Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkBindBufferMemory() succeeded for texcoord\n");
+			fflush(gpFile);
 	}
 
 	data = NULL;
@@ -5932,10 +5987,12 @@ VkResult createVertexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkMapMemory() function failed for texcoord Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer_fbo() : vkMapMemory() succeeded for texcoord\n");
+			fflush(gpFile);
 	}
 
 	// actual memory mapped
@@ -5962,8 +6019,6 @@ VkResult createIndexBuffer_fbo(void)
 	// POSITION INDEX BUFFER
 	memset((void*)&vertexData_Index_fbo, 0, sizeof(VertexData));
 
-	memset((void*)&vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
-
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
@@ -5975,10 +6030,12 @@ VkResult createIndexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkCreateBuffer() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkCreateBuffer() succeeded position index buffer \n");
+			fflush(gpFile);
 	}
 
 
@@ -6015,10 +6072,12 @@ VkResult createIndexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkAllocateMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkAllocateMemory() succeeded for position index buffer \n");
+			fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Index_fbo.vkBuffer, vertexData_Index_fbo.vkDeviceMemory, 0);
@@ -6026,10 +6085,12 @@ VkResult createIndexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkBindBufferMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkBindBufferMemory() succeeded for position index buffer\n");
+			fflush(gpFile);
 	}
 
 	void* data = NULL;
@@ -6039,10 +6100,12 @@ VkResult createIndexBuffer_fbo(void)
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkMapMemory() function failed for position index buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createIndexBuffer_fbo() : vkMapMemory() succeeded for position index buffer\n");
+			fflush(gpFile);
 	}
 
 	// actual memory mapped
@@ -6072,6 +6135,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 		fprintf(gpFile, "fopen failed for reading texture file");
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
+			fflush(gpFile);
 	}
 
 	uint8_t *image_Data = NULL;
@@ -6085,6 +6149,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 		fprintf(gpFile, "createTexture_fbo(): stbi_loadf_from_file function failed \n");
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
+			fflush(gpFile);
 	}
 
 	VkDeviceSize image_size = texture_width * texture_Height * 4; // for rgba
@@ -6110,10 +6175,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkCreateBuffer() succeeded.\n");
+			fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements_StaggingBuffer;
@@ -6149,10 +6216,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkAllocateMemory() succeeded.\n");
+			fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vkBuffer_StaggingBuffer, VkDeviceMemory_StaggingBuffer, 0);
@@ -6160,10 +6229,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBindBufferMemory() succeeded.\n");
+			fflush(gpFile);
 	}
 
 
@@ -6174,10 +6245,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkMapMemory() function failed for vertex texcoord buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkMapMemory() succeeded for vertex texcoord buffer\n");
+			fflush(gpFile);
 	}
 
 	// actual memory mapped
@@ -6193,6 +6266,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	image_Data = NULL;
 
 	fprintf(gpFile, "createTexture_fbo() : stbi_image_free() succeeded for image data\n");
+		fflush(gpFile);
 
 	// step 3 
 
@@ -6218,12 +6292,14 @@ VkResult createTexture_fbo(const char* textureFileName)
 	vkresult = vkCreateImage(vkDevice, &vkImageCreateInfo, NULL, &vkImage_Texture_fbo);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createTexture_fbo() : vkCreateImageView() function failed\n", vkresult);
+		fprintf(gpFile, "createTexture_fbo() : vkCreateImage() function failed\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
-		fprintf(gpFile, "createTexture_fbo() : vkCreateImageView() succeeded\n");
+		fprintf(gpFile, "createTexture_fbo() : vkCreateImage() succeeded\n");
+			fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements_Image;
@@ -6258,6 +6334,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkAllocateMemory() function failed for image Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6269,10 +6346,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBindBufferMemory() function failed for image Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBindBufferMemory() succeeded for image\n");
+			fflush(gpFile);
 
 	}
 
@@ -6295,10 +6374,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkAllocateCommandBuffers() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkAllocateCommandBuffers() succeeded\n");
+			fflush(gpFile);
 	}
 
 	VkCommandBufferBeginInfo vkCommandBufferBeginInfo_Transition_Layout;
@@ -6312,10 +6393,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBeginCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBeginCommandBuffer() succeeded\n");
+			fflush(gpFile);
 	}
 
 	VkPipelineStageFlags vkPipelineStageFlags_Source = 0;
@@ -6366,10 +6449,12 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkEndCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkEndCommandBuffer() succeeded\n");
+			fflush(gpFile);
 	}
 
 	VkSubmitInfo VkSubmitInfo_Transition_Image_Layout;
@@ -6397,6 +6482,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkQueueWaitIdle() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6427,6 +6513,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkAllocateCommandBuffers() function failed for buffer to image Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6446,6 +6533,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBeginCommandBuffer() function failed for image to copy Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6478,6 +6566,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkEndCommandBuffer() function failed for buffer to image Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6498,6 +6587,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkQueueSubmit() function failed for buffer to image   Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6511,6 +6601,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkQueueWaitIdle() function failed  buffer to image Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6542,6 +6633,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkAllocateCommandBuffers() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6559,6 +6651,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkBeginCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6604,6 +6697,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 		fprintf(gpFile, "createTexture_fbo() : unspported texture layout transitions for step 6 : \n");
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
+			fflush(gpFile);
 	}
 
 	vkCmdPipelineBarrier(VkCommandBuffer_Transition_Image_Layout, vkPipelineStageFlags_Source, vkPipelineStageFlags_Destination, 0, 0, NULL, 0, NULL, 1, &vkImageMemoryBarrier);
@@ -6613,6 +6707,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkEndCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6632,6 +6727,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkQueueSubmit() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6645,6 +6741,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkQueueWaitIdle() function failed  Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6693,6 +6790,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : VkCreateImageView() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -6725,6 +6823,7 @@ VkResult createTexture_fbo(const char* textureFileName)
 	{
 		fprintf(gpFile, "createTexture_fbo() : vkCreateSampler() failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
+			fflush(gpFile);
 	}
 	else
 	{
@@ -7197,7 +7296,7 @@ VkResult createDescriptorpool_fbo(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	VkDescriptorPoolSize vkdescriptorPoolSize_Array[2];
-	memset((void*)vkdescriptorPoolSize_Array, 0, sizeof(VkDescriptorPoolSize));
+	memset((void*)vkdescriptorPoolSize_Array, 0, sizeof(VkDescriptorPoolSize) * _ARRAYSIZE(vkdescriptorPoolSize_Array));
 
 	// for mvp ubo
 	vkdescriptorPoolSize_Array[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -7807,9 +7906,10 @@ VkResult buildCommandBuffer_fbo(void)
 		vkPipelineLayout_fbo,  // must match with the one used to create pipeline
 		0,				   // firstSet
 		1,				   // descriptorSetCount
-		&vkDescriptorSet,
+		&vkDescriptorSet_fbo,
 		0,				   // dynamicOffsetCount
 		NULL);			   // pDynamicOffsets
+
 
 	// bind with vertex buffer
 	VkDeviceSize vkDeviceSize_Offest_Position[1];
