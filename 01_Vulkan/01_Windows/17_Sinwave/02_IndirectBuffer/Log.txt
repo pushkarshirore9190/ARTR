@@ -253,12 +253,17 @@ initialise() : createImagesAndImageViews() succeeded
 createCommandPool() : vkCreateCommandPool() succeeded.
 initialise() : createCommandPool() succeeded
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
-initialise() : createCommandBuffers() succeeded for 1024x1024
+initialise() : createCommandBuffers() succeeded
 createVertexBuffer() : vkCreateBuffer() succeeded.
 createVertexBuffer() : vkAllocateMemory() succeeded.
 createVertexBuffer() : vkBindBufferMemory() succeeded.
-createVertexBuffer() : vkMapMemory() succeeded.
-initialise() : createVertexBuffer() succeeded for 1024x1024
+createVertexBuffer() : updateVertexBuffer() succeeded.
+initialise() : createVertexBuffer() succeeded
+createIndirectBuffer() : vkCreateBuffer() succeeded.
+createIndirectBuffer() : vkAllocateMemory() succeeded.
+createIndirectBuffer() : vkBindBufferMemory() succeeded.
+createIndirectBuffer() : updateIndirectBuffer() succeeded.
+initialise() : createIndirectBuffer() succeeded
 createUniformBuffer() : vkCreateBuffer() succeeded.
 createUniformBuffer() : vkAllocateMemory() succeeded.
 createUniformBuffer() : vkBindBufferMemory() succeeded.
@@ -306,68 +311,14 @@ initialise() : buildCommandBuffers() succeeded
 ******************************************* Initialise comment *****************************
 Initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() succeeded
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
  resize() : 
  vkDeviceWaitIdle() is Done
  resize() : 
 Free commandbuffers freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : vkCommandBuffer_For_1024x1024_graphics_Array Array freed
+ resize() : vkCommandBuffer_Array Array freed
 
  resize() : Free vkPipeline: Pipeline freed successfully.
 
@@ -416,30 +367,563 @@ createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 784 height = 561
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 1280 height = 720
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 784 height = 561
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 1280 height = 720
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 23 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+16 1 1 !!!
+createSwapchain() : swapchain image width = 784 height = 561
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 3 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = FIFO_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 1
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
@@ -473,11 +957,15 @@ Freed uniformData.vkBuffer
 
 Freed uniformData.vkDeviceMemory 
 
-Free vertex_position_1024x1024_graphics.vkDeviceMemory freed
+Free vertexData_Indirect_Buffer.vkDeviceMemory freed
 
-Free vertex_position_1024x1024_graphics.vkBuffer freed
+Free vertexData_Indirect_Buffer.vkBuffer freed
 
-Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+Free vertexData_Position.vkDeviceMemory freed
+
+Free vertexData_Position.vkBuffer freed
+
+Free vkCommandBuffer_Array freed
 
  vkCommandPool is Freed
 
