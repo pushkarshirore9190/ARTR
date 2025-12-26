@@ -229,21 +229,29 @@ VertexData vertex_External;
 BOOL bOnGPU = FALSE;
 
 
-// cuda kernel for sinwave
-__global__ void sinWaveKernel(float* pos, int widht, int height, float time)
+// CUDA kernel for sine wave
+__global__ void sinWaveKernel(float4* pos, int width, int height, float time)
 {
-	// code
-	int x = blockIdx.x * blockDim.x + threadIdx.x;
-	int y = blockIdx.y * blockDim.y + threadIdx.y;
-	float u = float x / (float)widht;
-	float v = (float)y / (float)height;
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-	u = u * 2.0f - 1.0f;
-	v = v * 2.0f - 1.0f;
+    // Bounds check (MANDATORY)
+    if (x >= width || y >= height)
+        return;
 
-	float frquency = 4.0f;
-	float w = sinf(u * frequency + time) * cosf(v * frequency * time) * 0.5f;
-	pos[y * width + x] = make_float4(u, w, v, 1.0f);
+    float u = (float)x / (float)width;
+    float v = (float)y / (float)height;
+
+    u = u * 2.0f - 1.0f;
+    v = v * 2.0f - 1.0f;
+
+    float frequency = 4.0f;
+
+    float w = sinf(u * frequency + time) *
+              cosf(v * frequency + time) * 0.5f;
+
+    pos[y * width + x] = make_float4(u, w, v, 1.0f);
+
 }
 
 
@@ -954,14 +962,13 @@ VkResult initialise(void)
 }
 
 
-cudaError initialise_Cuda(void)
+cudaError_t initialise_Cuda(void)
 {
-	// variable declarations
-	int devCount;
+	int devCount = 0;
+	cudaError_t cudaResult = cudaSuccess;
 
-	// code
 	cudaResult = cudaGetDeviceCount(&devCount);
-	if(cudaResult != cudaSuccess)
+	if (cudaResult != cudaSuccess)
 	{
 		fprintf(gpFile, "initialise_Cuda() : cudaGetDeviceCount() failed with error %d\n", cudaResult);
 		return cudaResult;
@@ -969,96 +976,72 @@ cudaError initialise_Cuda(void)
 	else if (devCount == 0)
 	{
 		fprintf(gpFile, "initialise_Cuda() : No CUDA capable devices found\n");
-		return cudaResult;
+		return cudaErrorNoDevice;
 	}
-	
-	// check equality of uuid between vulkan physical device and cuda device
-
-	// get vulkan physical device uuid
 
 	VkPhysicalDeviceIDProperties vkPhysicalDeviceIDProperties;
-	memset((void*)&vkPhysicalDeviceIDProperties, 0, sizeof(VkPhysicalDeviceIDProperties));
-
+	memset(&vkPhysicalDeviceIDProperties, 0, sizeof(VkPhysicalDeviceIDProperties));
 	vkPhysicalDeviceIDProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
-	vkPhysicalDeviceIDProperties.pNext = NULL;
 
 	VkPhysicalDeviceProperties2 vkPhysicalDeviceProperties2;
-	memset((void*)&vkPhysicalDeviceProperties2, 0, sizeof(VkPhysicalDeviceProperties2));
-
+	memset(&vkPhysicalDeviceProperties2, 0, sizeof(VkPhysicalDeviceProperties2));
 	vkPhysicalDeviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-	vkPhysicalDeviceProperties2.pNext = &vkPhysicalDeviceIDProperties;	
+	vkPhysicalDeviceProperties2.pNext = &vkPhysicalDeviceIDProperties;
 
 	vkGetPhysicalDeviceProperties2(vkPhysicalDevice_selected, &vkPhysicalDeviceProperties2);
 
-	uint8_t vulkanDevicekUUID = [VK_UUID_SIZE];
-	memcpy((void*)vulkanDevicekUUID, (const void*)vkPhysicalDeviceIDProperties.deviceUUID, VK_UUID_SIZE);
+	uint8_t vulkanDeviceUUID[VK_UUID_SIZE];
+	memcpy(vulkanDeviceUUID, vkPhysicalDeviceIDProperties.deviceUUID, VK_UUID_SIZE);
 
-	// as we have atleast one cuda device we will check only first device for uuid match
 	int iVulkanCudaInteropDeviceFound = -1;
 	for (int i = 0; i < devCount; i++)
 	{
-		// first select that device whose compute mode is not prohibited
-
-		int computeMode;
+		int computeMode = 0;
 		cudaResult = cudaDeviceGetAttribute(&computeMode, cudaDevAttrComputeMode, i);
 		if (cudaResult != cudaSuccess)
 		{
 			continue;
 		}
-
 		if (computeMode == cudaComputeModeProhibited)
 		{
 			continue;
 		}
 
-		// get cuda device properties
 		cudaDeviceProp devProp;
-		memset((void*)&devProp, 0, sizeof(cudaDeviceProp));
-
+		memset(&devProp, 0, sizeof(cudaDeviceProp));
 		cudaResult = cudaGetDeviceProperties(&devProp, i);
 		if (cudaResult != cudaSuccess)
 		{
 			continue;
 		}
 
-		// compare uuid
-		int iResult = memcmp((void*)devProp.uuid, vulkanDevicekUUID, VK_UUID_SIZE);
-		if (iResult != 0)
+		if (memcmp(devProp.uuid.bytes, vulkanDeviceUUID, VK_UUID_SIZE) != 0)
 		{
 			continue;
 		}
 
-		// otherwise required device is found now set it
-
 		cudaResult = cudaSetDevice(i);
-		if(cudaResult != cudaSuccess)
+		if (cudaResult != cudaSuccess)
 		{
 			continue;
 		}
 
 		fprintf(gpFile, "initialise_Cuda() : CUDA device %s selected for vulkan cuda interop\n", devProp.name);
-
 		iVulkanCudaInteropDeviceFound = 1;
-
 		break;
 	}
 
-	// if no such interop device still found return with error
-
-	if(iVulkanCudaInteropDeviceFound == -1)
+	if (iVulkanCudaInteropDeviceFound == -1)
 	{
 		fprintf(gpFile, "initialise_Cuda() : No CUDA device found for vulkan cuda interop\n");
-		return cudaErrorUnknown; // hardcoded return value
-	}
 
-	// assusming we are already using windows os > 8.1 but with win32 application (not win64/UWP/metroApplication)
+		return cudaErrorUnknown;
+	}
 
 	vkExternalMemoryHandleTypeFlagBits = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
 
 	return cudaSuccess;
-
 }
-
 
 
 VkResult resize(int width, int heigth)
@@ -3558,16 +3541,18 @@ VkResult createExternalVertexBuffer(int mesh_width, int mesh_height, VertexData*
 	vkMemoryGetWin32HandleInfoKHR.memory = vertexData_Position.vkDeviceMemory;
 	vkMemoryGetWin32HandleInfoKHR.handleType = vkExternalMemoryHandleTypeFlagBits;
 
-	PFN_VkGetMemoryWin32HandleKHR vkGetMemoryWin32HandleKHR = (PFN_VkGetMemoryWin32HandleKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryWin32HandleKHR");
+	PFN_vkGetMemoryWin32HandleKHR pfnVkGetMemoryWin32HandleKHR =(PFN_vkGetMemoryWin32HandleKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryWin32HandleKHR");
 
-	if(vkGetMemoryWin32HandleKHR == NULL)
+	if (pfnVkGetMemoryWin32HandleKHR == NULL)
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryWin32HandleKHR address.\n");
+		fprintf(gpFile,
+			"createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryWin32HandleKHR address.\n");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 	else
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryWin32HandleKHR address.\n");
+		fprintf(gpFile,
+			"createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryWin32HandleKHR address.\n");
 	}
 
 	// call above function pointer
@@ -4626,10 +4611,10 @@ VkResult buildCommandBuffers(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	// command buffer
-	VkCommandBuffer* vkCommandBuffer_Array = NULL
+	VkCommandBuffer* vkCommandBuffer_Array = NULL;
 	
 	// loop per swapchain image
-	for (uint32_t i = 0; i < swapchainImageCount; i++)
+	for(uint32_t i = 0; i < swapchainImageCount; i++)
 	{
 		// reset command buffers
 		vkresult = vkResetCommandBuffer(vkCommandBuffer_Array[i], 0);
@@ -4668,11 +4653,11 @@ VkResult buildCommandBuffers(void)
 		if (colorFromKey == 'K')
 		{
 			VkClearColorValue vkClearValue_White = { 1.0f, 1.0f, 1.0f, 1.0f };
-			vkClearValue_Array[0].color = vkClearValue_White;   // ✔ NOW TYPES MATCH
+			vkClearValue_Array[0].color = vkClearValue_White; 
 		}
 		else
 		{
-			vkClearValue_Array[0].color = vkClearColorValue;    // ✔ already correct
+			vkClearValue_Array[0].color = vkClearColorValue;   
 		}
 
 		// Removed unnecessary duplicate assignment:
@@ -4760,34 +4745,34 @@ VkResult buildCommandBuffers(void)
 
 VkResult prepairSinwaveForCPU(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
 {
-	void fillSinwaveArraysForCPU(unsigned int, unsigned int, float);
-
 	VkResult vkresult = VK_SUCCESS;
 
 	void* data = NULL;
 
-	// code
-	unsigned int size = mesh_width * mesh_height * 4 * sizeof(float); // 4 for x,y,z,w
+	VkDeviceSize size = (VkDeviceSize)mesh_width *(VkDeviceSize)mesh_height *4 *sizeof(float); // x,y,z,w
 
 	// fill sinwave arrays
 	fillSinwaveArraysForCPU(mesh_width, mesh_height, Anim_Time);
 
-	// map the buffers
 	if (mesh_width == 1024 && mesh_height == 1024)
 	{
-		// map memory
-		vkresult = vkMapMemory(vkDevice, vertex_position_1024x1024_graphics.vkDeviceMemory, 0, size, 0, &data);
+		vkresult = vkMapMemory(
+			vkDevice,
+			vertex_position_1024x1024_graphics.vkDeviceMemory,
+			0,
+			size,
+			0,
+			&data);
+
 		if (vkresult != VK_SUCCESS)
 		{
-			fprintf(gpFile, "prepairSinwaveForCPU() : vkMapMemory() failed. Error Code: (%d)\n", vkresult);
+			fprintf(gpFile,"prepairSinwaveForCPU() : vkMapMemory() failed. Error Code: (%d)\n",vkresult);
 			return vkresult;
 		}
 
-		// copy data
-		memcpy(data, pos_1024_graphics, size);
+		memcpy(data, pos_1024_graphics, (size_t)size);
 
-		// unmap memory
-		vkUnmapMemory(vkDevice, vertex_position_1024x1024_graphics.vkDeviceMemory);
+		vkUnmapMemory(vkDevice,vertex_position_1024x1024_graphics.vkDeviceMemory);
 	}
 
 	return vkresult;
@@ -4796,54 +4781,42 @@ VkResult prepairSinwaveForCPU(unsigned int mesh_width, unsigned int mesh_height,
 
 void fillSinwaveArraysForCPU(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
 {
-	for(int i = 0 ;  i < (int)mesh_width; i++)
+	for (int i = 0; i < (int)mesh_width; i++)
 	{
-		for(int j = 0; j < (int)mesh_height; j++)
+		for (int j = 0; j < (int)mesh_height; j++)
 		{
-			for(int k = 0 ; k < 4; k++)
+			for (int k = 0; k < 4; k++)
 			{
-				float u = (float)i / (float)(mesh_width);
-				float v = (float)j / (float)(mesh_height);
+				float u = (float)i / (float)mesh_width;
+				float v = (float)j / (float)mesh_height;
 
-				u = u * 2.0f - 1.0f; // -1.0 to +1.0
-				v = v * 2.0f - 1.0f; // -1.0 to +1.0
+				u = u * 2.0f - 1.0f;
+				v = v * 2.0f - 1.0f;
 
-				float freqency = 4.0f;
+				float frequency = 4.0f;
 
-				float w = sinf(u * freqency + Anim_Time) * cosf(v * freqency + Anim_Time) * 0.5f;
+				float w = sinf(u * frequency + Anim_Time) *
+						  cosf(v * frequency + Anim_Time) * 0.5f;
 
-				if(k == 0) // x
+				if (mesh_width == 1024 && mesh_height == 1024)
 				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					if (k == 0)
 					{
 						pos_1024_graphics[i][j][k] = u;
 					}
-				}
-
-				if(k == 1) // y
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					else if (k == 1)
 					{
 						pos_1024_graphics[i][j][k] = w;
 					}
-				}
-
-				if(k == 2) // z
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					else if (k == 2)
 					{
 						pos_1024_graphics[i][j][k] = v;
 					}
-				}
-
-				if(k == 3) // w
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					else if (k == 3)
 					{
 						pos_1024_graphics[i][j][k] = 1.0f;
 					}
 				}
-			
 			}
 		}
 	}

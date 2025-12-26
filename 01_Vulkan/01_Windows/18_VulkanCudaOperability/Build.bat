@@ -1,9 +1,7 @@
-
 cls
 
 rc.exe VK.rc
 
-nvcc.exe -I C:\VulkanSDK\Vulkan\Include -L C:\VulkanSDK\Vulkan\Lib -o Vk.exe user32.lib gdi32.lib Vk.res Vk.cu -Xcudafe "--diag_suppress=20012,--diag_suppress=20013,--diag_suppress=20014,--diag_suppress=20015"
-
+nvcc.exe -arch=sm_120 -m64 -D__CUDACC_VER_MAJOR__=12 -I"C:\VulkanSDK\Vulkan\include" -L"C:\VulkanSDK\Vulkan\lib" VK.cu -o VK.exe vulkan-1.lib user32.lib gdi32.lib VK.res --diag-suppress 20012,20014 --expt-relaxed-constexpr -allow-unsupported-compiler
 
 

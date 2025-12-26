@@ -330,21 +330,6 @@ buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
 
  vkDeviceWaitIdle() is Done
 vkDestroyFence vkFence_array i = 0 Completedestroyed!
