@@ -230,6 +230,7 @@ BOOL bOnGPU = FALSE;
 
 
 // CUDA kernel for sine wave
+
 __global__ void sinWaveKernel(float4* pos, int width, int height, float time)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -247,8 +248,7 @@ __global__ void sinWaveKernel(float4* pos, int width, int height, float time)
 
     float frequency = 4.0f;
 
-    float w = sinf(u * frequency + time) *
-              cosf(v * frequency + time) * 0.5f;
+    float w = sinf(u * frequency + time) * cosf(v * frequency + time) * 0.5f;
 
     pos[y * width + x] = make_float4(u, w, v, 1.0f);
 
