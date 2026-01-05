@@ -96,12 +96,14 @@ VkColorSpaceKHR vkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 // presentation mode
 VkPresentModeKHR vkPresentModeKHR = VK_PRESENT_MODE_FIFO_KHR;
 
+
 //swap chain related global variables
 VkSwapchainKHR vkSwapchainKHR = VK_NULL_HANDLE;
 VkExtent2D vkExtent2D_Swapchain;
 
 
 // swapchain images and swapchain image views relrated data
+
 // for color images
 uint32_t swapchainImageCount = UINT32_MAX; 
 VkImage* SwapchainImage_Array = NULL;
@@ -159,6 +161,16 @@ VkRect2D vkRect2D_Scissor;
 
 VkPipeline vkPipeline = VK_NULL_HANDLE;
 
+#define MAX_MESH_SIZE 1024 * 1024 * 4
+
+unsigned int mesh_Width = 1024;
+unsigned int mesh_Height = 1024;
+unsigned int mesh_Depth = 4;
+unsigned int meshArray_Size = mesh_Width * mesh_Height * mesh_Depth;
+
+
+float * pposition = NULL;
+
 
 // VertexBuffer Related Variable
 typedef struct
@@ -204,11 +216,11 @@ VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
 VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 
 // sinwave related variables
-float pos_1024_graphics[1024][1024][4];
+VertexData vertexData_Position;
 
-VertexData vertex_position_1024x1024_graphics;
+VertexData vertexData_Indirect_Buffer;
 
-VkCommandBuffer* vkCommandBuffer_For_1024x1024_graphics_Array = NULL;
+VkCommandBuffer* vkCommandBuffer_Array = NULL;
 
 Bool bMesh1024Choosen = True;
 
@@ -650,9 +662,9 @@ VkResult initialise(void)
 	VkResult createSwapchain(VkBool32);
 	VkResult createImagesAndImageViews(void);
 	VkResult createCommandPool(void);
-	VkResult createCommandBuffers(VkCommandBuffer**);
-	void initialiseSinwaveArrays(int, int);
-	VkResult createVertexBuffer(int, int , VertexData*);
+	VkResult createCommandBuffers(void);
+	VkResult createVertexBuffer(void);
+	VkResult createIndirectBuffer(void);
 	VkResult createUniformBuffer(void);
 	VkResult createShaders(void);
 	VkResult createDiscriptorSetLayout(void);
@@ -768,32 +780,60 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createCommandPool() succeeded\n");
 	}
 
-	vkresult = createCommandBuffers(&vkCommandBuffer_For_1024x1024_graphics_Array);
+	vkresult = createCommandBuffers();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "initialise() : createCommandBuffers() function failed for 1024 x 1024 (%d)\n", vkresult);
+		fprintf(gpFile, "initialise() : createCommandBuffers() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 	else
 	{
-		fprintf(gpFile, "initialise() : createCommandBuffers() succeeded for 1024x1024\n");
+		fprintf(gpFile, "initialise() : createCommandBuffers() succeeded\n");
 	}
 
-	// initialise sinwave arrays for 1024 x 1024
-	initialiseSinwaveArrays(1024, 1024);
 
 	// craete VertexBuffer for 1024 x 1024
-	memset((void*)&vertex_position_1024x1024_graphics, 0, sizeof(VertexData));
+	memset((void*)&vertexData_Position, 0, sizeof(VertexData));
 
-	vkresult = createVertexBuffer(1024, 1024, &vertex_position_1024x1024_graphics);
+	// craete VertexBuffer
+
+	// initialize position array
+	pposition = (float*)malloc(sizeof(float) * meshArray_Size);
+
+	for(int i =0; i< mesh_Width; i++)
+	{
+		for(int j =0; j< mesh_Height; j++)
+		{
+			for (int k = 0; k < mesh_Depth; k++)
+			{
+				pposition[(j * mesh_Width +  i) *  mesh_Depth + k] = 0.0f;
+
+			}
+		}
+	}
+
+
+	vkresult = createVertexBuffer();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "initialise() : createVertexBuffer() function failed for 1024x1024 (%d)\n", vkresult);
+		fprintf(gpFile, "initialise() : createVertexBuffer() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 	else
 	{
-		fprintf(gpFile, "initialise() : createVertexBuffer() succeeded for 1024x1024\n");
+		fprintf(gpFile, "initialise() : createVertexBuffer() succeeded\n");
+	}
+
+	// create IndirectBuffer
+	vkresult = createIndirectBuffer();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "initialise() : createIndirectBuffer() function failed (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise() : createIndirectBuffer() succeeded\n");
 	}
 
 	// createUniform Buffer
@@ -830,6 +870,7 @@ VkResult initialise(void)
 	else
 	{
 		fprintf(gpFile, "initialise() : createDiscriptorSetLayout() succeeded\n");
+		fflush(gpFile);
 	}
 
 	vkresult = createPiplineLayout();
@@ -837,10 +878,12 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createPiplineLayout() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createPiplineLayout() succeeded\n");
+		fflush(gpFile);
 	}
 
 	// create descriptorpool
@@ -849,10 +892,12 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createDescriptorpool() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createDescriptorpool() succeeded\n");
+		fflush(gpFile);
 	}
 
 	// create descriptorset
@@ -861,10 +906,12 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createDescriptorset() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createDescriptorset() succeeded\n");
+		fflush(gpFile);
 	}
 
 
@@ -874,10 +921,12 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createRenderPass() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createRenderPass() succeeded\n");
+		fflush(gpFile);
 	}
 
 	vkresult = createPipline();
@@ -885,10 +934,12 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createPipline() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createPipline() succeeded\n");
+		fflush(gpFile);
 	}
 
 	vkresult = createframeBuffers();
@@ -896,10 +947,12 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createframeBuffer() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createframeBuffer() succeeded\n");
+		fflush(gpFile);
 	}
 
 	// craete semaphores
@@ -908,10 +961,12 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createSemaphores() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createSemaphores() succeeded\n");
+		fflush(gpFile);
 	}
 
 	//create Fences
@@ -920,11 +975,16 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createFences() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : createFences() succeeded\n");
+		fflush(gpFile);
 	}
+
+	fprintf(gpFile, "after createFences\n");
+	fflush(gpFile);
 
 	// initialise clear color values
 	memset((void*)&vkClearColorValue, 0, sizeof(VkClearColorValue));
@@ -934,16 +994,31 @@ VkResult initialise(void)
 	vkClearColorValue.float32[2] = 0.0f;
 	vkClearColorValue.float32[3] = 1.0f;  // analogse to glclear color
 
+	fprintf(gpFile, "after vkClearColorValue\n");
+	fflush(gpFile);
+
+
+	memset((void*)&vkClearDepthStencilValue, 0, sizeof(VkClearDepthStencilValue));
+
+	// set defalut clear depth
+	vkClearDepthStencilValue.depth = 1.0f;
+	vkClearDepthStencilValue.stencil = 0;
+
+	fprintf(gpFile, "Before buildcommand buffer\n");
+	fflush(gpFile);
+
 	// build commmand buffers
 	vkresult = buildCommandBuffers();
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : buildCommandBuffers() function failed (%d)\n", vkresult);
 		return(vkresult);
+		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "initialise() : buildCommandBuffers() succeeded\n");
+		fflush(gpFile);
 	}
 
 	// initialisation is completed
@@ -951,9 +1026,9 @@ VkResult initialise(void)
 	bInitialised = True;
 
 
-	fprintf(gpFile, "******************************************* initialise comment *****************************\n");
+	fprintf(gpFile, "******************************************* Initialise comment *****************************\n");
 
-	fprintf(gpFile, "initialised()  :  Initialisation() Complete Successfully\n");
+	fprintf(gpFile, "Initialised()  :  Initialisation() Complete Successfully\n");
 
 	return(vkresult);
 }
@@ -965,13 +1040,12 @@ VkResult resize(int width, int heigth)
 	// function declaration ;
 	VkResult createSwapchain(VkBool32);
 	VkResult createImagesAndImageViews(void);
-	VkResult createCommandBuffers(VkCommandBuffer**);
+	VkResult createCommandBuffers(void);
 	VkResult createPiplineLayout(void);
 	VkResult createRenderPass(void);
 	VkResult createPipline(void);
 	VkResult createframeBuffers(void);
 	VkResult buildCommandBuffers(void);
-
 	
 
 	// variable declarations
@@ -996,7 +1070,6 @@ VkResult resize(int width, int heigth)
 	winWidth = width;
 	winHeight = heigth;
 
-	// wait for device to complete in hand task
 	// wait for device to complete in hand task
 	if (vkDevice)
 	{
@@ -1032,16 +1105,16 @@ VkResult resize(int width, int heigth)
 	// destroy commandbuffer
 	for (uint32_t i = 0; i < swapchainImageCount; i++)
 	{
-		vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_For_1024x1024_graphics_Array[i]);
+		vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_Array[i]);
 		//vkDestroyImageView(vkDevice, swapchainImageView_array[i], NULL);
-		fprintf(gpFile, "\n resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed\n");
+		fprintf(gpFile, "\n resize() : Free vkCommandBuffer_Array freed\n");
 	}
 
-	if (vkCommandBuffer_For_1024x1024_graphics_Array)
+	if (vkCommandBuffer_Array)
 	{
-		free(vkCommandBuffer_For_1024x1024_graphics_Array);
-		vkCommandBuffer_For_1024x1024_graphics_Array = NULL;
-		fprintf(gpFile, "\n resize() : vkCommandBuffer_For_1024x1024_graphics_Array Array freed\n");
+		free(vkCommandBuffer_Array);
+		vkCommandBuffer_Array = NULL;
+		fprintf(gpFile, "\n resize() : vkCommandBuffer_Array Array freed\n");
 	}
 
 	// destroy pipline
@@ -1168,7 +1241,7 @@ VkResult resize(int width, int heigth)
 		return(vkresult);
 	}
 
-	vkresult = createCommandBuffers(&vkCommandBuffer_For_1024x1024_graphics_Array);
+	vkresult = createCommandBuffers();
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createCommandBuffers() function failed for 1024x1024 (%d)\n", vkresult);
@@ -1184,7 +1257,6 @@ VkResult resize(int width, int heigth)
 		return(vkresult);
 	}
 
-
 	bInitialised = True;
 
 	return(vkresult);
@@ -1196,12 +1268,12 @@ VkResult display(void)
 	// function declaration
 	VkResult resize(int, int);
 	VkResult updateUniformbuffer(void);
-	VkResult buildCommandBuffers(void);
+	void Sinwave(unsigned int, unsigned int, float);
+	VkResult updateVertexBuffer(void);
+	VkResult updateIndirectBuffer(void);
 	 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
-
-	VkCommandBuffer* vkCommandBuffer_Array = NULL;
 
 	// code
 
@@ -1211,19 +1283,6 @@ VkResult display(void)
 	{
 		fprintf(gpFile, "display(): initliasation yet not completed\n");
 		return (VkResult)VK_FALSE;
-	}
-
-	if(bMesh1024Choosen == True)
-	{
-		vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
-	}
-
-	// build commmand buffers
-	vkresult = buildCommandBuffers();
-	if (vkresult != VK_SUCCESS)
-	{
-		fprintf(gpFile, " display() : buildCommandBuffers() function failed (%d)\n", vkresult);
-		return(vkresult);
 	}
 
 	// acquire index of next swapchain image
@@ -1312,6 +1371,36 @@ VkResult display(void)
 		}
 	}
 
+	// free position array 
+	if(pposition)
+	{
+		free(pposition);
+		pposition = NULL;
+	}
+
+	// reallocate position array 
+	pposition = (float*)malloc(sizeof(float) * meshArray_Size);
+
+	// create sin wave 
+	Sinwave(mesh_Width, mesh_Height, AnimationTime);
+
+	// update vertex buffer
+	vkresult = updateVertexBuffer();
+	if(vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "display() : updateVertexBuffer() failed with error: %d\n", vkresult);
+		return(vkresult);
+	}
+
+	// update indirect buffer
+	vkresult = updateIndirectBuffer();
+	if(vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "display() : updateIndirectBuffer() failed with error: %d\n", vkresult);
+		return(vkresult);
+	}
+
+
 	vkresult = updateUniformbuffer();
 	if(vkresult != VK_SUCCESS)
 	{
@@ -1326,7 +1415,6 @@ VkResult display(void)
 	return(vkresult);
 
 }
-
 
 void update(void)
 {
@@ -1480,32 +1568,47 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFreed uniformData.vkDeviceMemory \n");
 		}
 
-		if (vertex_position_1024x1024_graphics.vkDeviceMemory)
+		// Destroy Indirect buffer
+		if(vertexData_Indirect_Buffer.vkDeviceMemory)
 		{
-			vkFreeMemory(vkDevice, vertex_position_1024x1024_graphics.vkDeviceMemory, NULL);
-			vertex_position_1024x1024_graphics.vkDeviceMemory = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertex_position_1024x1024_graphics.vkDeviceMemory freed\n");
+			vkFreeMemory(vkDevice, vertexData_Indirect_Buffer.vkDeviceMemory, NULL);
+			vertexData_Indirect_Buffer.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Indirect_Buffer.vkDeviceMemory freed\n");
 		}
 
-		if (vertex_position_1024x1024_graphics.vkBuffer)
+		if(vertexData_Indirect_Buffer.vkBuffer)
 		{
-			vkDestroyBuffer(vkDevice, vertex_position_1024x1024_graphics.vkBuffer, NULL);
-			vertex_position_1024x1024_graphics.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertex_position_1024x1024_graphics.vkBuffer freed\n");
+			vkDestroyBuffer(vkDevice, vertexData_Indirect_Buffer.vkBuffer, NULL);
+			vertexData_Indirect_Buffer.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Indirect_Buffer.vkBuffer freed\n");
+		}
+
+		if (vertexData_Position.vkDeviceMemory)
+		{
+			vkFreeMemory(vkDevice, vertexData_Position.vkDeviceMemory, NULL);
+			vertexData_Position.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position.vkDeviceMemory freed\n");
+		}
+
+		if (vertexData_Position.vkBuffer)
+		{
+			vkDestroyBuffer(vkDevice, vertexData_Position.vkBuffer, NULL);
+			vertexData_Position.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Position.vkBuffer freed\n");
 
 		}
 
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
 		{
-			vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_For_1024x1024_graphics_Array[i]);
+			vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &vkCommandBuffer_Array[i]);
 			//vkDestroyImageView(vkDevice, swapchainImageView_array[i], NULL);
-			fprintf(gpFile, "\nFree vkCommandBuffer_For_1024x1024_graphics_Array freed\n");
+			fprintf(gpFile, "\nFree vkCommandBuffer_Array freed\n");
 		}
 
-		if (vkCommandBuffer_For_1024x1024_graphics_Array)
+		if (vkCommandBuffer_Array)
 		{
-			free(vkCommandBuffer_For_1024x1024_graphics_Array);
-			vkCommandBuffer_For_1024x1024_graphics_Array = NULL;
+			free(vkCommandBuffer_Array);
+			vkCommandBuffer_Array = NULL;
 		}
 
 		vkDestroyCommandPool(vkDevice, vkcommandpool, NULL);
@@ -1618,6 +1721,7 @@ void uninitialise(void)
 	}
 
 }
+
 
 //////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
 
@@ -3056,13 +3160,10 @@ VkResult createCommandPool(void)
 	return vkresult;
 }
 
-VkResult createCommandBuffers(VkCommandBuffer** ppvkCommandBuffer_Array)
+VkResult createCommandBuffers(void)
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
-
-	// command buffer
-	VkCommandBuffer* vkCommandBuffer_Array = NULL;
 
 	// Command buffer allocation structure initialization
 	VkCommandBufferAllocateInfo vkCommandBufferAllocateInfo;
@@ -3091,36 +3192,16 @@ VkResult createCommandBuffers(VkCommandBuffer** ppvkCommandBuffer_Array)
 		fprintf(gpFile, "createCommandBuffers() : vkAllocateCommandBuffers() succeeded.\n");
 	}
 
-	*ppvkCommandBuffer_Array = vkCommandBuffer_Array;
-
 	return vkresult;
 }
 
-void initialiseSinwaveArrays(int mesh_width,int mesh_height)
-{
-	for(int i = 0; i < mesh_width; i++)
-	{
-		for(int j = 0; j < mesh_height; j++)
-		{
-			for(int k = 0; k < 4; k++)
-			{
-				pos_1024_graphics[i][j][k] = 0.0f;
-			}
-		}
-	}
-}
 
-
-VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertexData)
+VkResult createVertexBuffer(void)
 {
+	VkResult updateVertexBuffer(void);
 
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
-
-	// poaition
-	VertexData vertexData_Position;
-
-	unsigned int size = mesh_width * mesh_height * 4 * sizeof(float);
 
 	memset((void*)&vertexData_Position, 0, sizeof(VertexData));
 
@@ -3130,7 +3211,7 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = size;
+	vkBufferCreateInfo.size = MAX_MESH_SIZE * sizeof(float);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
 	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer);
@@ -3194,32 +3275,171 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded.\n");
 	}
 
-	void* data = NULL;
-
-	vkresult = vkMapMemory(vkDevice, vertexData_Position.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
+	// update vertex buffer
+	vkresult = updateVertexBuffer();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : updateVertexBuffer() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded.\n");
+		fprintf(gpFile, "createVertexBuffer() : updateVertexBuffer() succeeded.\n");
+	}
+
+
+	return vkresult;
+
+}
+
+VkResult updateVertexBuffer(void)
+{
+	// code
+	VkResult vkresult = VK_SUCCESS;
+
+	void* data = NULL;
+
+	vkresult = vkMapMemory(vkDevice, vertexData_Position.vkDeviceMemory, 0, meshArray_Size * sizeof(float), 0, &data);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "updateVertexBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
 	}
 
 	// actual memory mapped
 
-	if(mesh_width == 1024 && mesh_height == 1024)
-	{
-		memcpy(data, pos_1024_graphics, size);
-	}
+	memcpy(data, pposition, meshArray_Size * sizeof(float));
 
 	vkUnmapMemory(vkDevice, vertexData_Position.vkDeviceMemory);
 
-	*pVertexData = vertexData_Position;
+	return vkresult;
+}
+
+VkResult createIndirectBuffer(void)
+{
+	VkResult updateIndirectBuffer(void);
+
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	memset((void*)&vertexData_Indirect_Buffer, 0, sizeof(VertexData));
+
+	VkBufferCreateInfo vkBufferCreateInfo;
+	memset((void*)& vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
+
+	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	vkBufferCreateInfo.pNext = NULL;
+	vkBufferCreateInfo.flags = 0;
+	vkBufferCreateInfo.size = sizeof(VkDrawIndirectCommand);
+	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Indirect_Buffer.vkBuffer);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createIndirectBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createIndirectBuffer() : vkCreateBuffer() succeeded.\n");
+	}
+
+	VkMemoryRequirements vkMemoryRequirements;
+	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
+
+	vkGetBufferMemoryRequirements(vkDevice, vertexData_Indirect_Buffer.vkBuffer, &vkMemoryRequirements);
+
+	VkMemoryAllocateInfo vkMemoryAllocateInfo;
+	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
+
+	vkMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	vkMemoryAllocateInfo.pNext = NULL;
+	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
+	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
+
+	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
+	{
+		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
+		{
+			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			{
+				vkMemoryAllocateInfo.memoryTypeIndex = i; 
+				break;
+			}
+		}
+
+		vkMemoryRequirements.memoryTypeBits >>= 1;
+	
+	}
+
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Indirect_Buffer.vkDeviceMemory);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createIndirectBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createIndirectBuffer() : vkAllocateMemory() succeeded.\n");
+	}
+
+	vkresult = vkBindBufferMemory(vkDevice, vertexData_Indirect_Buffer.vkBuffer, vertexData_Indirect_Buffer.vkDeviceMemory, 0);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createIndirectBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createIndirectBuffer() : vkBindBufferMemory() succeeded.\n");
+	}
+
+	// update indirect buffer
+	vkresult = updateIndirectBuffer();
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "createIndirectBuffer() : updateIndirectBuffer() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "createIndirectBuffer() : updateIndirectBuffer() succeeded.\n");
+	}
 
 	return vkresult;
 
+}
+
+VkResult updateIndirectBuffer(void)
+{
+	// code
+	VkResult vkresult = VK_SUCCESS;
+
+	VkDrawIndirectCommand vkDrawIndirectCommand;
+	memset((void*)&vkDrawIndirectCommand, 0, sizeof(VkDrawIndirectCommand));
+
+	vkDrawIndirectCommand.firstVertex = 0;
+	vkDrawIndirectCommand.vertexCount = mesh_Width * mesh_Height;
+	vkDrawIndirectCommand.firstInstance = 0;
+	vkDrawIndirectCommand.instanceCount = 1;
+
+
+	void* data = NULL;
+
+	vkresult = vkMapMemory(vkDevice, vertexData_Indirect_Buffer.vkDeviceMemory, 0, sizeof(VkDrawIndirectCommand), 0, &data);
+	if (vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "updateIndirectBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+
+	// actual memory mapped
+
+	memcpy(data, &vkDrawIndirectCommand, sizeof(VkDrawIndirectCommand));
+
+	vkUnmapMemory(vkDevice, vertexData_Indirect_Buffer.vkDeviceMemory);
+
+	return vkresult;
 }
 
 VkResult createUniformBuffer(void)
@@ -4209,20 +4429,9 @@ VkResult createFences(void)
 
 VkResult buildCommandBuffers(void)
 {
-	// function prototype
-	VkResult prepairSinwaveForCPU(unsigned int, unsigned int, float);
 
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
-
-	// command buffer
-	VkCommandBuffer* vkCommandBuffer_Array = NULL;
-
-	if (bMesh1024Choosen == True)
-	{
-		prepairSinwaveForCPU(1024, 1024, AnimationTime);
-		vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
-	}
 
 	// loop per swapchain image
 	for (uint32_t i = 0; i < swapchainImageCount; i++)
@@ -4259,7 +4468,7 @@ VkResult buildCommandBuffers(void)
 
 		// set clear values
 		VkClearValue vkClearValue_Array[2];
-		memset((void*)vkClearValue_Array, 0, sizeof(VkClearValue) *ARRAY_SIZE(vkClearValue_Array));
+		memset((void*)vkClearValue_Array, 0, sizeof(VkClearValue) * ARRAY_SIZE(vkClearValue_Array));
 
 		if (colorFromKey == 'K')
 		{
@@ -4287,7 +4496,7 @@ VkResult buildCommandBuffers(void)
 		vkRenderPassBeginInfo.renderArea.offset.y = 0;
 		vkRenderPassBeginInfo.renderArea.extent.width = vkExtent2D_Swapchain.width;
 		vkRenderPassBeginInfo.renderArea.extent.height = vkExtent2D_Swapchain.height;
-		vkRenderPassBeginInfo.clearValueCount =ARRAY_SIZE(vkClearValue_Array);
+		vkRenderPassBeginInfo.clearValueCount = ARRAY_SIZE(vkClearValue_Array);
 		vkRenderPassBeginInfo.pClearValues = vkClearValue_Array;
 		vkRenderPassBeginInfo.framebuffer = vkFramebuffer_Array[i];
 
@@ -4311,16 +4520,12 @@ VkResult buildCommandBuffers(void)
 
 		// bind with vertex buffer
 		VkDeviceSize vkDeviceSize_Offest_Array[1];
-		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) *ARRAY_SIZE(vkDeviceSize_Offest_Array));
+		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAY_SIZE(vkDeviceSize_Offest_Array));
 
-		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_position_1024x1024_graphics.vkBuffer, vkDeviceSize_Offest_Array);
+		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position.vkBuffer, vkDeviceSize_Offest_Array);
 
-		if (bMesh1024Choosen == True)
-		{
-			// draw
-			vkCmdDraw(vkCommandBuffer_Array[i], 1024 * 1024, 1, 0, 0);
-		}
-
+		vkCmdDrawIndirect(vkCommandBuffer_Array[i], vertexData_Indirect_Buffer.vkBuffer, 0, 1, 0);
+		
 		// End the render pass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);
 
@@ -4340,44 +4545,7 @@ VkResult buildCommandBuffers(void)
 	return vkresult;
 }
 
-
-VkResult prepairSinwaveForCPU(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
-{
-	void fillSinwaveArraysForCPU(unsigned int, unsigned int, float);
-
-	VkResult vkresult = VK_SUCCESS;
-
-	void* data = NULL;
-
-	// code
-	unsigned int size = mesh_width * mesh_height * 4 * sizeof(float); // 4 for x,y,z,w
-
-	// fill sinwave arrays
-	fillSinwaveArraysForCPU(mesh_width, mesh_height, Anim_Time);
-
-	// map the buffers
-	if (mesh_width == 1024 && mesh_height == 1024)
-	{
-		// map memory
-		vkresult = vkMapMemory(vkDevice, vertex_position_1024x1024_graphics.vkDeviceMemory, 0, size, 0, &data);
-		if (vkresult != VK_SUCCESS)
-		{
-			fprintf(gpFile, "prepairSinwaveForCPU() : vkMapMemory() failed. Error Code: (%d)\n", vkresult);
-			return vkresult;
-		}
-
-		// copy data
-		memcpy(data, pos_1024_graphics, size);
-
-		// unmap memory
-		vkUnmapMemory(vkDevice, vertex_position_1024x1024_graphics.vkDeviceMemory);
-	}
-
-	return vkresult;
-}
-
-
-void fillSinwaveArraysForCPU(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
+void Sinwave(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
 {
 	for(int i = 0 ;  i < (int)mesh_width; i++)
 	{
@@ -4394,38 +4562,11 @@ void fillSinwaveArraysForCPU(unsigned int mesh_width, unsigned int mesh_height, 
 				float freqency = 4.0f;
 
 				float w = sinf(u * freqency + Anim_Time) * cosf(v * freqency + Anim_Time) * 0.5f;
-
-				if(k == 0) // x
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
-					{
-						pos_1024_graphics[i][j][k] = u;
-					}
-				}
-
-				if(k == 1) // y
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
-					{
-						pos_1024_graphics[i][j][k] = w;
-					}
-				}
-
-				if(k == 2) // z
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
-					{
-						pos_1024_graphics[i][j][k] = v;
-					}
-				}
-
-				if(k == 3) // w
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
-					{
-						pos_1024_graphics[i][j][k] = 1.0f;
-					}
-				}
+				
+				pposition[(j * mesh_Width +  i) *  mesh_Depth + 0] = u;
+				pposition[(j * mesh_Width +  i) *  mesh_Depth + 1] = w;
+				pposition[(j * mesh_Width +  i) *  mesh_Depth + 2] = v;
+				pposition[(j * mesh_Width +  i) *  mesh_Depth + 3] = 1.0f;
 			
 			}
 		}

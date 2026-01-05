@@ -245,12 +245,17 @@ initialise() : createImagesAndImageViews() succeeded
 createCommandPool() : vkCreateCommandPool() succeeded.
 initialise() : createCommandPool() succeeded
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
-initialise() : createCommandBuffers() succeeded for 1024x1024
+initialise() : createCommandBuffers() succeeded
 createVertexBuffer() : vkCreateBuffer() succeeded.
 createVertexBuffer() : vkAllocateMemory() succeeded.
 createVertexBuffer() : vkBindBufferMemory() succeeded.
-createVertexBuffer() : vkMapMemory() succeeded.
-initialise() : createVertexBuffer() succeeded for 1024x1024
+createVertexBuffer() : updateVertexBuffer() succeeded.
+initialise() : createVertexBuffer() succeeded
+createIndirectBuffer() : vkCreateBuffer() succeeded.
+createIndirectBuffer() : vkAllocateMemory() succeeded.
+createIndirectBuffer() : vkBindBufferMemory() succeeded.
+createIndirectBuffer() : updateIndirectBuffer() succeeded.
+initialise() : createIndirectBuffer() succeeded
 createUniformBuffer() : vkCreateBuffer() succeeded.
 createUniformBuffer() : vkAllocateMemory() succeeded.
 createUniformBuffer() : vkBindBufferMemory() succeeded.
@@ -296,6 +301,9 @@ createFences() : vkCreateFence() succeeded.
 createFences() : vkCreateFence() succeeded.
 createFences() : vkCreateFence() succeeded.
 initialise() : createFences() succeeded
+after createFences
+after vkClearColorValue
+Before buildcommand buffer
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
@@ -312,25 +320,25 @@ buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
 initialise() : buildCommandBuffers() succeeded
-******************************************* initialise comment *****************************
-initialised()  :  Initialisation() Complete Successfully
+******************************************* Initialise comment *****************************
+Initialised()  :  Initialisation() Complete Successfully
 Winmain() : Intialise() Succeded. 
  resize() : 
  vkDeviceWaitIdle() is Done
  resize() : 
 Free commandbuffers freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : vkCommandBuffer_For_1024x1024_graphics_Array Array freed
+ resize() : vkCommandBuffer_Array Array freed
 
  resize() : Free vkPipeline: Pipeline freed successfully.
 
@@ -412,17 +420,17 @@ buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
  resize() : 
 Free commandbuffers freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+ resize() : Free vkCommandBuffer_Array freed
 
- resize() : vkCommandBuffer_For_1024x1024_graphics_Array Array freed
+ resize() : vkCommandBuffer_Array Array freed
 
  resize() : Free vkPipeline: Pipeline freed successfully.
 
@@ -499,1071 +507,359 @@ buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
-buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
-buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 2 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+0 3 3 !!!
+createSwapchain() : swapchain image width = 1920 height = 1080
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 4 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = MAILBOX_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 5
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (1)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (2)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (3)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (4)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 2 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+0 3 3 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 4 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = MAILBOX_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 5
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (1)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (2)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (3)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (4)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 2 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+0 3 3 !!!
+createSwapchain() : swapchain image width = 1920 height = 1080
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 4 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = MAILBOX_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 5
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (1)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (2)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (3)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (4)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [2].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [3].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [4].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [4].
+ resize() : 
+ vkDeviceWaitIdle() is Done
+ resize() : 
+Free commandbuffers freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : Free vkCommandBuffer_Array freed
+
+ resize() : vkCommandBuffer_Array Array freed
+
+ resize() : Free vkPipeline: Pipeline freed successfully.
+
+ resize() : Free vkPipelineLayout freed
+
+ resize() : Free vkRenderpass freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+resize() : Free swapchainImage_array images freed
+
+ resize() : vkSwapchainKHR is Freed
+getPhysicalDeviceSurfaceFormatAndColorSpace() : vkGetPhysicalDeviceSurfaceFormatsKHR() succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): Found 2 surface formats
+getPhysicalDeviceSurfaceFormatAndColorSpace() Second call: vkGetPhysicalDeviceSurfaceFormatsKHR succeeded
+getPhysicalDeviceSurfaceFormatAndColorSpace(): vkSurfaceFormatKHR_Array Memory freed
+createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() succeeded
+createSwapchain() : vkGetPhysicalDeviceSurfaceCapabilitiesKHR() succeeded
+
+minImageCount
+
+
+
+0 3 3 !!!
+createSwapchain() : swapchain image width = 800 height = 600
+getPhysicalDevicePresentMode() 1st call : vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Found 4 present modes
+getPhysicalDevicePresentMode() 2nd call: vkGetPhysicalDeviceSurfacePresentModesKHR() succeeded
+getPhysicalDevicePresentMode(): Selected Present Mode = MAILBOX_KHR
+getPhysicalDevicePresentMode(): Memory freed, function completed successfully
+createSwapchain() : getPhysicalDevicePresentMode() succeeded
+createSwapchain() : vkCreateSwapchainKHR() succeeded
+createImagesAndImageViews() 1st call : this func is giving the swapchain image count = 5
+createImagesAndImageViews() 2nd call : vkGetSwapchainImagesKHR() succeeded
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (0)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (1)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (2)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (3)
+createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (4)
+createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration
+createImagesAndImageViews() : vkCreateImage() succeeded for iteration
+createImagesAndImageViews() : vkAllocateMemory() succeeded.
+createImagesAndImageViews() : vkBindImageMemory() succeeded.
+createImagesAndImageViews() : VkCreateImageView() succeeded.
+createRenderPass() : vkCreateRenderPass() succeeded.
+createPiplineLayout() : vkCreatePipelineLayout() succeeded.
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
@@ -1613,19 +909,23 @@ Freed uniformData.vkBuffer
 
 Freed uniformData.vkDeviceMemory 
 
-Free vertex_position_1024x1024_graphics.vkDeviceMemory freed
+Free vertexData_Indirect_Buffer.vkDeviceMemory freed
 
-Free vertex_position_1024x1024_graphics.vkBuffer freed
+Free vertexData_Indirect_Buffer.vkBuffer freed
 
-Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+Free vertexData_Position.vkDeviceMemory freed
 
-Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+Free vertexData_Position.vkBuffer freed
 
-Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+Free vkCommandBuffer_Array freed
 
-Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+Free vkCommandBuffer_Array freed
 
-Free vkCommandBuffer_For_1024x1024_graphics_Array freed
+Free vkCommandBuffer_Array freed
+
+Free vkCommandBuffer_Array freed
+
+Free vkCommandBuffer_Array freed
 
  vkCommandPool is Freed
 
