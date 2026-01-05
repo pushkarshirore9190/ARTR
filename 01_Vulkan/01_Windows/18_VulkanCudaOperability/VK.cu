@@ -1777,7 +1777,6 @@ void uninitialise(void)
 
 cudaError uninitialise_Cuda(void)
 {
-	// variable declarations
 	if (pos_Cuda)
 	{
 		cudaResult = cudaFree(pos_Cuda);
@@ -1786,14 +1785,11 @@ cudaError uninitialise_Cuda(void)
 			fprintf(gpFile, "uninitialise_Cuda() : cudaFree(pos_Cuda) failed with error %d\n", cudaResult);
 			return cudaResult;
 		}
-		else
-		{
-			pos_Cuda = NULL;
-			fprintf(gpFile, "uninitialise_Cuda() : cudaFree(pos_Cuda) succeeded\n");
-		}
+		pos_Cuda = NULL;
+		fprintf(gpFile, "uninitialise_Cuda() : cudaFree(pos_Cuda) succeeded\n");
 	}
 
-	if(cuExtMemory)
+	if (cuExtMemory)
 	{
 		cudaResult = cudaDestroyExternalMemory(cuExtMemory);
 		if (cudaResult != cudaSuccess)
@@ -1801,13 +1797,13 @@ cudaError uninitialise_Cuda(void)
 			fprintf(gpFile, "uninitialise_Cuda() : cudaDestroyExternalMemory() failed with error %d\n", cudaResult);
 			return cudaResult;
 		}
-		else
-		{
-			cuExtMemory = NULL;
-			fprintf(gpFile, "uninitialise_Cuda() : cudaDestroyExternalMemory() succeeded\n");
-		}
+		cuExtMemory = NULL;
+		fprintf(gpFile, "uninitialise_Cuda() : cudaDestroyExternalMemory() succeeded\n");
 	}
+
+	return cudaSuccess;
 }
+
 
 //////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
 
@@ -3556,15 +3552,15 @@ VkResult createExternalVertexBuffer(int mesh_width, int mesh_height, VertexData*
 	}
 
 	// call above function pointer
-	vkresult = vkGetMemoryWin32HandleKHR(vkDevice, &vkMemoryGetWin32HandleInfoKHR, &hMemoryWin32Handle);
+	vkresult = pfnVkGetMemoryWin32HandleKHR(vkDevice, &vkMemoryGetWin32HandleInfoKHR, &hMemoryWin32Handle);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : vkGetMemoryWin32HandleKHR() function failed. Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : vkGetMemoryWin32HandleKHR() succeeded.\n");
+		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() succeeded.\n");
 	}
 
 	// impoert handle to external buffer memory into cuda
@@ -4745,6 +4741,9 @@ VkResult buildCommandBuffers(void)
 
 VkResult prepairSinwaveForCPU(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
 {
+	// function declaration
+	void fillSinwaveArraysForCPU(unsigned int , unsigned int , float);
+
 	VkResult vkresult = VK_SUCCESS;
 
 	void* data = NULL;
