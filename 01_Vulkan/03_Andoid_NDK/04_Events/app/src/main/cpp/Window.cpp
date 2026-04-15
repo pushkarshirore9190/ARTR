@@ -1,5 +1,6 @@
 #include<android_native_app_glue.h> // everuhting related with pure native activity need this (mainly android_main function and android_app struct)
 #include<android/log.h> // for android_log_print function to print log in logcat
+#include<math.h> // for sqrt function to calculate distance between two points
 
 #include<memory.h>
 typedef struct
@@ -9,6 +10,22 @@ typedef struct
 } Engine;
 
 ANativeWindow* androidNativeWindow = NULL;
+
+// Event handling related global variables
+long touchStartTime = 0;
+long pendingSingleTapTime = 0;
+
+bool bTouchDown = false;
+bool bDragging = false;
+bool bLongPressDetected = false;
+bool bDoubleTabDetected = false;
+bool bPendingSingleTap = false;
+
+float touchStartX = 0.0f;
+float touchStartY = 0.0f;
+float lastTapX = 0.0f;
+float lastTapY = 0.0f;
+
 
 // global callback function declarations
 void engine_handle_cmd(struct android_app*, int32_t);
@@ -112,6 +129,41 @@ void android_main(struct android_app* state)
             }
     
         }
+
+        // handle long press
+        if(bTouchDown == true && bDragging == false && bLongPressDetected == false && bDoubleTabDetected == false)
+        {
+            struct timespec ts;
+            memset((void*)&ts, 0, sizeof(ts));
+
+            clock_gettime(CLOCK_MONOTONIC, &ts);
+
+            long now = (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+
+            if(now - touchStartTime >= 500) // 500 ms for long press
+            {
+                bLongPressDetected = true;
+                __android_log_print(ANDROID_LOG_INFO, "PRS:", "Long Press Detected\n");
+            }
+
+        }
+
+        // handle single tap
+        if(bPendingSingleTap == true)
+        {
+            struct timespec ts;
+            memset((void*)&ts, 0, sizeof(ts));
+
+            clock_gettime(CLOCK_MONOTONIC, &ts);
+
+            long now = (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+
+            if(now - pendingSingleTapTime >= 300) // 300 ms for single tap
+            {
+                bPendingSingleTap = false;
+                __android_log_print(ANDROID_LOG_INFO, "PRS:", "Single Tap Detected\n");
+            }
+        } 
     }
 
 }
@@ -190,7 +242,116 @@ void engine_handle_cmd(struct android_app* app, int32_t cmd)
 
 int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 {
-    // code
+    Engine *engine = (Engine*)app->userData;
+    int32_t eventType = AInputEvent_getType(event);
+
+    switch(eventType)
+    {
+        case AINPUT_EVENT_TYPE_MOTION:
+        {
+            int32_t action = AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK;
+
+            switch (action)
+            {
+                case AMOTION_EVENT_ACTION_DOWN:
+                {
+                   touchStartX = AMotionEvent_getX(event, 0);
+                   touchStartY = AMotionEvent_getY(event, 0);
+
+                   struct timespec ts;
+                   memset((void*)&ts, 0, sizeof(struct timespec));
+
+                   clock_gettime(CLOCK_MONOTONIC, &ts);
+
+                   touchStartTime = (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+                   
+                   bTouchDown = true;
+                   bDragging = false;
+                   bLongPressDetected = false;
+                   bDoubleTabDetected = false; 
+
+                   if(bPendingSingleTap == true)
+                   {
+                        long timeSinceLastTap = touchStartTime - pendingSingleTapTime;
+
+                        float dX  = touchStartX - lastTapX;
+                        float dY = touchStartY - lastTapY;
+
+                        float distance = sqrtf((dX * dX) + (dY * dY));
+
+                        if(timeSinceLastTap <= 300 && distance <= 100.0f)
+                        {
+                            bDoubleTabDetected = true;
+                            __android_log_print(ANDROID_LOG_INFO, "PRS:", "Double Tap Detected\n");
+                        }
+
+                        bPendingSingleTap = false;
+                   }   
+                }
+                break;
+
+                case AMOTION_EVENT_ACTION_MOVE:
+                {
+                    float currentX = AMotionEvent_getX(event, 0);
+                    float currentY = AMotionEvent_getY(event, 0);
+
+                    float dX = currentX - touchStartX;
+                    float dY = currentY - touchStartY;
+
+                    float distance = sqrtf((dX * dX) + (dY * dY));
+
+                    if(distance > 50.0f)
+                    {
+                        bDragging = true;
+                    }
+                }
+                break;
+
+                case AMOTION_EVENT_ACTION_UP:
+                {
+                   struct timespec ts;
+                   memset((void*)&ts, 0, sizeof(struct timespec));
+
+                   clock_gettime(CLOCK_MONOTONIC, &ts);
+
+                   long currentTime = (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+                   long duration = currentTime - touchStartTime;
+
+                   float EndX = AMotionEvent_getX(event, 0);
+                   float EndY = AMotionEvent_getY(event, 0);
+
+                   float dX = EndX - touchStartX;
+                   float dY = EndY - touchStartY;
+
+                   float distance = sqrtf((dX * dX) + (dY * dY));
+
+                   bTouchDown = false;
+
+                   if(bDoubleTabDetected == true)
+                   {
+                   }
+                   else if(bLongPressDetected == true)
+                   {
+                   }
+                   else if(bDragging == true && distance > 150.0f)
+                   {
+                        __android_log_print(ANDROID_LOG_INFO, "PRS:", "Drag Detected\n");
+                        ANativeActivity_finish(engine->app->activity);
+                   }
+                   else if(duration < 300 && distance < 50.0f)
+                   {
+                        bPendingSingleTap = true;
+                        pendingSingleTapTime = currentTime;
+                        lastTapX = EndX;
+                        lastTapY = EndY;
+                   }
+
+                   bDragging = false;
+                }
+                break;
+            }
+        }
+    }
+
     return 0;
 }
-
