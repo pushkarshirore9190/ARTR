@@ -384,8 +384,8 @@ void engine_handle_cmd(struct android_app* app, int32_t cmd)
         case APP_CMD_INIT_WINDOW: // like WM_CREATE
             if(app->window != NULL)
             {
-                 
-
+				engine->bActive = true;
+				
                 androidNativeWindow = engine->app->window;
 
 				androidAssetManager = app->activity->assetManager;
@@ -407,8 +407,6 @@ void engine_handle_cmd(struct android_app* app, int32_t cmd)
 					}
 				}
 
-				engine->bActive = true;
-            
                 __android_log_print(ANDROID_LOG_INFO, "PRS:", "APP_CMD_INIT_WINDOW : Window is created\n");
             }
             else
