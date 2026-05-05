@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import<cocoa/cocoa.h>
+#import <Cocoa/Cocoa.h>
 
 // macros
 #define WIN_WIDTH 800
@@ -17,300 +17,225 @@ char gszLogFileName[] = "Log.txt";
 FILE *gpFile = NULL;
 
 // forward interface declarations
-@interface AppDelegate:NSObject<NSApplicationDelegate,NSWindowDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 @end
 
-@interface View:NSView<NSWindowDelegate>
+@interface View : NSView
 @end
 
 // entry point function
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    // code
+    NSApplication *app = [NSApplication sharedApplication];
+    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-    // create auto relaese pool for memory mangemnt
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc]init];
+    AppDelegate *delegate = [[AppDelegate alloc] init];
+    [app setDelegate:delegate];
 
-    // cretate global share app application object
-    NSApp = [NSApplication sharedApplication];
+    [app run];
 
-    [[NSApp] setActivationPolicy:NSApplicationActivationPolicyRegular];
-
-    // set its delete to our app delegate custom calss
-    [NSApp setDelegate : [[AppDelegate alloc]init]];
-
-    // start NS App loop
-    [NSApp run];
-
-    //let auto release pool release all pending objectts in our application
+    [delegate release];
     [pool release];
 
     return 0;
 }
 
-// app delegate interface implementation
+// app delegate implementation
 @implementation AppDelegate
 {
-    @private
-    NSWindow * window;
-    
-    View* view;
+    NSWindow *window;
+    View *view;
 }
 
-    -(void)applicationDidFinishLaunching:(NSNotification*)notification
+-(void)applicationDidFinishLaunching:(NSNotification*)notification
+{
+    NSBundle* appBundle = [NSBundle mainBundle];
+    NSString* appDirPath = [appBundle bundlePath];
+    NSString* parentDirPath = [appDirPath stringByDeletingLastPathComponent];
+
+    NSString* logFileNameWithPath = [NSString stringWithFormat:@"%@/log.txt", parentDirPath];
+    const char* pszLogFileNameWithPath = [logFileNameWithPath cStringUsingEncoding:NSASCIIStringEncoding];
+
+    gpFile = fopen(pszLogFileNameWithPath, "w");
+    if (gpFile == NULL)
     {
-        // code
-        // Declare rectangle for frame or border of our window
-        // log file opening code
-        
-                NSBundle* appBundle = [NSBundle mainBundle];
-                NSString* appDirPath= [appBundle bundlePath];
-                NSString* parentDirPath = [appDirPath stringByDeletingLastPathComponent];
-         
-                NSString* logFileNameWithPath = [NSString stringWithFormat: @"%@/log.txt",parentDirPath];
-                const char* pszLogFileNameWithPath = [logFileNameWithPath cStringUsingEncoding : NSASCIIStringEncoding];
-                gpFile = fopen(pszLogFileNameWithPath, "w");
-                if (gpFile == NULL)
-                {
-                    //NSLog(@"Log file cannot be created");
-                    printf("Log file not created");
-                    [self release] ;
-                    [NSApp terminate : self] ;
-                }
-        
-                fprintf(gpFile, "Program started succesfully");
-        
-        NSRect win_rect = NSMakeRect(0.0, 0.0, 800.0, 600.0);
-
-        // create the window
-        window = [[NSWindow alloc]initWithContentRect:win_rect
-                                            styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable
-                                             backing : NSBackingStoreBuffered
-                                               defer : NO];
-
-        //  give the title to the window
-
-        [window setTitle : @"PRS : Cocoa window"];
-
-        // centre the window
-        [window center] ;
-
-        // set the background color of window to black
-        [window setBackgroundColor : [NSColor blackColor]] ;
-
-        // create the custom view
-        view = [[View alloc]initWithFrame:win_rect];
-
-        // set this newly created custom view as view of our newly created custom window
-        [window setContentView : view] ;
-
-
-        [window setDelegate : self] ;
-
-        // now actually show the window, give it keyboeard focus and make it top in the z order
-        [window makeKeyAndOrderFront : self] ;
-
-        // tell NS App to activate our application and its window
-        [NSApp activateIgnoringOtherApps : YES] ;
+        printf("Log file not created");
+        [NSApp terminate:self];
+        return;
     }
 
-    -(void)applicationWillTerminate:(NSNotification*)notification
-    {
-        [self release] ;
-    }
+    fprintf(gpFile, "Program started successfully\n");
 
-    -(void)dealloc
-    {
-        [super dealloc] ;
-        [view release] ;
-        [window release] ;
-    }
+    NSRect win_rect = NSMakeRect(0.0, 0.0, 800.0, 600.0);
+
+    window = [[NSWindow alloc] initWithContentRect:win_rect
+                                         styleMask:NSWindowStyleMaskTitled |
+                                                   NSWindowStyleMaskClosable |
+                                                   NSWindowStyleMaskMiniaturizable |
+                                                   NSWindowStyleMaskResizable
+                                           backing:NSBackingStoreBuffered
+                                             defer:NO];
+
+    [window setTitle:@"PRS : Cocoa window"];
+    [window center];
+    [window setBackgroundColor:[NSColor blackColor]];
+
+    view = [[View alloc] initWithFrame:win_rect];
+    [window setContentView:view];
+
+    [window setDelegate:self];
+
+    [window makeKeyAndOrderFront:self];
+    [NSApp activateIgnoringOtherApps:YES];
+}
+
+-(void)applicationWillTerminate:(NSNotification*)notification
+{
+}
+
+-(void)dealloc
+{
+    [view release];
+    [window release];
+    [super dealloc];
+}
 @end
 
-// implemetation of custom view interface
+// View implementation
 @implementation View
 
-
-    -(id)initWithFrame:(NSRect)frame
+-(id)initWithFrame:(NSRect)frame
+{
+    self = [super initWithFrame:frame];
+    if(self)
     {
-        // code
-        self = [super initWithFrame:frame];
-        if(self)
-        {
-            int result = [self initialise];
+        int result = [self initialise];
 
-            if (result == -1)
+        if (result == -1)
+            fprintf(gpFile, "Initialisation failed\n");
+        else
+            fprintf(gpFile, "Initialisation successful\n");
+    }
+    return self;
+}
+
+-(void)windowDidBecomeKey:(NSNotification*)notification
+{
+    bActiveWindow = YES;
+}
+
+-(void)windowDidResignKey:(NSNotification*)notification
+{
+    bActiveWindow = NO;
+}
+
+-(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize
+{
+    if(bWindowMinimized == NO)
+    {
+        [self Resize:frameSize.width :frameSize.height];
+    }
+    return frameSize;
+}
+
+-(void)windowWillMiniaturize:(NSNotification*)notification
+{
+    bWindowMinimized = YES;
+}
+
+-(void)windowDidDeminiaturize:(NSNotification*)notification
+{
+    bWindowMinimized = NO;
+}
+
+-(void)windowWillClose:(NSNotification*)notification
+{
+    [self uninitialise];
+    [NSApp terminate:self];
+}
+
+-(void)drawRect:(NSRect)dirtyRect
+{
+    [self drawView];
+}
+
+-(void)drawView
+{
+    [self display];
+    [self update];
+}
+
+-(BOOL)acceptsFirstResponder
+{
+    [[self window] makeFirstResponder:self];
+    return YES;
+}
+
+-(void)keyDown:(NSEvent*)event
+{
+    int key = (int)[[event characters] characterAtIndex:0];
+
+    switch(key)
+    {
+        case 27:
+            if(bFullScreen == YES)
             {
-                fprintf(gpFile, "Cannot initialise failed");
+                [[self window] toggleFullScreen:self];
+                bFullScreen = NO;
             }
-            else
-            {
-                fprintf(gpFile, "Initialisation successful");
-            }
-        }
+            [[self window] performClose:self];
+            break;
 
-        return(self);
+        case 'F':
+        case 'f':
+            [[self window] toggleFullScreen:nil];
+            bFullScreen = !bFullScreen;
+            break;
     }
+}
 
-    -(void)windowDidBecomeKey:(NSNotification*)notification
+-(void)dealloc
+{
+    [super dealloc];
+}
+
+// user methods
+-(int)initialise
+{
+    return 0;
+}
+
+-(void)Resize:(int)width :(int)height
+{
+}
+
+-(void)display
+{
+}
+
+-(void)update
+{
+}
+
+-(void)uninitialise
+{
+    if(bFullScreen == YES)
     {
-        // code
-        bActiveWindow = YES;
+        [[self window] toggleFullScreen:nil];
+        bFullScreen = NO;
     }
 
-    -(void)windowDidResignKey:(NSNotification*)notification
+    if(gpFile)
     {
-        // code
-        bActiveWindow = NO;
+        fprintf(gpFile, "Program terminated successfully\n");
+        fclose(gpFile);
+        gpFile = NULL;
     }
+}
 
-    -(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize
-    {
-        // code
-       if(bWindowMinimized == NO)
-       {
-            [[self Resize] : frameSize.width : frameSize.height];
-       }
-           
-        return (frameSize);
-    }
-
-    -(void)windowDidResize : (NSNotification*)notification
-    {
-        // code
-    }
-
-    -(void)windowWillMiniaturize : (NSNotification*)notification
-    {
-        // code
-        bWindowMinimized = YES;
-    }
-
-    -(void)windowDidMiniaturize : (NSNotification*)notification
-    {
-        // code
-    }
-
-    -(void)windowDidDeminiaturize : (NSNotification*)notification
-    {
-        // code
-        bWindowMinimized = NO;
-    }
-
-    -(void)windowWillClose : (NSNotification*)notification
-    {
-        // code
-        [self uninitialise] ;
-        [NSApp terminate : self] ;
-    }
-
-    -(void)drawRect:(NSRect)dirtyRect
-    {
-        // code 
-        [self drawView];
-
-    }
-
-    -(void)drawView
-    {
-       // code
-
-       // display
-       [self display];
-
-       // update
-       [self update];
-    }
-
-    -(BOOL)acceptsFirstResponder
-    {
-        // code
-        [[self window]makeFirstResponder:self];
-        return (YES);
-    }
-
-    -(void)keyDown:(NSEvent*)event
-    {
-        //code
-        int key = (int) [[event characters]characterAtIndex:0];
-
-        switch(key)
-        {
-            case 27:
-                if(bFullScreen == YES)
-                {
-                    [[self window]toggleFullScreen:self];
-                    bFullScreen = NO;
-                }
-
-                [[self window]performClose:self]; 
-                break;
-
-            case 'F':
-            case 'f':
-                if(bFullScreen == NO)
-                {
-                    [[self window]toggleFullScreen:nil];
-                    bFullScreen = YES;
-                }
-                else
-                {
-                    [[self window]toggleFullScreen:self];
-                    bFullScreen = NO;
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    -(void)dealloc
-    {
-        [super dealloc] ;
-    }
-
-    // user defined methods of view class
-
-    -(int)initialise
-    {
-        // code
-        return (0);
-    }
-
-    -(void)Resize : (int)width : (int)height
-    {
-        // code
-    }
-
-    -(void)display
-    {
-        // code
-    }
-
-    -(void)update
-    {
-        // code
-    }
-
-    -(void)uninitialise
-    {
-        // code
-        if(bFullScreen == YES)
-        {
-            [[self window]toggleFullScreen:nil];
-            bFullScreen = NO;
-        }
-
-        if(gpFile)
-        {
-            fprintf(gpFile, "Program terminated successfully");
-            fclose(gpFile);
-            gpFile = NULL;
-        }   
-    }
-    
 @end
+
 
 
