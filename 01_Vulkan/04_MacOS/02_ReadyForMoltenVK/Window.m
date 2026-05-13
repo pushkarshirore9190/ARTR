@@ -235,14 +235,16 @@ int main(int argc, char* argv[])
 }
 
 // to have the result of set wantsUpdateLayer follwing function should be return YES if resizing is done
+
 -(CALayer*)makeBackingLayer
 {
-    // code
-    CALayer*layer = [[[self class] layerClass] layer];
+    CALayer *layer = [[[self class] layerClass] layer];
 
-    CGSize viewSize = [self convertSizeToBacking: CGSizeMake(1.0, 1.0)];
+    CGSize viewSize = [self convertSizeToBacking:CGSizeMake(1.0, 1.0)];
 
-    [layer setContentsScale: min(viewSize.width, viewSize.height)];
+    [layer setContentsScale:MIN(viewSize.width, viewSize.height)];
+
+    return layer;
 }
 
 -(BOOL)acceptsFirstResponder
