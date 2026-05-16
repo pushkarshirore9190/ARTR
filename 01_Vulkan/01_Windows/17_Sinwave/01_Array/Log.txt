@@ -360,6 +360,12 @@ buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
  resize() : 
  vkDeviceWaitIdle() is Done
  resize() : 
@@ -413,6 +419,21 @@ createPipeline() : vkCreateGraphicsPipelines() succeeded.
 createPipeline() : Free vkPipelineCache freed
 createframeBuffers() : vkCreateFramebuffer() succeeded.
 createCommandBuffers() : vkAllocateCommandBuffers() succeeded.
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
