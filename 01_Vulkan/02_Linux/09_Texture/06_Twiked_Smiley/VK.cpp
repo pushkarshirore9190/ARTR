@@ -184,9 +184,11 @@ VertexData vertexData_Texcoord;
 // uniform related declarations
 struct MyUniformData
 {
-	glm::mat4 modelMatrix;
-	glm::mat4 viewMatrix;
-	glm::mat4 projectionMatrix;
+    glm::mat4 modelMatrix;
+    glm::mat4 viewMatrix;
+    glm::mat4 projectionMatrix;
+    int keyPressed;
+    int padding[3]; // for proper memory alignment
 };
 
 struct UniformData
@@ -217,6 +219,9 @@ VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 
 // For Rotation
 float angle = 0.0f;
+
+// For Texture Key Selection
+int gi_pressed_key = -1;
 
 // texture related variables
 VkImage vkImage_Texture = VK_NULL_HANDLE;
@@ -401,10 +406,32 @@ int main(int argc, char *argv[])
                 {
                     case XK_Escape:
                         bEscapeKeyIsPressed = True;
-                        break; 
+                        break;
+						
+					case XK_KP_1:
+					case XK_1:
+						gi_pressed_key = 1;
+						break;
 
-                    default:
-                        break;   
+					case XK_KP_2:
+					case XK_2:
+						gi_pressed_key = 2;
+						break;
+
+					case XK_KP_3:
+					case XK_3:
+						gi_pressed_key = 3;
+						break;
+
+					case XK_KP_4:
+					case XK_4:
+						gi_pressed_key = 4;
+						break;
+
+					default:
+						gi_pressed_key = -1;
+						break;
+
                 }
 
                 XLookupString(&event.xkey,keys,sizeof(keys),NULL,NULL);
@@ -424,7 +451,7 @@ int main(int argc, char *argv[])
                             bFullscreen = False;
                         }
                         break;
-
+						
                         default:
                             break;
                         
@@ -1165,6 +1192,7 @@ VkResult display(void)
 	// function declaration
 	VkResult resize(int, int);
 	VkResult updateUniformbuffer(void);
+	VkResult updateTexcoordBuffer(void);
 	 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -1269,6 +1297,13 @@ VkResult display(void)
 	if(vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "display() : updateUniformbuffer() failed with error: %d\n", vkresult);
+		return(vkresult);
+	}
+
+	vkresult = updateTexcoordBuffer();
+	if(vkresult != VK_SUCCESS)
+	{
+		fprintf(gpFile, "display() : updateTexcoordBuffer() failed with error: %d\n", vkresult);
 		return(vkresult);
 	}
 
@@ -4122,6 +4157,8 @@ VkResult updateUniformbuffer(void)
 
 	myUniformData.viewMatrix = glm::mat4(1.0);
 
+	myUniformData.keyPressed = (gi_pressed_key != -1) ? 1 : 0;
+
 	glm::mat4 perspectiveProjectionMatrix = glm::mat4(1.0);
 
 	perspectiveProjectionMatrix = glm::perspective(glm::radians(45.0f), float(winWidth) / float(winHeight), 0.1f, 100.0f);
@@ -4147,6 +4184,90 @@ VkResult updateUniformbuffer(void)
 	vkUnmapMemory(vkDevice, uniformData.vkDeviceMemory);
 
 	return vkresult;
+}
+
+VkResult updateTexcoordBuffer(void)
+{
+    // Variable declaration
+    VkResult vkresult = VK_SUCCESS;
+
+    // Same logic as OpenGL - 6 vertices (2 triangles)
+    float texcoords[12]; // 6 vertices * 2 floats each
+
+    if (gi_pressed_key == 1)
+    {
+        // Full texture (0.0 to 1.0)
+        texcoords[0]  = 1.0f; texcoords[1]  = 1.0f; // top right
+        texcoords[2]  = 0.0f; texcoords[3]  = 1.0f; // top left
+        texcoords[4]  = 0.0f; texcoords[5]  = 0.0f; // bottom left
+
+        texcoords[6]  = 0.0f; texcoords[7]  = 0.0f; // bottom left
+        texcoords[8]  = 1.0f; texcoords[9]  = 0.0f; // bottom right
+        texcoords[10] = 1.0f; texcoords[11] = 1.0f; // top right
+    }
+    else if (gi_pressed_key == 2)
+    {
+        // Zoomed in - only bottom left quarter (0.0 to 0.5)
+        texcoords[0]  = 0.5f; texcoords[1]  = 0.5f;
+        texcoords[2]  = 0.0f; texcoords[3]  = 0.5f;
+        texcoords[4]  = 0.0f; texcoords[5]  = 0.0f;
+
+        texcoords[6]  = 0.0f; texcoords[7]  = 0.0f;
+        texcoords[8]  = 0.5f; texcoords[9]  = 0.0f;
+        texcoords[10] = 0.5f; texcoords[11] = 0.5f;
+    }
+    else if (gi_pressed_key == 3)
+    {
+        // Tiled 2x2 (0.0 to 2.0)
+        texcoords[0]  = 2.0f; texcoords[1]  = 2.0f;
+        texcoords[2]  = 0.0f; texcoords[3]  = 2.0f;
+        texcoords[4]  = 0.0f; texcoords[5]  = 0.0f;
+
+        texcoords[6]  = 0.0f; texcoords[7]  = 0.0f;
+        texcoords[8]  = 2.0f; texcoords[9]  = 0.0f;
+        texcoords[10] = 2.0f; texcoords[11] = 2.0f;
+    }
+    else if (gi_pressed_key == 4)
+    {
+        // Single center pixel stretched
+        texcoords[0]  = 0.5f; texcoords[1]  = 0.5f;
+        texcoords[2]  = 0.5f; texcoords[3]  = 0.5f;
+        texcoords[4]  = 0.5f; texcoords[5]  = 0.5f;
+
+        texcoords[6]  = 0.5f; texcoords[7]  = 0.5f;
+        texcoords[8]  = 0.5f; texcoords[9]  = 0.5f;
+        texcoords[10] = 0.5f; texcoords[11] = 0.5f;
+    }
+    else
+    {
+        // Default - full texture
+        texcoords[0]  = 1.0f; texcoords[1]  = 1.0f;
+        texcoords[2]  = 0.0f; texcoords[3]  = 1.0f;
+        texcoords[4]  = 0.0f; texcoords[5]  = 0.0f;
+
+        texcoords[6]  = 0.0f; texcoords[7]  = 0.0f;
+        texcoords[8]  = 1.0f; texcoords[9]  = 0.0f;
+        texcoords[10] = 1.0f; texcoords[11] = 1.0f;
+    }
+
+    // Map the texcoord buffer memory
+    void* data = NULL;
+
+    vkresult = vkMapMemory(vkDevice, vertexData_Texcoord.vkDeviceMemory, 0, sizeof(texcoords), 0, &data);
+    if (vkresult != VK_SUCCESS)
+    {
+        fprintf(gpFile, "updateTexcoordBuffer() : vkMapMemory() failed. Error Code: (%d)\n", vkresult);
+        return vkresult;
+    }
+
+    // Copy new texcoords into GPU buffer
+    memcpy(data, texcoords, sizeof(texcoords));
+
+    vkUnmapMemory(vkDevice, vertexData_Texcoord.vkDeviceMemory);
+
+    fprintf(gpFile, "updateTexcoordBuffer() : texcoords updated for key = %d\n", gi_pressed_key);
+
+    return vkresult;
 }
 
 
@@ -4331,7 +4452,7 @@ VkResult createDiscriptorSetLayout(void)
 	vkdescriptorSetLayoutBinding_Array[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	vkdescriptorSetLayoutBinding_Array[0].binding = 0;  // this 0 is related with the binding  = 0 of vertex shader
 	vkdescriptorSetLayoutBinding_Array[0].descriptorCount = 1;
-	vkdescriptorSetLayoutBinding_Array[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	vkdescriptorSetLayoutBinding_Array[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	vkdescriptorSetLayoutBinding_Array[0].pImmutableSamplers = NULL;
 
 	

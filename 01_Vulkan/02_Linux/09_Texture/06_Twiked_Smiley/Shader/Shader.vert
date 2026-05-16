@@ -10,19 +10,17 @@ layout(location = 0) out vec2 out_TexCoord;
 
 layout(binding = 0) uniform MVPMatrix
 {
-	mat4 modelMatrix;
-	mat4 viewMatrix;
-	mat4 projectionMatrix;
+    mat4 modelMatrix;
+    mat4 viewMatrix;
+    mat4 projectionMatrix;
+    int keyPressed;
 } uMVP;
 
 void main(void)
 {
-	// code
-	gl_Position = uMVP.projectionMatrix * uMVP.viewMatrix * uMVP.modelMatrix * vPosition;
-	out_TexCoord = vTexCoord;
+    gl_Position = uMVP.projectionMatrix * uMVP.viewMatrix * uMVP.modelMatrix * vPosition;
+    out_TexCoord = vTexCoord;
 }
-
-
 
 
 
