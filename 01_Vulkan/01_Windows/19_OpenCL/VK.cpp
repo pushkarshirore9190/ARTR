@@ -8,7 +8,7 @@
 #include<vulkan/vulkan.h>
 
 // OpenCL Headers
-#define CL_TARGET_OPENCL_VERSION 200
+#define CL_TARGET_OPENCL_VERSION 300
 #include<CL/OpenCL.h>
 #include<CL/cl_ext.h> // for cl_khr_icd extension and cl_khr_d3d11_sharing extension 
 
@@ -22,9 +22,43 @@
 #include"glm/glm.hpp"
 #include"glm/gtc/matrix_transform.hpp"
 
+
+// cl_khr_external_memory extension constants
+#ifndef CL_MEM_DEVICE_HANDLE_LIST_KHR
+#define CL_MEM_DEVICE_HANDLE_LIST_KHR      0x2051
+#define CL_MEM_DEVICE_HANDLE_LIST_END_KHR  0
+#endif
+
+
+// OpenCL external memory function pointer typedefs
+typedef cl_int (CL_API_CALL *clEnqueueAquireExternalMemObjectsKHR_fn)(
+    cl_command_queue command_queue,
+    cl_uint num_mem_objects,
+    const cl_mem* mem_objects,
+    cl_uint num_events_in_wait_list,
+    const cl_event* event_wait_list,
+    cl_event* event);
+
+typedef cl_int (CL_API_CALL *clEnqueueReleaseExternalMemObjectsKHR_fn)(
+    cl_command_queue command_queue,
+    cl_uint num_mem_objects,
+    const cl_mem* mem_objects,
+    cl_uint num_events_in_wait_list,
+    const cl_event* event_wait_list,
+    cl_event* event);
+
+typedef cl_mem (CL_API_CALL *clCreateBufferWithPropertiesKHR_fn)(
+    cl_context context,
+    const cl_mem_properties* properties,
+    cl_mem_flags flags,
+    size_t size,
+    void* host_ptr,
+    cl_int* errcode_ret);
+
+
+
 // vulkun related libraries
 #pragma comment(lib, "vulkan-1.lib")
-
 
 
 // Macros
@@ -956,7 +990,7 @@ cl_int initialise_OpenCL(void)
 
 	// check for the presence of OpenCL device if absent no point to go ahead
 	cl_uint Platform_Count = 0;
-	cl_platfrom_id* oclPlatformIDs = NULL;
+	cl_platform_id* oclPlatformIDs = NULL;
 	cl_uint Device_Count;
 	cl_device_id* oclDeviceIDs = NULL;
 
@@ -986,7 +1020,7 @@ cl_int initialise_OpenCL(void)
 	{
 		// get no of Device for found platform
 		oclResult = clGetDeviceIDs(oclPlatformIDs[i], CL_DEVICE_TYPE_GPU, 0, NULL, &Device_Count);
-		if (oclResult != CL_SUCCESS0)
+		if (oclResult != CL_SUCCESS)
 		{
 			continue;
 		}
@@ -1004,18 +1038,18 @@ cl_int initialise_OpenCL(void)
 		}
 		
 		// so now we have correct OpenCL platform to correct reqired extensions and has GPU devices too
-		oclplatformID = oclPlatformIDs[i];
+		oclPlatformID = oclPlatformIDs[i];
 
 		// print slected properties
 		size_t infoSize;
 		char * oclPlatformInfo = NULL;
 
 		// print platform name
-		clGetPlatformInfo(oclplatformID, CL_PLATFORM_NAME, 0, NULL, &infoSize);
+		clGetPlatformInfo(oclPlatformID, CL_PLATFORM_NAME, 0, NULL, &infoSize);
 
 		oclPlatformInfo = (char*)malloc(infoSize * sizeof(char));
 
-	    clGetPlatformInfo(oclplatformID, CL_PLATFORM_NAME, infoSize, oclPlatformInfo, NULL);
+	    clGetPlatformInfo(oclPlatformID, CL_PLATFORM_NAME, infoSize, oclPlatformInfo, NULL);
 
 		fprintf(gpFile, "initialise_OpenCL() : OpenCL Platform Name : %s\n", oclPlatformInfo);
 
@@ -1065,7 +1099,8 @@ cl_int initialise_OpenCL(void)
 	for (unsigned int i = 0; i < Device_Count; i++)
 	{
 		// get opencl capable devies uuid from opencl itself
-		clGetDeviceInfo(oclDeviceIDs[i], CL_DEVICE_UUID_KHR, sizeof(CL_UUID_SIZE_KHR), &cl_uuid, NULL);
+		//clGetDeviceInfo(oclDeviceIDs[i], CL_DEVICE_UUID_KHR, sizeof(CL_UUID_SIZE_KHR), &cl_uuid, NULL);
+		clGetDeviceInfo(oclDeviceIDs[i], CL_DEVICE_UUID_KHR, CL_UUID_SIZE_KHR, &cl_uuid, NULL);
 
 		BOOL isUUIDMatch= TRUE;
 
@@ -1159,7 +1194,7 @@ cl_int initialise_OpenCL(void)
 	}
 
 	// build opencl program
-	oclResult = clBuildProgram(oclProgram, 0, NULL, "_cl_fast_relaxed_math", NULL, NULL);
+	oclResult = clBuildProgram(oclProgram, 0, NULL, "-cl-fast-relaxed-math", NULL, NULL);
 	if (oclResult != CL_SUCCESS)
 	{
 		fprintf(gpFile, "initialise_OpenCL() : clBuildProgram() failed\n");
@@ -1215,13 +1250,14 @@ BOOL DoesOpenCLPlatformSupportsRequiredExtensions (cl_platform_id ocl_platformID
 	// find out how many extensions are there
 	char * token = strtok(oclPlatformExtensions_Copy_For_strtok, " " " ");
 
+	int ExtensionCount = 0;   // declare OUTSIDE loop
 	int i = 0;
 	while(token != NULL)
 	{
 		i++;
 		token = strtok(NULL, " " " ");
-		int ExtensionCount = i;
-		fprintf(gpFile, "DoesOpenCLPlatformSupportsRequiredExtensions() : Extension %d : %s\n", ExtensionCount, token);
+		ExtensionCount = i;
+		fprintf(gpFile, "...%d : %s\n", ExtensionCount, token);
 	}
 
 	// create array of lengths of names of each found extensions
@@ -1237,7 +1273,7 @@ BOOL DoesOpenCLPlatformSupportsRequiredExtensions (cl_platform_id ocl_platformID
 
 	while (token != NULL)
 	{
-		extensionLengths_Array[i] = strlen(token + 1);
+		extensionLengths_Array[i] = strlen(token) + 1;
 		token = strtok(NULL, " " " ");
 		i++;
 	}
@@ -1248,7 +1284,7 @@ BOOL DoesOpenCLPlatformSupportsRequiredExtensions (cl_platform_id ocl_platformID
 	clextensions_Array = (char**)malloc(sizeof(char*) * ExtensionCount);
 	for(int i = 0 ; i < ExtensionCount; i++)
 	{
-		clextensions_Array[i] = (char*)malloc(sizeof(char) * (extensionLengths_Array[i]);
+		clextensions_Array[i] = (char*)malloc(sizeof(char) * extensionLengths_Array[i]);
 	}
 
 	// copy each extension name to above created string array
@@ -1294,18 +1330,18 @@ BOOL DoesOpenCLPlatformSupportsRequiredExtensions (cl_platform_id ocl_platformID
 	}
 
 	// free allocated memory
+
 	for (int i = 0; i < ExtensionCount; i++)
 	{
 		free(clextensions_Array[i]);
-		free(extensionLengths_Array);
 		clextensions_Array[i] = NULL;
-
-		free(extensionLengths_Array);
-		extensionLengths_Array = NULL;
-
-		free(oclPlatformExtensions);
-		oclPlatformExtensions = NULL;
 	}
+	free(clextensions_Array);
+	clextensions_Array = NULL;
+	free(extensionLengths_Array);
+	extensionLengths_Array = NULL;
+	free(oclPlatformExtensions);
+	oclPlatformExtensions = NULL;
 
 	// conclusion
 	BOOL bResult = FALSE;
@@ -1340,6 +1376,10 @@ VkResult resize(int width, int heigth)
 	if (heigth <= 0)
 		heigth = 1;
 
+	// set global winwidth and winheight variables
+	winWidth = width;
+	winHeight = heigth;
+
 	// check the bInitialised variable
 	if (bInitialised == FALSE)
 	{
@@ -1350,10 +1390,6 @@ VkResult resize(int width, int heigth)
 
 	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  FALSE again
 	bInitialised = FALSE;
-
-	// set global winwidth and winheight variables
-	winWidth = width;
-	winHeight = heigth;
 
 	// wait for device to complete in hand task
 	if (vkDevice)
@@ -1608,7 +1644,7 @@ VkResult display(void)
 		}
 
 		// map vulkan buffer for writing from opencl
-		clEnqueueAquireExternalMemObjectsKHR_fn clEnqueueAquireExternalMemObjectsKHR = (clEnqueueAquireExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclplatformID, "clEnqueueAcquireExternalMemObjectsKHR");
+		clEnqueueAquireExternalMemObjectsKHR_fn clEnqueueAquireExternalMemObjectsKHR = (clEnqueueAquireExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclPlatformID, "clEnqueueAcquireExternalMemObjectsKHR");
 
 		if(clEnqueueAquireExternalMemObjectsKHR == NULL)
 		{
@@ -1636,7 +1672,8 @@ VkResult display(void)
 		}
 
 		// now release the vulkan buffer from opencl
-		clEnqueueReleaseExternalMemObjectsKHR_fn clEnqueueReleaseExternalMemObjectsKHR = (clEnqueueReleaseExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclplatformID, "clEnqueueReleaseExternalMemObjectsKHR");
+
+		clEnqueueReleaseExternalMemObjectsKHR_fn clEnqueueReleaseExternalMemObjectsKHR = (clEnqueueReleaseExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclPlatformID, "clEnqueueReleaseExternalMemObjectsKHR");
 
 		if (clEnqueueReleaseExternalMemObjectsKHR == NULL)
 		{
@@ -1654,14 +1691,6 @@ VkResult display(void)
 
 		// finish opencl commands
 		clFinish(oclCommandQueue);
-	}
-	else
-	{		
-		if(bMesh1024Choosen == TRUE)
-		{
-			// prepair sin wave for CPU
-			prepairSinwaveForCPU(1024, 1024, AnimationTime);
-		}
 	}
 	
 
@@ -1938,7 +1967,6 @@ void uninitialise(void)
 		if (oclResult != CL_SUCCESS)
 		{
 			fprintf(gpFile, "uninitialise() : uninitialise_OpenCL() failed\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
 		}
 		else
 		{
@@ -2835,13 +2863,13 @@ VkResult fillDeviceExtensionNames(void)
 
     // Step 1: Query how many device extensions are supported
     uint32_t deviceExtensionCount = 0;
-    vkresult = vkEnumerpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, NULL);
+    vkresult = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, NULL);
     if (vkresult != VK_SUCCESS)
     {
-        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() 1st call failed with error code %d\n", vkresult);
+        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call failed with error code %d\n", vkresult);
         return vkresult;
     }
-    fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() 1st call succeeded. Device extension count: %d\n", deviceExtensionCount);
+    fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call succeeded. Device extension count: %d\n", deviceExtensionCount);
 
     // Step 2: Allocate memory for extension properties
     VkExtensionProperties* vkExtensionProperties_array = (VkExtensionProperties*)malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
@@ -2852,14 +2880,14 @@ VkResult fillDeviceExtensionNames(void)
     }
 
     // Query extension properties
-    vkresult = vkEnumerpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, vkExtensionProperties_array);
+    vkresult = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, vkExtensionProperties_array);
     if (vkresult != VK_SUCCESS)
     {
-        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() 2nd call failed with error code %d\n", vkresult);
+        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call failed with error code %d\n", vkresult);
         free(vkExtensionProperties_array);
         return vkresult;
     }
-    fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() 2nd call succeeded\n");
+    fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call succeeded\n");
 
     // Step 3: Allocate memory for extension name strings
     char** DeviceExtensionNames_array = (char**)malloc(sizeof(char*) * deviceExtensionCount);
@@ -2947,12 +2975,10 @@ VkResult fillDeviceExtensionNames(void)
     return vkresult;
 }
 
-
 VkResult createVulkanDevice(void)
 {
 	// function declaration
 	VkResult fillDeviceExtensionNames(void);
-
 
 	// variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -2972,7 +2998,6 @@ VkResult createVulkanDevice(void)
 	float queuePriority[1];
 	queuePriority[0] = 1.0f;
 
-	// newly added code
 	VkDeviceQueueCreateInfo vkDeviceQueueCreateInfo;
 	memset((void*)&vkDeviceQueueCreateInfo, 0, sizeof(VkDeviceQueueCreateInfo));
 
@@ -2984,7 +3009,7 @@ VkResult createVulkanDevice(void)
 	vkDeviceQueueCreateInfo.pQueuePriorities = queuePriority;
 
 
-	// initialise vkDeviceCreateInfo sttucture
+	// initialise vkDeviceCreateInfo structure
 	VkDeviceCreateInfo vkDeviceCreateInfo;
 	memset((void*)&vkDeviceCreateInfo, 0, sizeof(VkDeviceCreateInfo));
 
@@ -2998,7 +3023,7 @@ VkResult createVulkanDevice(void)
 	vkDeviceCreateInfo.pEnabledFeatures = NULL;
 	vkDeviceCreateInfo.queueCreateInfoCount = 1;
 	vkDeviceCreateInfo.pQueueCreateInfos = &vkDeviceQueueCreateInfo;
-
+	
 
 	vkresult = vkCreateDevice(vkPhysicalDevice_selected, &vkDeviceCreateInfo, NULL, &vkDevice);
 	if (vkresult != VK_SUCCESS)
@@ -3905,6 +3930,17 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 		0
 	};
 
+
+	clCreateBufferWithPropertiesKHR_fn clCreateBufferWithPropertiesKHR =
+    (clCreateBufferWithPropertiesKHR_fn)clGetExtensionFunctionAddressForPlatform(
+        oclPlatformID, "clCreateBufferWithPropertiesKHR");
+
+	if (clCreateBufferWithPropertiesKHR == NULL)
+	{
+		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithPropertiesKHR not found\n");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
 	// create OpenCl Compatible external buffer from above vulkan buffer
 	pos_OpenCL = clCreateBufferWithPropertiesKHR(
 		oclContext,
@@ -3913,6 +3949,7 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 		vkMemoryRequirements.size,
 		NULL,
 		&oclResult);
+
 
 	if (oclResult != CL_SUCCESS)
 	{
@@ -4621,7 +4658,7 @@ VkResult createPipline(void)
 	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array));
 
 	vkPipelineColorBlendAttachmentState_Array[0].blendEnable = VK_FALSE;
-	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask =VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
+	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
 
 	VkPipelineColorBlendStateCreateInfo vkPipelineColorBlendStateCreateInfo;
@@ -4932,7 +4969,10 @@ VkResult buildCommandBuffers(void)
 
 	if (bMesh1024Choosen == TRUE)
 	{
-		prepairSinwaveForCPU(1024, 1024, AnimationTime);
+		if (bOnGPU == FALSE)
+		{
+			prepairSinwaveForCPU(1024, 1024, AnimationTime);
+		}
 		vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
 	}
 
@@ -5025,24 +5065,18 @@ VkResult buildCommandBuffers(void)
 		VkDeviceSize vkDeviceSize_Offest_Array[1];
 		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAYSIZE(vkDeviceSize_Offest_Array));
 		
-		if (bMesh1024Choosen == TRUE)
+
+		if (bOnGPU == FALSE)
 		{
 			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_position_1024x1024_graphics.vkBuffer, vkDeviceSize_Offest_Array);
-			bOnGPU = FALSE;
 		}
 		else
 		{
-			// for other mesh sizes if any in future
 			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_External.vkBuffer, vkDeviceSize_Offest_Array);
-			bOnGPU = TRUE;
-
 		}
 
-		if (bMesh1024Choosen == TRUE)
-		{
-			// draw
-			vkCmdDraw(vkCommandBuffer_Array[i], 1024 * 1024, 1, 0, 0);
-		}
+
+		vkCmdDraw(vkCommandBuffer_Array[i], 1024 * 1024, 1, 0, 0);
 
 		// End the render pass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);

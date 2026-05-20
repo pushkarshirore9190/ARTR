@@ -2,6 +2,11 @@ cls
 
 rc.exe VK.rc
 
-nvcc.exe -arch=sm_120 -m64 -D__CUDACC_VER_MAJOR__=12 -I"C:\VulkanSDK\Vulkan\include" -L"C:\VulkanSDK\Vulkan\lib" VK.cu -o VK.exe vulkan-1.lib user32.lib gdi32.lib VK.res --diag-suppress 20012,20014 --expt-relaxed-constexpr -allow-unsupported-compiler
+nvcc.exe -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\include" -I "C:\VulkanSDK\Vulkan\include" -L "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\lib\x64" -L "C:\VulkanSDK\Vulkan\lib" -o VK.exe user32.lib gdi32.lib VK.res VK.cu -diag-suppress 20012 -diag-suppress 20013 -diag-suppress 20014 -diag-suppress 20015
+
+
+
+
+
 
 

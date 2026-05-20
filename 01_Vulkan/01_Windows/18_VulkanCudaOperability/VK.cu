@@ -3570,7 +3570,7 @@ VkResult createExternalVertexBuffer(int mesh_width, int mesh_height, VertexData*
 	cuExternalMemoryHandleDesc.type = cudaExternalMemoryHandleTypeOpaqueWin32; // this is cuda inbuild win32 handle type
 	cuExternalMemoryHandleDesc.size = size;
 	cuExternalMemoryHandleDesc.handle.win32.handle = hMemoryWin32Handle;
-	cuExternalMemoryHandleDesc.flags = cudaExternalMemoryDedicated;
+	cuExternalMemoryHandleDesc.flags = 0;
 
 	cudaResult = cudaImportExternalMemory(&cuExtMemory, &cuExternalMemoryHandleDesc);
 	if (cudaResult != cudaSuccess)
@@ -4607,7 +4607,7 @@ VkResult buildCommandBuffers(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	// command buffer
-	VkCommandBuffer* vkCommandBuffer_Array = NULL;
+	VkCommandBuffer* vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
 	
 	// loop per swapchain image
 	for(uint32_t i = 0; i < swapchainImageCount; i++)
@@ -4697,27 +4697,20 @@ VkResult buildCommandBuffers(void)
 		// bind with vertex buffer
 		VkDeviceSize vkDeviceSize_Offest_Array[1];
 		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAYSIZE(vkDeviceSize_Offest_Array));
+		
 
-
-		if (bMesh1024Choosen == TRUE)
+		if (bOnGPU == TRUE)
 		{
-			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_position_1024x1024_graphics.vkBuffer, vkDeviceSize_Offest_Array);
-			bOnGPU = FALSE;
+			// GPU path: CUDA kernel already wrote sine wave into vertex_External buffer
+			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_External.vkBuffer, vkDeviceSize_Offest_Array);
 		}
 		else
 		{
-			// for other mesh sizes if any in future
-			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_External.vkBuffer, vkDeviceSize_Offest_Array);
-			bOnGPU = TRUE;
-
+			// CPU path: CPU filled vertex_position_1024x1024_graphics buffer
+			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_position_1024x1024_graphics.vkBuffer, vkDeviceSize_Offest_Array);
 		}
 
-
-		if (bMesh1024Choosen == TRUE)
-		{
-			// draw
-			vkCmdDraw(vkCommandBuffer_Array[i], 1024 * 1024, 1, 0, 0);
-		}
+		vkCmdDraw(vkCommandBuffer_Array[i], 1024 * 1024, 1, 0, 0);
 
 		// End the render pass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);
