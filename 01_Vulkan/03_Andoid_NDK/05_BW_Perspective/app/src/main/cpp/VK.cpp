@@ -1205,7 +1205,7 @@ void update(void)
 void uninitialise(void)
 {
 	//No need to destroy/uninitialize vkQueue
-
+	bInitialised = false;
 
 	//Vulkan related any destruction *HAS TO BE AFTER VkDevice*
 	//because any resources related to vulkan device ae all done so resource freeing 
@@ -1365,7 +1365,7 @@ void uninitialise(void)
 		}
 
 		vkDestroyCommandPool(vkDevice, vkcommandpool, NULL);
-		//vkCommandPool = VK_NULL_HANDLE;
+		vkcommandpool = VK_NULL_HANDLE;
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "\n vkCommandPool is Freed\n");
 
 
@@ -1567,6 +1567,9 @@ VkResult fillExtensionNames(void)
 {
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
+
+	enabledInstanceExtensionCount = 0;
+    memset(enabledInstanceExtensionNames_array, 0, sizeof(enabledInstanceExtensionNames_array));
 
 	// step - 1: How many instance extensions are supported by the Vulkan driver of this version
 	uint32_t instanceExtensionCount = 0;
@@ -2151,6 +2154,10 @@ VkResult fillDeviceExtensionNames(void)
 {
     // Variable declarations
     VkResult vkresult = VK_SUCCESS;
+
+	// CRITICAL FIX: reset before refilling
+	enableDeviceExtensionCount = 0;
+	memset(enabledDeviceExtensionNames_array, 0, sizeof(enabledDeviceExtensionNames_array));
 
     // Step 1: Query how many device extensions are supported
     uint32_t deviceExtensionCount = 0;
