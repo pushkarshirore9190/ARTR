@@ -3425,6 +3425,7 @@ VkResult createImagesAndImageViews(void)
 		else
 		{
 			fprintf(gpFile, "createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (%d)\n", i);
+			fflush(gpFile);
 		}
 	}
 
@@ -3439,6 +3440,7 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration\n");
+		fflush(gpFile);
 	}
 
 	// for depth image initialise vkImageCreateInfo
@@ -3468,6 +3470,7 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : vkCreateImage() succeeded for iteration\n");
+		fflush(gpFile);
 	}
 
 	// memory reqirement for depth image
@@ -3508,6 +3511,7 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : vkAllocateMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkBindImageMemory(vkDevice, vkImage_Depth, vkDeviceMemory_Depth, 0);
@@ -3519,6 +3523,7 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : vkBindImageMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// crateImageView For above image view
@@ -3545,6 +3550,7 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : VkCreateImageView() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
@@ -3614,6 +3620,7 @@ VkResult createCommandPool(void)
 	else
 	{
 		fprintf(gpFile, "createCommandPool() : vkCreateCommandPool() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -3652,6 +3659,7 @@ VkResult createCommandBuffers(VkCommandBuffer** ppvkCommandBuffer_Array)
 	else
 	{
 		fprintf(gpFile, "createCommandBuffers() : vkAllocateCommandBuffers() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	*ppvkCommandBuffer_Array = vkCommandBuffer_Array;
@@ -3705,6 +3713,7 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
@@ -3744,6 +3753,7 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
@@ -3755,6 +3765,7 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	void* data = NULL;
@@ -3768,6 +3779,7 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// actual memory mapped
@@ -3824,6 +3836,7 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkCreateBuffer() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
@@ -3871,6 +3884,7 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkAllocateMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
@@ -3882,6 +3896,7 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkBindBufferMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// new code
@@ -3907,6 +3922,7 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	{
 		fprintf(gpFile,
 			"createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryWin32HandleKHR address.\n");
+			fflush(gpFile);
 	}
 
 	// call above function pointer
@@ -3919,6 +3935,7 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// map above external buffers memory into OpenCL to get the device pointer from OpenCl
@@ -3959,6 +3976,7 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithPropertiesKHR() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// close the handle as its job is done
@@ -4000,6 +4018,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkCreateBuffer() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
@@ -4039,6 +4058,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkAllocateMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, uniformData.vkBuffer, uniformData.vkDeviceMemory, 0);
@@ -4050,6 +4070,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkBindBufferMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// call updateUnifomBuffer
@@ -4062,6 +4083,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : updateUniformbuffer() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
@@ -4184,6 +4206,7 @@ VkResult createShaders(void)
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to open vertexshader.spv file\n");
+		fflush(gpFile);
 	}
 
 	fseek(fp, 0L, SEEK_END);
@@ -4212,6 +4235,7 @@ VkResult createShaders(void)
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to read vertexshader.spv file\n");
+		fflush(gpFile);
 	}
 
 	fclose(fp);
@@ -4234,6 +4258,7 @@ VkResult createShaders(void)
 	else
 	{
 		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded fro vertex shader.\n");
+		fflush(gpFile);
 	}
 
 
@@ -4264,6 +4289,7 @@ VkResult createShaders(void)
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to open fragmentshader.spv file\n");
+		fflush(gpFile);
 	}
 
 	fseek(fp, 0L, SEEK_END);
@@ -4292,6 +4318,7 @@ VkResult createShaders(void)
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to read fragmentshader.spv file\n");
+		fflush(gpFile);
 	}
 
 	fclose(fp);
@@ -4313,6 +4340,7 @@ VkResult createShaders(void)
 	else
 	{
 		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded for fragment shader.\n");
+		fflush(gpFile);
 	}
 
 
@@ -4323,6 +4351,7 @@ VkResult createShaders(void)
 	}
 
 	fprintf(gpFile, "fragment Module sucessfully created\n");
+	fflush(gpFile);
 
 	return vkresult;
 }
@@ -4365,6 +4394,7 @@ VkResult createDiscriptorSetLayout(void)
 	else
 	{
 		fprintf(gpFile, "createDescriptorSetLayout() : vkCreateDescriptorSetLayout() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
@@ -4401,6 +4431,7 @@ VkResult createPiplineLayout(void)
 	else
 	{
 		fprintf(gpFile, "createPiplineLayout() : vkCreatePipelineLayout() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -4437,6 +4468,7 @@ VkResult createDescriptorpool(void)
 	else
 	{
 		fprintf(gpFile, "createDescriptorpool() : vkCreateDescriptorPool() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
@@ -4470,6 +4502,7 @@ VkResult createDescriptorSet(void)
 	else
 	{
 		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() succeeded.\n");
+		fflush(gpFile);
 	}
 	
 	// describe whether we want image as uniform or buffer as unuform 
@@ -4499,6 +4532,7 @@ VkResult createDescriptorSet(void)
 	vkUpdateDescriptorSets(vkDevice, 1, &vkWriteDescriptorSet, 0, NULL);
 
 	fprintf(gpFile, "\nvkUpdateDescriptorSets() succeeded.\n");
+	fflush(gpFile);
 
 
 	return vkresult;
@@ -4588,6 +4622,7 @@ VkResult createRenderPass(void)
 	else
 	{
 		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -4780,6 +4815,7 @@ VkResult createPipline(void)
 	else
 	{
 		fprintf(gpFile, "createPipline() : vkCreatePipelineCache() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// create actual graphics pipline
@@ -4819,6 +4855,7 @@ VkResult createPipline(void)
 	else
 	{
 		fprintf(gpFile, "createPipeline() : vkCreateGraphicsPipelines() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// we have done with pipline cache so destroy it
@@ -4828,6 +4865,7 @@ VkResult createPipline(void)
 		vkDestroyPipelineCache(vkDevice, vkPipelineCache, NULL);
 		vkPipelineCache = VK_NULL_HANDLE;
 		fprintf(gpFile, "createPipeline() : Free vkPipelineCache freed\n");
+		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -4876,6 +4914,7 @@ VkResult createframeBuffers(void)
 		else
 		{
 			fprintf(gpFile, "createframeBuffers() : vkCreateFramebuffer() succeeded.\n");
+			fflush(gpFile);
 		}
 	}
 
@@ -4905,6 +4944,7 @@ VkResult createSemaphores(void)
 	else
 	{
 		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkCreateSemaphore(vkDevice, &vkSemaphoreCreateInfo, NULL, &vkSemaphore_rendercomplete);
@@ -4916,6 +4956,7 @@ VkResult createSemaphores(void)
 	else
 	{
 		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.\n");
+		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -4950,6 +4991,7 @@ VkResult createFences(void)
 		else
 		{
 			fprintf(gpFile, "createFences() : vkCreateFence() succeeded.\n");
+			fflush(gpFile);
 		}
 	}
 
@@ -4989,6 +5031,7 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [%d].\n", i);
+			fflush(gpFile);
 		}
 
 		VkCommandBufferBeginInfo vkCommandBufferBeginInfo;
@@ -5007,6 +5050,7 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [%d].\n", i);
+			fflush(gpFile);
 		}
 
 		// set clear values
@@ -5091,6 +5135,7 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [%d].\n", i);
+			fflush(gpFile);
 		}
 	}
 
