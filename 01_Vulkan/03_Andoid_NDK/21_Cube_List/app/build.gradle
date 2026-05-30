@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'com.prs.TWO_3DShapes'
+    namespace 'com.prs.Cube_List'
     compileSdk 36
     ndkVersion "29.0.14206865"
 
     defaultConfig {
-        applicationId "com.prs.TWO_3DShapes"
+        applicationId "com.prs.Cube_List"
         minSdk 36
         targetSdk 36
         versionCode 1

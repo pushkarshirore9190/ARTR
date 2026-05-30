@@ -20,7 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TWO_3DShapes"
+rootProject.name = "Cube_List"
 include ':app'
 
 
