@@ -2,6 +2,8 @@
 // android header files
 #include<android_native_app_glue.h> // everuhting related with pure native activity need this (mainly android_main function and android_app struct)
 #include<android/log.h> // for android_log_print function to print log in logcat
+#define STB_IMAGE_IMPLEMENTATION
+#include"stb_image.h" // header file for texture
 #include<math.h> // for sqrt function to calculate distance between two points
 #include<memory.h>
 
@@ -180,13 +182,9 @@ typedef struct
 } VertexData;
 
 // poaition
-VertexData vertexData_Position_Triangle;
+VertexData vertexData_Position;
 
-VertexData vertexData_Position_Rectangle;
-
-VertexData vertexData_Color_Triangle;
-
-VertexData vertexData_Color_Rectangle;
+VertexData vertexData_Texcoord;
 
 // uniform related declarations
 struct MyUniformData
@@ -202,9 +200,7 @@ struct UniformData
 	VkDeviceMemory vkDeviceMemory;
 };
 
-UniformData uniformData_Triangle;
-
-UniformData uniformData_Rectangle;
+UniformData uniformData;
 
 // shader related variables
 VkShaderModule vkShaderModule_vertex_shader = VK_NULL_HANDLE;
@@ -222,15 +218,19 @@ VkPipelineLayout vkPipelineLayout = VK_NULL_HANDLE;
 VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
 
 // Descriptor set
-VkDescriptorSet vkDescriptorSet_Triangle = VK_NULL_HANDLE;
-
-VkDescriptorSet vkDescriptorSet_Rectangle = VK_NULL_HANDLE;
-
+VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 
 // For Rotation
-float angle_1 = 0.0f;
+float angle = 0.0f;
 
-float angle_2 = 0.0f;
+// texture related variables
+VkImage vkImage_Texture = VK_NULL_HANDLE;
+
+VkDeviceMemory vkDeviceMemory_Texture = VK_NULL_HANDLE;
+
+VkImageView vkImageView_Texture = VK_NULL_HANDLE;
+
+VkSampler vkSampler_Texture = VK_NULL_HANDLE;
 
 
 
@@ -597,6 +597,7 @@ VkResult initialise(void)
 	VkResult createCommandPool(void);
 	VkResult createCommandBuffers(void);
 	VkResult createVertexBuffer(void);
+	VkResult createTexture(const char*);
 	VkResult createUniformBuffer(void);
 	VkResult createShaders(void);
 	VkResult createDiscriptorSetLayout(void);
@@ -733,6 +734,17 @@ VkResult initialise(void)
 	else
 	{
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "initialise() : createVertexBuffer() succeeded\n");
+	}
+
+	vkresult = createTexture("Smiley.png");
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "initialise() : createTexture() function failed stone (%d)\n", vkresult);
+		return(vkresult);
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "initialise() : createTexture() succeeded for stone \n");
 	}
 
 	// createUniform Buffer
@@ -1237,16 +1249,10 @@ VkResult display(void)
 void update(void)
 {
 	// code
-	angle_1 = angle_1 + 1.5f;
-	if (angle_1 >= 360.0f)
+	angle = angle + 1.5f;
+	if (angle >= 360.0f)
 	{
-		angle_1 = angle_1 - 360.0f;
-	}
-
-	angle_2 = angle_2 + 1.5f;
-	if (angle_2 >= 360.0f)
-	{
-		angle_2 = angle_2 - 360.0f;
+		angle = angle - 360.0f;
 	}
 }
 
@@ -1267,8 +1273,6 @@ void uninitialise(void)
 
 
 		
-		//Free swapchain Images
-
 		//Free swapchain Images
 
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
@@ -1349,9 +1353,8 @@ void uninitialise(void)
 		{
 			vkDestroyDescriptorPool(vkDevice, vkDescriptorPool, NULL);
 			vkDescriptorPool = VK_NULL_HANDLE;
-			vkDescriptorSet_Rectangle = VK_NULL_HANDLE;
-			vkDescriptorSet_Triangle = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed vkDescriptorPool and vkDescriptorSet for trangle and rectangle\n");
+			vkDescriptorSet = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed vkDescriptorPool and vkDescriptorSet\n");
 		}
 
 
@@ -1370,104 +1373,88 @@ void uninitialise(void)
 			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vkShaderModule_vertex_shader freed\n");
 		}
 
-		// Destroy uniform buffer for triangle
-		if (uniformData_Rectangle.vkBuffer)
+		// Destroy uniform buffer
+		if (uniformData.vkBuffer)
 		{
-			vkDestroyBuffer(vkDevice, uniformData_Rectangle.vkBuffer, NULL);
-			uniformData_Rectangle.vkBuffer = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed uniformData_Rectangle.vkBuffer \n");
+			vkDestroyBuffer(vkDevice, uniformData.vkBuffer, NULL);
+			uniformData.vkBuffer = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed uniformData.vkBuffer \n");
 		}
 
-		if (uniformData_Rectangle.vkDeviceMemory)
+		if (uniformData.vkDeviceMemory)
 		{
-			vkFreeMemory(vkDevice, uniformData_Rectangle.vkDeviceMemory, NULL);
-			uniformData_Rectangle.vkDeviceMemory = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed uniformData_Rectangle.vkDeviceMemory \n");
+			vkFreeMemory(vkDevice, uniformData.vkDeviceMemory, NULL);
+			uniformData.vkDeviceMemory = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed uniformData.vkDeviceMemory \n");
 		}
+
+		// Destroy the sampler
+		if (vkSampler_Texture)
+		{
+			vkDestroySampler(vkDevice, vkSampler_Texture, NULL);
+			vkSampler_Texture = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed vkSampler_Texture \n");
+		}
+
+		// Destroy the image view
+		if (vkImageView_Texture)
+		{
+			vkDestroyImageView(vkDevice, vkImageView_Texture, NULL);
+			vkImageView_Texture = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed vkImageView_Texture \n");
+		}
+
+		// Free the image memory
+		if (vkDeviceMemory_Texture)
+		{
+			vkFreeMemory(vkDevice, vkDeviceMemory_Texture, NULL);
+			vkDeviceMemory_Texture = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed VkDeviceMemory_Texture \n");
+		}
+
+		// Destroy the image
+		if (vkImage_Texture)
+		{
+			vkDestroyImage(vkDevice, vkImage_Texture, nullptr);
+			vkImage_Texture = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed VkImage_Texture \n");
+		}
+
 
 		// free color buffer
-		if (vertexData_Color_Rectangle.vkDeviceMemory)
+		if (vertexData_Texcoord.vkDeviceMemory)
 		{
-			vkFreeMemory(vkDevice, vertexData_Color_Rectangle.vkDeviceMemory, NULL);
-			vertexData_Color_Rectangle.vkDeviceMemory = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Color_Rectangle.vkDeviceMemory freed\n");
+			vkFreeMemory(vkDevice, vertexData_Texcoord.vkDeviceMemory, NULL);
+			vertexData_Texcoord.vkDeviceMemory = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Texcoord.vkDeviceMemory freed\n");
 
 		}
 
-		if (vertexData_Color_Rectangle.vkBuffer)
+		if (vertexData_Texcoord.vkBuffer)
 		{
-			vkDestroyBuffer(vkDevice, vertexData_Color_Rectangle.vkBuffer, NULL);
-			vertexData_Color_Rectangle.vkBuffer = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Color_Rectangle.vkBuffer freed\n");
+			vkDestroyBuffer(vkDevice, vertexData_Texcoord.vkBuffer, NULL);
+			vertexData_Texcoord.vkBuffer = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\vertexData_Texcoord.vkBuffer freed\n");
 
 		}
 
 
-		// Destroy uniform buffer for recatngle
-		if (uniformData_Triangle.vkBuffer)
+		if (vertexData_Position.vkDeviceMemory)
 		{
-			vkDestroyBuffer(vkDevice, uniformData_Triangle.vkBuffer, NULL);
-			uniformData_Triangle.vkBuffer = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed uniformData_Triangle.vkBuffer \n");
-		}
-
-		if (uniformData_Triangle.vkDeviceMemory)
-		{
-			vkFreeMemory(vkDevice, uniformData_Triangle.vkDeviceMemory, NULL);
-			uniformData_Triangle.vkDeviceMemory = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFreed uniformData_Triangle.vkDeviceMemory \n");
-		}
-
-		// free color buffer
-		if (vertexData_Color_Triangle.vkDeviceMemory)
-		{
-			vkFreeMemory(vkDevice, vertexData_Color_Triangle.vkDeviceMemory, NULL);
-			vertexData_Color_Triangle.vkDeviceMemory = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Color_Triangle.vkDeviceMemory freed\n");
+			vkFreeMemory(vkDevice, vertexData_Position.vkDeviceMemory, NULL);
+			vertexData_Position.vkDeviceMemory = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Position.vkDeviceMemory freed\n");
 
 		}
 
-		if (vertexData_Color_Triangle.vkBuffer)
+		if (vertexData_Position.vkBuffer)
 		{
-			vkDestroyBuffer(vkDevice, vertexData_Color_Triangle.vkBuffer, NULL);
-			vertexData_Color_Triangle.vkBuffer = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Color_Triangle.vkBuffer freed\n");
+			vkDestroyBuffer(vkDevice, vertexData_Position.vkBuffer, NULL);
+			vertexData_Position.vkBuffer = VK_NULL_HANDLE;
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Position.vkBuffer freed\n");
 
 		}
 
-		// for rectgnle
-		if (vertexData_Position_Rectangle.vkDeviceMemory)
-		{
-			vkFreeMemory(vkDevice, vertexData_Position_Rectangle.vkDeviceMemory, NULL);
-			vertexData_Position_Rectangle.vkDeviceMemory = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Position_Rectangle.vkDeviceMemory freed\n");
-
-		}
-
-		if (vertexData_Position_Rectangle.vkBuffer)
-		{
-			vkDestroyBuffer(vkDevice, vertexData_Position_Rectangle.vkBuffer, NULL);
-			vertexData_Position_Rectangle.vkBuffer = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Position_Rectangle.vkBuffer freed\n");
-
-		}
-
-		// for triangle
-		if (vertexData_Position_Triangle.vkDeviceMemory)
-		{
-			vkFreeMemory(vkDevice, vertexData_Position_Triangle.vkDeviceMemory, NULL);
-			vertexData_Position_Triangle.vkDeviceMemory = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Position_Triangle.vkDeviceMemory freed\n");
-
-		}
-
-		if (vertexData_Position_Triangle.vkBuffer)
-		{
-			vkDestroyBuffer(vkDevice, vertexData_Position_Triangle.vkBuffer, NULL);
-			vertexData_Position_Triangle.vkBuffer = VK_NULL_HANDLE;
-			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nFree vertexData_Position_Triangle.vkBuffer freed\n");
-
-		}
 
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
 		{
@@ -1582,7 +1569,6 @@ void uninitialise(void)
 		vkInstance = VK_NULL_HANDLE;
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nvkDestroyInstance Done\n");
 	}
-
 
 
 }
@@ -3087,164 +3073,37 @@ VkResult createVertexBuffer(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	// position
-	float pyramidVertices[] =
+	float Rectangle_Position[] =
 	{
-		// front
-		0.0f,  1.0f,  0.0f, // front-top
-	   -1.0f, -1.0f,  1.0f, // front-left
-		1.0f, -1.0f,  1.0f, // front-right
+		// first triangle
+		1.0f,1.0f,0.0f, // top right
+		-1.0f,1.0f,0.0f, // left top
+		-1.0f,-1.0f,0.0f, // left bottom
 
-		// right
-		0.0f,  1.0f,  0.0f, // right-top
-		1.0f, -1.0f,  1.0f, // right-left
-		1.0f, -1.0f, -1.0f, // right-right
+		// second triangle
+		-1.0f,-1.0f,0.0f, // left bottom
+		1.0,-1.0f,0.0f, // right bottom
+		1.0f,1.0f,0.0f // right top
 
-		// back
-		0.0f,  1.0f,  0.0f, // back-top
-		1.0f, -1.0f, -1.0f, // back-left
-	   -1.0f, -1.0f, -1.0f, // back-right
-
-	   // left
-	   0.0f,  1.0f,  0.0f, // left-top
-	  -1.0f, -1.0f, -1.0f, // left-left
-	  -1.0f, -1.0f,  1.0f, // left-right
 	};
 
-	// color
-	float pyramidColors[] =
+	// texcoords
+	float Rectangle_Texcoords[] =
 	{
-		// front
-		1.0f, 0.0f, 0.0f, // front-top
-		0.0f, 1.0f, 0.0f, // front-left
-		0.0f, 0.0f, 1.0f, // front-right
+		// first triangle
+		1.0f, 1.0f, // top-right  -> v0
+		0.0f, 1.0f, // top-left   -> v1
+		0.0f, 0.0f, // bottom-left -> v2
 
-		// right
-		1.0f, 0.0f, 0.0f, // right-top
-		0.0f, 0.0f, 1.0f, // right-left
-		0.0f, 1.0f, 0.0f, // right-right
-
-		// back
-		1.0f, 0.0f, 0.0f, // back-top
-		0.0f, 1.0f, 0.0f, // back-left
-		0.0f, 0.0f, 1.0f, // back-right
-
-		// left
-		1.0f, 0.0f, 0.0f, // left-top
-		0.0f, 0.0f, 1.0f, // left-left
-		0.0f, 1.0f, 0.0f, // left-right
-	};
-
-	// position
-	float cubeVertices[] =
-	{
-		// Front face     
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-
-		1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-
-		// Right face 
-		1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-
-		// Back face
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-
-		// Left face 
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-
-		// Top face 
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-
-		// Bottom face 
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f
-	};
-
-	float cubeColors[] = {
-		// Front 
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-
-		// Right 
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-
-		// Back 
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-
-		// Left 
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-
-		// Top 
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-
-		// Bottom 
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f
+		// second triangle
+		0.0f, 0.0f, // bottom-left -> v3
+		1.0f, 0.0f, // bottom-right -> v4
+		1.0f, 1.0f  // top-right -> v5
 	};
 
 
-	// VERTEX POSITION BUFFER for pyramid
-	memset((void*)&vertexData_Position_Triangle, 0, sizeof(VertexData));
+	// VERTEX POSITION BUFFER
+	memset((void*)&vertexData_Position, 0, sizeof(VertexData));
 
 	VkBufferCreateInfo vkBufferCreateInfo;
 	memset((void*)& vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
@@ -3252,10 +3111,10 @@ VkResult createVertexBuffer(void)
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(pyramidVertices);
+	vkBufferCreateInfo.size = sizeof(Rectangle_Position);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position_Triangle.vkBuffer);
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer);
 	if (vkresult != VK_SUCCESS)
 	{
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
@@ -3269,7 +3128,7 @@ VkResult createVertexBuffer(void)
 	VkMemoryRequirements vkMemoryRequirements;
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
 
-	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position_Triangle.vkBuffer, &vkMemoryRequirements);
+	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position.vkBuffer, &vkMemoryRequirements);
 
 	VkMemoryAllocateInfo vkMemoryAllocateInfo;
 	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
@@ -3294,7 +3153,7 @@ VkResult createVertexBuffer(void)
 	
 	}
 
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position_Triangle.vkDeviceMemory);
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position.vkDeviceMemory);
 	if (vkresult != VK_SUCCESS)
 	{
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -3305,7 +3164,7 @@ VkResult createVertexBuffer(void)
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() succeeded.\n");
 	}
 
-	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position_Triangle.vkBuffer, vertexData_Position_Triangle.vkDeviceMemory, 0);
+	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -3318,7 +3177,7 @@ VkResult createVertexBuffer(void)
 
 	void* data = NULL;
 
-	vkresult = vkMapMemory(vkDevice, vertexData_Position_Triangle.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
+	vkresult = vkMapMemory(vkDevice, vertexData_Position.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
 	if (vkresult != VK_SUCCESS)
 	{
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -3331,35 +3190,35 @@ VkResult createVertexBuffer(void)
 
 	// actual memory mapped
 
-	memcpy(data, pyramidVertices, sizeof(pyramidVertices));
+	memcpy(data, Rectangle_Position, sizeof(Rectangle_Position));
 
-	vkUnmapMemory(vkDevice, vertexData_Position_Triangle.vkDeviceMemory);
+	vkUnmapMemory(vkDevice, vertexData_Position.vkDeviceMemory);
 
-	// VERTEX COLOR BUFFER for pyramid
-	memset((void*)&vertexData_Color_Triangle, 0, sizeof(VertexData));
+	// VERTEX TEXCOORD BUFFER
+	memset((void*)&vertexData_Texcoord, 0, sizeof(VertexData));
 
 	memset((void*)&vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
 
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(pyramidColors);
+	vkBufferCreateInfo.size = sizeof(Rectangle_Texcoords);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Color_Triangle.vkBuffer);
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Texcoord.vkBuffer);
 	if (vkresult != VK_SUCCESS)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() function failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() function failed for vertex texcoord buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() succeeded for vertex color buffer\n");
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() succeeded for vertex texcoord buffer\n");
 	}
 
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
 
-	vkGetBufferMemoryRequirements(vkDevice, vertexData_Color_Triangle.vkBuffer, &vkMemoryRequirements);
+	vkGetBufferMemoryRequirements(vkDevice, vertexData_Texcoord.vkBuffer, &vkMemoryRequirements);
 
 	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
 
@@ -3383,229 +3242,725 @@ VkResult createVertexBuffer(void)
 
 	}
 
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Color_Triangle.vkDeviceMemory);
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Texcoord.vkDeviceMemory);
 	if (vkresult != VK_SUCCESS)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() function failed failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() function failed failed for vertex texcoord buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() succeeded for vertex color buffer\n");
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() succeeded for vertex texcoord buffer\n");
 	}
 
-	vkresult = vkBindBufferMemory(vkDevice, vertexData_Color_Triangle.vkBuffer, vertexData_Color_Triangle.vkDeviceMemory, 0);
+	vkresult = vkBindBufferMemory(vkDevice, vertexData_Texcoord.vkBuffer, vertexData_Texcoord.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() function failed failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() function failed failed for vertex texcoord buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex color buffer\n");
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex texcoord buffer\n");
 	}
 
 	data = NULL;
 
-	vkresult = vkMapMemory(vkDevice, vertexData_Color_Triangle.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
+	vkresult = vkMapMemory(vkDevice, vertexData_Texcoord.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
 	if (vkresult != VK_SUCCESS)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() function failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() function failed for vertex texcoord buffer Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() succeeded for vertex color buffer\n");
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() succeeded for vertex texcoord buffer\n");
 	}
 
 	// actual memory mapped
 
-	memcpy(data, pyramidColors, sizeof(pyramidColors));
+	memcpy(data, Rectangle_Texcoords, sizeof(Rectangle_Texcoords));
 
-	vkUnmapMemory(vkDevice, vertexData_Color_Triangle.vkDeviceMemory);
-
-	// VERTEX POSITION BUFFER FOR CUBE
-	memset((void*)&vertexData_Position_Rectangle, 0, sizeof(VertexData));
-
-	memset((void*)&vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
-
-	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	vkBufferCreateInfo.pNext = NULL;
-	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(cubeVertices);
-	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position_Rectangle.vkBuffer);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() succeeded.\n");
-	}
-
-	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
-
-	vkGetBufferMemoryRequirements(vkDevice, vertexData_Position_Rectangle.vkBuffer, &vkMemoryRequirements);
-
-	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
-
-	vkMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	vkMemoryAllocateInfo.pNext = NULL;
-	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
-	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
-
-	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
-	{
-		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
-		{
-			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				vkMemoryAllocateInfo.memoryTypeIndex = i;
-				break;
-			}
-		}
-
-		vkMemoryRequirements.memoryTypeBits >>= 1;
-
-	}
-
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position_Rectangle.vkDeviceMemory);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() succeeded.\n");
-	}
-
-	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position_Rectangle.vkBuffer, vertexData_Position_Rectangle.vkDeviceMemory, 0);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() succeeded.\n");
-	}
-
-	data = NULL;
-
-	vkresult = vkMapMemory(vkDevice, vertexData_Position_Rectangle.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() succeeded.\n");
-	}
-
-	// actual memory mapped
-
-	memcpy(data, cubeVertices, sizeof(cubeVertices));
-
-	vkUnmapMemory(vkDevice, vertexData_Position_Rectangle.vkDeviceMemory);
-
-	// VERTEX COLOR BUFFER
-	memset((void*)&vertexData_Color_Rectangle, 0, sizeof(VertexData));
-
-	memset((void*)&vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
-
-	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	vkBufferCreateInfo.pNext = NULL;
-	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(cubeColors);
-	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Color_Rectangle.vkBuffer);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() function failed for vertex color buffer Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkCreateBuffer() succeeded for vertex color buffer\n");
-	}
-
-	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
-
-	vkGetBufferMemoryRequirements(vkDevice, vertexData_Color_Rectangle.vkBuffer, &vkMemoryRequirements);
-
-	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
-
-	vkMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	vkMemoryAllocateInfo.pNext = NULL;
-	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
-	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
-
-	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
-	{
-		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
-		{
-			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				vkMemoryAllocateInfo.memoryTypeIndex = i;
-				break;
-			}
-		}
-
-		vkMemoryRequirements.memoryTypeBits >>= 1;
-
-	}
-
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Color_Rectangle.vkDeviceMemory);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() function failed failed for vertex color buffer Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkAllocateMemory() succeeded for vertex color buffer\n");
-	}
-
-	vkresult = vkBindBufferMemory(vkDevice, vertexData_Color_Rectangle.vkBuffer, vertexData_Color_Rectangle.vkDeviceMemory, 0);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() function failed failed for vertex color buffer Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex color buffer\n");
-	}
-
-	data = NULL;
-
-	vkresult = vkMapMemory(vkDevice, vertexData_Color_Rectangle.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() function failed for vertex color buffer Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createVertexBuffer() : vkMapMemory() succeeded for vertex color buffer\n");
-	}
-
-	// actual memory mapped
-
-	memcpy(data, cubeColors, sizeof(cubeColors));
-
-	vkUnmapMemory(vkDevice, vertexData_Color_Rectangle.vkDeviceMemory);
+	vkUnmapMemory(vkDevice, vertexData_Texcoord.vkDeviceMemory);
 
 
 	return vkresult;
 
 }
+
+VkResult createTexture(const char* textureFileName)
+{
+	// Variable declaration
+	VkResult vkresult = VK_SUCCESS;
+
+	//code
+	
+	// step 1:
+	// get image data
+	AAsset* asset = NULL;
+
+	asset = AAssetManager_open(androidAssetManager, textureFileName, AASSET_MODE_STREAMING);
+
+	if (asset == NULL)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "fopen failed for reading texture file");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+
+	uint8_t *image_Data = NULL;
+
+	int texture_width, texture_Height, texture_channels;
+
+	size_t assetLength = AAsset_getLength(asset);
+
+	const uint8_t* assetBuffer = (const uint8_t*)AAsset_getBuffer(asset);
+
+	image_Data = stbi_load_from_memory(assetBuffer, (int)assetLength, &texture_width, &texture_Height, &texture_channels, STBI_rgb_alpha);
+
+	AAsset_close(asset);
+	asset = NULL;
+
+	if (image_Data == NULL || texture_width <= 0 || texture_Height <= 0 || texture_channels <= 0)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture(): stbi_loadf_from_file function failed \n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+
+	VkDeviceSize image_size = texture_width * texture_Height * 4; // for rgba
+
+	// step 2 
+	// create stagging buffer
+
+	VkBuffer vkBuffer_StaggingBuffer = VK_NULL_HANDLE;
+
+	VkDeviceMemory VkDeviceMemory_StaggingBuffer = VK_NULL_HANDLE;
+
+	VkBufferCreateInfo VkBufferCreateInfo_StagingBuffer;
+	memset((void*)&VkBufferCreateInfo_StagingBuffer, 0, sizeof(VkBufferCreateInfo));
+
+	VkBufferCreateInfo_StagingBuffer.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	VkBufferCreateInfo_StagingBuffer.pNext = NULL;
+	VkBufferCreateInfo_StagingBuffer.size = image_size; // total size of image in bytes
+	VkBufferCreateInfo_StagingBuffer.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; // staging buffer usage
+	VkBufferCreateInfo_StagingBuffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // usually exclusive
+
+	vkresult = vkCreateBuffer(vkDevice, &VkBufferCreateInfo_StagingBuffer, NULL, &vkBuffer_StaggingBuffer);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkCreateBuffer() succeeded.\n");
+	}
+
+	VkMemoryRequirements vkMemoryRequirements_StaggingBuffer;
+	memset((void*)&vkMemoryRequirements_StaggingBuffer, 0, sizeof(VkMemoryRequirements));
+
+	vkGetBufferMemoryRequirements(vkDevice, vkBuffer_StaggingBuffer, &vkMemoryRequirements_StaggingBuffer);
+
+	VkMemoryAllocateInfo vkMemoryAllocateInfo_StaggingBuffer;
+	memset((void*)&vkMemoryAllocateInfo_StaggingBuffer, 0, sizeof(VkMemoryAllocateInfo));
+
+	vkMemoryAllocateInfo_StaggingBuffer.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	vkMemoryAllocateInfo_StaggingBuffer.pNext = NULL;
+	vkMemoryAllocateInfo_StaggingBuffer.allocationSize = vkMemoryRequirements_StaggingBuffer.size;
+	vkMemoryAllocateInfo_StaggingBuffer.memoryTypeIndex = 0; // initial value before entering into loop
+
+	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
+	{
+		if ((vkMemoryRequirements_StaggingBuffer.memoryTypeBits & 1) == 1)
+		{
+			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
+			{
+				vkMemoryAllocateInfo_StaggingBuffer.memoryTypeIndex = i;
+				break;
+			}
+		}
+
+		vkMemoryRequirements_StaggingBuffer.memoryTypeBits >>= 1;
+
+	}
+
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo_StaggingBuffer, NULL, &VkDeviceMemory_StaggingBuffer);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateMemory() succeeded.\n");
+	}
+
+	vkresult = vkBindBufferMemory(vkDevice, vkBuffer_StaggingBuffer, VkDeviceMemory_StaggingBuffer, 0);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBindBufferMemory() succeeded.\n");
+	}
+
+
+	void* data = NULL;
+
+	vkresult = vkMapMemory(vkDevice, VkDeviceMemory_StaggingBuffer, 0, image_size, 0, &data);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkMapMemory() function failed for vertex texcoord buffer Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkMapMemory() succeeded for vertex texcoord buffer\n");
+	}
+
+	// actual memory mapped
+
+	memcpy(data, image_Data, image_size);
+
+	vkUnmapMemory(vkDevice, VkDeviceMemory_StaggingBuffer);
+
+	// as copying of imagge data is already done into stagging buffer , we can free the actual image data given by stb
+
+	stbi_image_free(image_Data);
+
+	image_Data = NULL;
+
+	__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : stbi_image_free() succeeded for image data\n");
+
+	// step 3 
+
+	VkImageCreateInfo vkImageCreateInfo;
+	memset((void*)&vkImageCreateInfo, 0, sizeof(VkImageCreateInfo));
+
+	vkImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	vkImageCreateInfo.pNext = NULL;
+	vkImageCreateInfo.flags = 0;
+	vkImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	vkImageCreateInfo.format = VK_FORMAT_R8G8B8A8_UNORM; // if using stbi_loadf
+	vkImageCreateInfo.extent.width = texture_width;
+	vkImageCreateInfo.extent.height = texture_Height;
+	vkImageCreateInfo.extent.depth = 1;
+	vkImageCreateInfo.mipLevels = 1;
+	vkImageCreateInfo.arrayLayers = 1;
+	vkImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	vkImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	vkImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	vkImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	vkImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+	vkresult = vkCreateImage(vkDevice, &vkImageCreateInfo, NULL, &vkImage_Texture);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkCreateImageView() function failed\n");
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkCreateImageView() succeeded\n");
+	}
+
+	VkMemoryRequirements vkMemoryRequirements_Image;
+	memset((void*)&vkMemoryRequirements_Image, 0, sizeof(VkMemoryRequirements));
+
+	vkGetImageMemoryRequirements(vkDevice, vkImage_Texture, &vkMemoryRequirements_Image);
+
+	VkMemoryAllocateInfo vkMemoryAllocateInfo_Image;
+	memset((void*)&vkMemoryAllocateInfo_Image, 0, sizeof(VkMemoryAllocateInfo));
+
+	vkMemoryAllocateInfo_Image.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	vkMemoryAllocateInfo_Image.pNext = NULL;
+	vkMemoryAllocateInfo_Image.allocationSize = vkMemoryRequirements_Image.size;
+	vkMemoryAllocateInfo_Image.memoryTypeIndex = 0; // initial value before entering into loop
+
+	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
+	{
+		if ((vkMemoryRequirements_Image.memoryTypeBits & 1) == 1)
+		{
+			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+			{
+				vkMemoryAllocateInfo_Image.memoryTypeIndex = i;
+				break;
+			}
+		}
+
+		vkMemoryRequirements_Image.memoryTypeBits >>= 1;
+	}
+
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo_Image, NULL, &vkDeviceMemory_Texture);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateMemory() function failed for image Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateMemory() succeeded for image\n");
+	}
+
+	vkresult = vkBindImageMemory(vkDevice, vkImage_Texture, vkDeviceMemory_Texture, 0);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBindBufferMemory() function failed for image Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBindBufferMemory() succeeded for image\n");
+	}
+
+	// step 4:
+	VkCommandBufferAllocateInfo vkCommandBufferAllocateInfo_Transition_Image_Layout;
+	memset((void*)& vkCommandBufferAllocateInfo_Transition_Image_Layout, 0, sizeof(VkCommandBufferAllocateInfo));
+
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.pNext = NULL;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.commandPool = vkcommandpool;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.commandBufferCount = 1;
+
+	VkCommandBuffer VkCommandBuffer_Transition_Image_Layout = VK_NULL_HANDLE;
+
+	vkresult = vkAllocateCommandBuffers(vkDevice,
+		&vkCommandBufferAllocateInfo_Transition_Image_Layout,
+		&VkCommandBuffer_Transition_Image_Layout);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateCommandBuffers() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateCommandBuffers() succeeded\n");
+	}
+
+	VkCommandBufferBeginInfo vkCommandBufferBeginInfo_Transition_Layout;
+	memset((void*)&vkCommandBufferBeginInfo_Transition_Layout, 0, sizeof(VkCommandBufferBeginInfo));
+
+	vkCommandBufferBeginInfo_Transition_Layout.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	vkCommandBufferBeginInfo_Transition_Layout.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkresult = vkBeginCommandBuffer(VkCommandBuffer_Transition_Image_Layout, &vkCommandBufferBeginInfo_Transition_Layout);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBeginCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBeginCommandBuffer() succeeded\n");
+	}
+
+	VkPipelineStageFlags vkPipelineStageFlags_Source = 0;
+	VkPipelineStageFlags vkPipelineStageFlags_Destination = 0;
+
+
+	VkImageMemoryBarrier vkImageMemoryBarrier;
+	memset((void*)&vkImageMemoryBarrier, 0, sizeof(vkImageMemoryBarrier));
+
+	vkImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	vkImageMemoryBarrier.pNext = NULL;
+	vkImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	vkImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	vkImageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	vkImageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	vkImageMemoryBarrier.image = vkImage_Texture;
+	vkImageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	vkImageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+	vkImageMemoryBarrier.subresourceRange.levelCount = 1;
+	vkImageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+	vkImageMemoryBarrier.subresourceRange.layerCount = 1;
+
+	if (vkImageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && vkImageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		vkImageMemoryBarrier.srcAccessMask = 0;
+		vkImageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		vkPipelineStageFlags_Source = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		vkPipelineStageFlags_Destination = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (vkImageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && vkImageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		vkImageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		vkImageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		vkPipelineStageFlags_Source = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		vkPipelineStageFlags_Destination = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : unspported texture layout transitions\n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+
+	vkCmdPipelineBarrier(VkCommandBuffer_Transition_Image_Layout, vkPipelineStageFlags_Source, vkPipelineStageFlags_Destination, 0, 0, NULL, 0, NULL, 1, &vkImageMemoryBarrier);
+
+	vkresult = vkEndCommandBuffer(VkCommandBuffer_Transition_Image_Layout);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkEndCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkEndCommandBuffer() succeeded\n");
+	}
+
+	VkSubmitInfo VkSubmitInfo_Transition_Image_Layout;
+	memset(&VkSubmitInfo_Transition_Image_Layout, 0, sizeof(VkSubmitInfo));
+
+	VkSubmitInfo_Transition_Image_Layout.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	VkSubmitInfo_Transition_Image_Layout.pNext = NULL;
+	VkSubmitInfo_Transition_Image_Layout.commandBufferCount = 1;
+	VkSubmitInfo_Transition_Image_Layout.pCommandBuffers = &VkCommandBuffer_Transition_Image_Layout;
+
+	vkresult = vkQueueSubmit(vkQueue, 1, &VkSubmitInfo_Transition_Image_Layout, VK_NULL_HANDLE);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueSubmit() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueSubmit() succeeded\n");
+	}
+
+	// Wait for the queue to finish the operation
+	vkresult = vkQueueWaitIdle(vkQueue);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueWaitIdle() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueWaitIdle() succeeded\n");
+	}
+
+	vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &VkCommandBuffer_Transition_Image_Layout);
+	VkCommandBuffer_Transition_Image_Layout = VK_NULL_HANDLE;
+
+	// step 5:
+
+	VkCommandBufferAllocateInfo vkCommandBufferAllocateInfo_Buffer_To_Image_Copy;
+	memset((void*)&vkCommandBufferAllocateInfo_Buffer_To_Image_Copy, 0, sizeof(VkCommandBufferAllocateInfo));
+
+	vkCommandBufferAllocateInfo_Buffer_To_Image_Copy.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	vkCommandBufferAllocateInfo_Buffer_To_Image_Copy.pNext = NULL;
+	vkCommandBufferAllocateInfo_Buffer_To_Image_Copy.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	vkCommandBufferAllocateInfo_Buffer_To_Image_Copy.commandPool = vkcommandpool;
+	vkCommandBufferAllocateInfo_Buffer_To_Image_Copy.commandBufferCount = 1;
+
+	VkCommandBuffer VkCommandBuffer_Buffer_To_Image_Copy = VK_NULL_HANDLE;
+
+	vkresult = vkAllocateCommandBuffers(vkDevice,
+		&vkCommandBufferAllocateInfo_Buffer_To_Image_Copy,
+		&VkCommandBuffer_Buffer_To_Image_Copy);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateCommandBuffers() function failed for buffer to image Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateCommandBuffers() succeeded for buffer to image\n");
+	}
+
+	VkCommandBufferBeginInfo vkCommandBufferBeginInfo_Buffer_To_Image_Copy;
+	memset((void*)&vkCommandBufferBeginInfo_Buffer_To_Image_Copy, 0, sizeof(VkCommandBufferBeginInfo));
+
+	vkCommandBufferBeginInfo_Buffer_To_Image_Copy.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	vkCommandBufferBeginInfo_Buffer_To_Image_Copy.pNext = NULL;
+	vkCommandBufferBeginInfo_Buffer_To_Image_Copy.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkresult = vkBeginCommandBuffer(VkCommandBuffer_Buffer_To_Image_Copy, &vkCommandBufferBeginInfo_Buffer_To_Image_Copy);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBeginCommandBuffer() function failed for image to copy Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBeginCommandBuffer() succeeded for image to copy\n");
+	}
+
+	VkBufferImageCopy vkBufferImageCopy;
+	memset((void*)&vkBufferImageCopy, 0, sizeof(vkBufferImageCopy));
+
+	vkBufferImageCopy.bufferOffset = 0;
+	vkBufferImageCopy.bufferRowLength = 0;       
+	vkBufferImageCopy.bufferImageHeight = 0;   
+	vkBufferImageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	vkBufferImageCopy.imageSubresource.mipLevel = 0;
+	vkBufferImageCopy.imageSubresource.baseArrayLayer = 0;
+	vkBufferImageCopy.imageSubresource.layerCount = 1;
+	vkBufferImageCopy.imageOffset.x = 0;
+	vkBufferImageCopy.imageOffset.y = 0;
+	vkBufferImageCopy.imageOffset.z = 0;
+	vkBufferImageCopy.imageExtent.width = texture_width;
+	vkBufferImageCopy.imageExtent.height = texture_Height;
+	vkBufferImageCopy.imageExtent.depth = 1;
+
+	vkCmdCopyBufferToImage(VkCommandBuffer_Buffer_To_Image_Copy, vkBuffer_StaggingBuffer, vkImage_Texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &vkBufferImageCopy);
+
+	vkresult = vkEndCommandBuffer(VkCommandBuffer_Buffer_To_Image_Copy);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkEndCommandBuffer() function failed for buffer to image Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkEndCommandBuffer() succeeded buffer to image \n");
+	}
+
+	VkSubmitInfo VkSubmitInfo_Buffer_To_Image_Copy;
+	memset(&VkSubmitInfo_Buffer_To_Image_Copy, 0, sizeof(VkSubmitInfo));
+
+	VkSubmitInfo_Buffer_To_Image_Copy.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	VkSubmitInfo_Buffer_To_Image_Copy.pNext = NULL;
+	VkSubmitInfo_Buffer_To_Image_Copy.commandBufferCount = 1;
+	VkSubmitInfo_Buffer_To_Image_Copy.pCommandBuffers = &VkCommandBuffer_Buffer_To_Image_Copy;
+
+	vkresult = vkQueueSubmit(vkQueue, 1, &VkSubmitInfo_Buffer_To_Image_Copy, VK_NULL_HANDLE);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueSubmit() function failed for buffer to image   Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueSubmit() succeeded buffer to image\n");
+	}
+
+	// Wait for the queue to finish the operation
+	vkresult = vkQueueWaitIdle(vkQueue);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueWaitIdle() function failed  buffer to image Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueWaitIdle() succeeded buffer to image\n");
+	}
+
+	// Free the command buffer used for buffer-to-image copy
+	vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &VkCommandBuffer_Buffer_To_Image_Copy);
+	VkCommandBuffer_Buffer_To_Image_Copy = VK_NULL_HANDLE;
+
+
+	// step 6:
+
+	memset((void*)&vkCommandBufferAllocateInfo_Transition_Image_Layout, 0, sizeof(VkCommandBufferAllocateInfo));
+
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.pNext = NULL;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.commandPool = vkcommandpool;
+	vkCommandBufferAllocateInfo_Transition_Image_Layout.commandBufferCount = 1;
+
+	VkCommandBuffer_Transition_Image_Layout = VK_NULL_HANDLE;
+
+	vkresult = vkAllocateCommandBuffers(vkDevice,
+		&vkCommandBufferAllocateInfo_Transition_Image_Layout,
+		&VkCommandBuffer_Transition_Image_Layout);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateCommandBuffers() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkAllocateCommandBuffers() succeeded\n");
+	}
+
+	memset((void*)&vkCommandBufferBeginInfo_Transition_Layout, 0, sizeof(VkCommandBufferBeginInfo));
+
+	vkCommandBufferBeginInfo_Transition_Layout.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	vkCommandBufferBeginInfo_Transition_Layout.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkresult = vkBeginCommandBuffer(VkCommandBuffer_Transition_Image_Layout, &vkCommandBufferBeginInfo_Transition_Layout);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBeginCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkBeginCommandBuffer() succeeded\n");
+	}
+
+	vkPipelineStageFlags_Source = 0;
+	vkPipelineStageFlags_Destination = 0;
+
+
+	memset((void*)&vkImageMemoryBarrier, 0, sizeof(vkImageMemoryBarrier));
+
+	vkImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	vkImageMemoryBarrier.pNext = NULL;
+	vkImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	vkImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	vkImageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	vkImageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	vkImageMemoryBarrier.image = vkImage_Texture;
+	vkImageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	vkImageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+	vkImageMemoryBarrier.subresourceRange.levelCount = 1;
+	vkImageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+	vkImageMemoryBarrier.subresourceRange.layerCount = 1;
+
+	if (vkImageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && vkImageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		vkImageMemoryBarrier.srcAccessMask = 0;
+		vkImageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		vkPipelineStageFlags_Source = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		vkPipelineStageFlags_Destination = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (vkImageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && vkImageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		vkImageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		vkImageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		vkPipelineStageFlags_Source = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		vkPipelineStageFlags_Destination = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : unspported texture layout transitions for step 6 : \n");
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		return vkresult;
+	}
+
+	vkCmdPipelineBarrier(VkCommandBuffer_Transition_Image_Layout, vkPipelineStageFlags_Source, vkPipelineStageFlags_Destination, 0, 0, NULL, 0, NULL, 1, &vkImageMemoryBarrier);
+
+	vkresult = vkEndCommandBuffer(VkCommandBuffer_Transition_Image_Layout);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkEndCommandBuffer() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkEndCommandBuffer() succeeded\n");
+	}
+
+	memset(&VkSubmitInfo_Transition_Image_Layout, 0, sizeof(VkSubmitInfo));
+
+	VkSubmitInfo_Transition_Image_Layout.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	VkSubmitInfo_Transition_Image_Layout.pNext = NULL;
+	VkSubmitInfo_Transition_Image_Layout.commandBufferCount = 1;
+	VkSubmitInfo_Transition_Image_Layout.pCommandBuffers = &VkCommandBuffer_Transition_Image_Layout;
+
+	vkresult = vkQueueSubmit(vkQueue, 1, &VkSubmitInfo_Transition_Image_Layout, VK_NULL_HANDLE);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueSubmit() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueSubmit() succeeded\n");
+	}
+
+	// Wait for the queue to finish the operation
+	vkresult = vkQueueWaitIdle(vkQueue);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueWaitIdle() function failed  Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkQueueWaitIdle() succeeded\n");
+	}
+
+	vkFreeCommandBuffers(vkDevice, vkcommandpool, 1, &VkCommandBuffer_Transition_Image_Layout);
+	VkCommandBuffer_Transition_Image_Layout = VK_NULL_HANDLE;
+
+	// step 7  :
+
+	if (vkBuffer_StaggingBuffer)
+	{
+		vkDestroyBuffer(vkDevice, vkBuffer_StaggingBuffer, NULL);
+		vkBuffer_StaggingBuffer = VK_NULL_HANDLE;
+	}
+
+	if (VkDeviceMemory_StaggingBuffer)
+	{
+		vkFreeMemory(vkDevice, VkDeviceMemory_StaggingBuffer, NULL);
+		VkDeviceMemory_StaggingBuffer = VK_NULL_HANDLE;
+	}
+
+
+	// stepp 8 :  createimageview for texture
+
+	// crateImageView For above image view
+	VkImageViewCreateInfo vkImageViewCreateInfo;
+	memset((void*)&vkImageViewCreateInfo, 0, sizeof(VkImageViewCreateInfo));
+
+	vkImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	vkImageViewCreateInfo.pNext = NULL;
+	vkImageViewCreateInfo.flags = 0;
+	vkImageViewCreateInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+	vkImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	vkImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	vkImageViewCreateInfo.subresourceRange.levelCount = 1;
+	vkImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	vkImageViewCreateInfo.subresourceRange.layerCount = 1;
+	vkImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	vkImageViewCreateInfo.image = vkImage_Texture;
+
+	vkresult = vkCreateImageView(vkDevice, &vkImageViewCreateInfo, NULL, &vkImageView_Texture);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : VkCreateImageView() function failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : VkCreateImageView() succeeded.\n");
+	}
+
+	// step 9 :
+
+	VkSamplerCreateInfo vkSamplerCreateInfo;
+	memset(&vkSamplerCreateInfo, 0, sizeof(VkSamplerCreateInfo));
+
+	vkSamplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	vkSamplerCreateInfo.pNext = NULL;
+	vkSamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+	vkSamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+	vkSamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	vkSamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	vkSamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	vkSamplerCreateInfo.anisotropyEnable = VK_FALSE;
+	vkSamplerCreateInfo.maxAnisotropy = 16;
+	vkSamplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	vkSamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+	vkSamplerCreateInfo.compareEnable = VK_FALSE;   
+	vkSamplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	vkSamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+	vkresult = vkCreateSampler(vkDevice, &vkSamplerCreateInfo, NULL, &vkSampler_Texture);
+	if (vkresult != VK_SUCCESS)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkCreateSampler() failed. Error Code: (%d)\n", vkresult);
+		return vkresult;
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createTexture() : vkCreateSampler() succeeded.\n");
+	}
+
+	return vkresult;
+}
+
 
 VkResult createUniformBuffer(void)
 {
@@ -3625,23 +3980,23 @@ VkResult createUniformBuffer(void)
 	vkBufferCreateInfo.size = sizeof(MyUniformData);
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
-	memset((void*)&uniformData_Triangle, 0, sizeof(UniformData));
+	memset((void*)&uniformData, 0, sizeof(UniformData));
 
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &uniformData_Triangle.vkBuffer);
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &uniformData.vkBuffer);
 	if (vkresult != VK_SUCCESS)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkCreateBuffer() function failed  for traingle Error Code: (%d)\n", vkresult);
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkCreateBuffer() succeeded  for traingle\n");
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkCreateBuffer() succeeded.\n");
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
 
-	vkGetBufferMemoryRequirements(vkDevice, uniformData_Triangle.vkBuffer, &vkMemoryRequirements);
+	vkGetBufferMemoryRequirements(vkDevice, uniformData.vkBuffer, &vkMemoryRequirements);
 
 	VkMemoryAllocateInfo vkMemoryAllocateInfo;
 	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
@@ -3666,88 +4021,26 @@ VkResult createUniformBuffer(void)
 
 	}
 
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &uniformData_Triangle.vkDeviceMemory);
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &uniformData.vkDeviceMemory);
 	if (vkresult != VK_SUCCESS)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkAllocateMemory() function failed  for traingle Error Code: (%d)\n", vkresult);
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkAllocateMemory() succeeded  for traingle\n");
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkAllocateMemory() succeeded.\n");
 	}
 
-	vkresult = vkBindBufferMemory(vkDevice, uniformData_Triangle.vkBuffer, uniformData_Triangle.vkDeviceMemory, 0);
+	vkresult = vkBindBufferMemory(vkDevice, uniformData.vkBuffer, uniformData.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkBindBufferMemory() function failed  for traingle Error Code: (%d)\n", vkresult);
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkBindBufferMemory() succeeded  for traingle\n");
-	}
-
-	// RECTANGLE
-	memset((void*)&uniformData_Rectangle, 0, sizeof(UniformData));
-
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &uniformData_Rectangle.vkBuffer);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkCreateBuffer() function failed  for reactangle Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkCreateBuffer() succeeded  for reactangle\n");
-	}
-
-	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
-
-	vkGetBufferMemoryRequirements(vkDevice, uniformData_Rectangle.vkBuffer, &vkMemoryRequirements);
-
-	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
-
-	vkMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	vkMemoryAllocateInfo.pNext = NULL;
-	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
-	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
-
-	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
-	{
-		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
-		{
-			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				vkMemoryAllocateInfo.memoryTypeIndex = i;
-				break;
-			}
-		}
-
-		vkMemoryRequirements.memoryTypeBits >>= 1;
-
-	}
-
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &uniformData_Rectangle.vkDeviceMemory);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkAllocateMemory() function failed  for reactangle Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkAllocateMemory() succeeded  for reactangle\n");
-	}
-
-	vkresult = vkBindBufferMemory(vkDevice, uniformData_Rectangle.vkBuffer, uniformData_Rectangle.vkDeviceMemory, 0);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkBindBufferMemory() function failed  for reactangle Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkBindBufferMemory() succeeded  for reactangle\n");
+		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createUniformBuffer() : vkBindBufferMemory() succeeded.\n");
 	}
 
 	// call updateUnifomBuffer
@@ -3780,11 +4073,11 @@ VkResult updateUniformbuffer(void)
 
 	glm::mat4 translationMatrix = glm::mat4(1.0);
 
-	translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, 0.0f, -5.0f));
+	translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -4.0f));
 
 	glm::mat4 rotationMatrix = glm::mat4(1.0);
 
-	rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angle_1), glm::vec3(0.0f, 1.0f, 0.0f));
+	rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	myUniformData.modelMatrix = translationMatrix * rotationMatrix;
 
@@ -3802,7 +4095,7 @@ VkResult updateUniformbuffer(void)
 
 	void* data = NULL;
 
-	vkresult = vkMapMemory(vkDevice, uniformData_Triangle.vkDeviceMemory, 0, sizeof(MyUniformData), 0, &data);
+	vkresult = vkMapMemory(vkDevice, uniformData.vkDeviceMemory, 0, sizeof(MyUniformData), 0, &data);
 	if (vkresult != VK_SUCCESS)
 	{
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "updateUniformbuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
@@ -3812,60 +4105,7 @@ VkResult updateUniformbuffer(void)
 	// actual memory mapped
 	memcpy(data, &myUniformData, sizeof(myUniformData));
 
-	vkUnmapMemory(vkDevice, uniformData_Triangle.vkDeviceMemory);
-
-	// update matrices
-	myUniformData.modelMatrix = glm::mat4(1.0);
-
-	translationMatrix = glm::mat4(1.0);
-
-	translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-1.5f, 0.0f, -5.0f));
-
-	glm::mat4 rotationMatrix_X = glm::mat4(1.0);
-
-	rotationMatrix_X = glm::rotate(glm::mat4(1.0f), glm::radians(angle_1), glm::vec3(1.0f, 0.0f, 0.0f)); // x axis rotation
-
-	glm::mat4 rotationMatrix_Y = glm::mat4(1.0);
-
-	rotationMatrix_Y = glm::rotate(glm::mat4(1.0f), glm::radians(angle_1), glm::vec3(0.0f, 1.0f, 0.0f)); // Y axis rotation
-
-	glm::mat4 rotationMatrix_Z = glm::mat4(1.0);
-
-	rotationMatrix_Z = glm::rotate(glm::mat4(1.0f), glm::radians(angle_1), glm::vec3(0.0f, 0.0f, 1.0f)); // Z axis rotation
-
-	rotationMatrix = rotationMatrix_X * rotationMatrix_Y * rotationMatrix_Z;
-
-	glm::mat4 scaleMatrix = glm::mat4(1.0);
-
-	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.75f, 0.75f, 0.75f)); // Y axis rotation
-
-	myUniformData.modelMatrix = translationMatrix * scaleMatrix * rotationMatrix;
-
-	myUniformData.viewMatrix = glm::mat4(1.0);
-
-	perspectiveProjectionMatrix = glm::mat4(1.0);
-
-	perspectiveProjectionMatrix = glm::perspective(glm::radians(45.0f), float(winWidth) / float(winHeight), 0.1f, 100.0f);
-
-	perspectiveProjectionMatrix[1][1] = perspectiveProjectionMatrix[1][1] * (-1.0f);
-
-	myUniformData.projectionMatrix = perspectiveProjectionMatrix;
-
-	// map unifrom buffer
-
-	data = NULL;
-
-	vkresult = vkMapMemory(vkDevice, uniformData_Rectangle.vkDeviceMemory, 0, sizeof(MyUniformData), 0, &data);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "updateUniformbuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-
-	// actual memory mapped
-	memcpy(data, &myUniformData, sizeof(myUniformData));
-
-	vkUnmapMemory(vkDevice, uniformData_Rectangle.vkDeviceMemory);
+	vkUnmapMemory(vkDevice, uniformData.vkDeviceMemory);
 
 	return vkresult;
 }
@@ -4034,14 +4274,23 @@ VkResult createDiscriptorSetLayout(void)
 	VkResult vkresult = VK_SUCCESS;
 
 	// initialise descriptorsetBinding
-	VkDescriptorSetLayoutBinding vkdescriptorSetLayoutBinding;
-	memset((void*)&vkdescriptorSetLayoutBinding, 0, sizeof(VkDescriptorSetLayoutBinding));
+	VkDescriptorSetLayoutBinding vkdescriptorSetLayoutBinding_Array[2];
+	memset((void*)vkdescriptorSetLayoutBinding_Array, 0, sizeof(VkDescriptorSetLayoutBinding) * _ARRAYSIZE(vkdescriptorSetLayoutBinding_Array));
 
-	vkdescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	vkdescriptorSetLayoutBinding.binding = 0;  // this 0 is related with the binding  = 0 of vertex shader
-	vkdescriptorSetLayoutBinding.descriptorCount = 1;
-	vkdescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	vkdescriptorSetLayoutBinding.pImmutableSamplers = NULL;
+	// for mvp uniform
+	vkdescriptorSetLayoutBinding_Array[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	vkdescriptorSetLayoutBinding_Array[0].binding = 0;  // this 0 is related with the binding  = 0 of vertex shader
+	vkdescriptorSetLayoutBinding_Array[0].descriptorCount = 1;
+	vkdescriptorSetLayoutBinding_Array[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	vkdescriptorSetLayoutBinding_Array[0].pImmutableSamplers = NULL;
+
+	
+	// for texture image and sampler
+	vkdescriptorSetLayoutBinding_Array[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	vkdescriptorSetLayoutBinding_Array[1].binding = 1;  
+	vkdescriptorSetLayoutBinding_Array[1].descriptorCount = 1;
+	vkdescriptorSetLayoutBinding_Array[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	vkdescriptorSetLayoutBinding_Array[1].pImmutableSamplers = NULL;
 
 
 	VkDescriptorSetLayoutCreateInfo vkDescriptorSetLayoutCreateInfo;
@@ -4050,8 +4299,8 @@ VkResult createDiscriptorSetLayout(void)
 ;	vkDescriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	vkDescriptorSetLayoutCreateInfo.pNext = NULL;
 	vkDescriptorSetLayoutCreateInfo.flags = 0;
-	vkDescriptorSetLayoutCreateInfo.bindingCount = 1;
-	vkDescriptorSetLayoutCreateInfo.pBindings =&vkdescriptorSetLayoutBinding;  // pbinding array is actually array VkDiscriptorSetLayoutBinding having 5 members  1) uint32_t binding : an integer value where you want to bind descriptor set  
+	vkDescriptorSetLayoutCreateInfo.bindingCount = _ARRAYSIZE(vkdescriptorSetLayoutBinding_Array);
+	vkDescriptorSetLayoutCreateInfo.pBindings =vkdescriptorSetLayoutBinding_Array;  // pbinding array is actually array VkDiscriptorSetLayoutBinding having 5 members  1) uint32_t binding : an integer value where you want to bind descriptor set  
 	                                                                                                                                    // 2) VkDiscriptorSetType DiscriptorType : which type of descriptor
 	                                                                                                                                    // 3) uint32_t discriptorCount : How many descriptor
 	                                                                                                                                    // 4) VkShaderStageFalgs stageFalgs : konty shader mdhe vaprycha aahe?
@@ -4112,11 +4361,17 @@ VkResult createDescriptorpool(void)
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
 
-	VkDescriptorPoolSize vkdescriptorPoolSize;
-	memset((void*)&vkdescriptorPoolSize, 0, sizeof(VkDescriptorPoolSize));
+	VkDescriptorPoolSize vkdescriptorPoolSize_Array[2];
+	memset((void*)vkdescriptorPoolSize_Array, 0, sizeof(VkDescriptorPoolSize));
 
-	vkdescriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	vkdescriptorPoolSize.descriptorCount = 2;
+	// for mvp ubo
+	vkdescriptorPoolSize_Array[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	vkdescriptorPoolSize_Array[0].descriptorCount = 2;
+
+	// for texture sampler
+	vkdescriptorPoolSize_Array[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	vkdescriptorPoolSize_Array[1].descriptorCount = 2;
+
 
 	// create the pool 
 	VkDescriptorPoolCreateInfo vkdescriptorPoolCreateInfo;
@@ -4125,8 +4380,8 @@ VkResult createDescriptorpool(void)
 	vkdescriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	vkdescriptorPoolCreateInfo.pNext = NULL;
 	vkdescriptorPoolCreateInfo.flags = 0;
-	vkdescriptorPoolCreateInfo.poolSizeCount = 1;
-	vkdescriptorPoolCreateInfo.pPoolSizes = &vkdescriptorPoolSize;
+	vkdescriptorPoolCreateInfo.poolSizeCount = _ARRAYSIZE(vkdescriptorPoolSize_Array);
+	vkdescriptorPoolCreateInfo.pPoolSizes = vkdescriptorPoolSize_Array;
 	vkdescriptorPoolCreateInfo.maxSets = 2;
 
 	vkresult = vkCreateDescriptorPool(vkDevice, &vkdescriptorPoolCreateInfo, NULL, &vkDescriptorPool);
@@ -4162,7 +4417,7 @@ VkResult createDescriptorSet(void)
 	vkDescriptorSetAllocateInfo.descriptorSetCount = 1;
 	vkDescriptorSetAllocateInfo.pSetLayouts = &vkDescriptorSetLayout;
 
-	vkresult = vkAllocateDescriptorSets(vkDevice, &vkDescriptorSetAllocateInfo, &vkDescriptorSet_Triangle);
+	vkresult = vkAllocateDescriptorSets(vkDevice, &vkDescriptorSetAllocateInfo, &vkDescriptorSet);
 	if (vkresult != VK_SUCCESS)
 	{
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createDescriptorSet() : vkCreateDescriptorPool() failed. Error Code: (%d)\n", vkresult);
@@ -4177,66 +4432,51 @@ VkResult createDescriptorSet(void)
 	VkDescriptorBufferInfo vkdescriptorBufferInfo;
 	memset((void*)&vkdescriptorBufferInfo, 0, sizeof(VkDescriptorBufferInfo));
 
-	vkdescriptorBufferInfo.buffer = uniformData_Triangle.vkBuffer;
+	// for mvp unform
+	vkdescriptorBufferInfo.buffer = uniformData.vkBuffer;
 	vkdescriptorBufferInfo.offset = 0;
 	vkdescriptorBufferInfo.range = sizeof(MyUniformData);
 
-	// now upadte descriptor set directly to the shader
+	// for texture image and  sampler
+	VkDescriptorImageInfo vkDescriptorImageInfo;
+	memset((void*)&vkDescriptorImageInfo, 0, sizeof(VkDescriptorImageInfo));
+
+	vkDescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	vkDescriptorImageInfo.sampler = vkSampler_Texture;                          // Your created sampler
+	vkDescriptorImageInfo.imageView = vkImageView_Texture;                      // Your texture image view
 
 
-	VkWriteDescriptorSet vkWriteDescriptorSet;
-	memset((void*)&vkWriteDescriptorSet, 0, sizeof(VkWriteDescriptorSet));
-
-	vkWriteDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	vkWriteDescriptorSet.dstSet = vkDescriptorSet_Triangle;
-	vkWriteDescriptorSet.dstBinding = 0; // Matches layout(binding = 0) in shader
-	vkWriteDescriptorSet.dstArrayElement = 0;
-	vkWriteDescriptorSet.descriptorCount = 1;
-	vkWriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	vkWriteDescriptorSet.pBufferInfo = &vkdescriptorBufferInfo;
-	vkWriteDescriptorSet.pImageInfo = NULL;
-	vkWriteDescriptorSet.pTexelBufferView = NULL;
-
-	vkUpdateDescriptorSets(vkDevice, 1, &vkWriteDescriptorSet, 0, NULL);
-
-	__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nvkUpdateDescriptorSets() succeeded for Triangle\n");
-
-	// RECTANGLE
-	vkresult = vkAllocateDescriptorSets(vkDevice, &vkDescriptorSetAllocateInfo, &vkDescriptorSet_Rectangle);
-	if (vkresult != VK_SUCCESS)
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createDescriptorSet() : vkCreateDescriptorPool() failed for Rectangle Error Code: (%d)\n", vkresult);
-		return vkresult;
-	}
-	else
-	{
-		__android_log_print(ANDROID_LOG_INFO, "PRS:", "createDescriptorSet() : vkCreateDescriptorPool() succeeded for reactngle\n");
-	}
-
-	// describe whether we want image as uniform or buffer as unuform 
-	memset((void*)&vkdescriptorBufferInfo, 0, sizeof(VkDescriptorBufferInfo));
-
-	vkdescriptorBufferInfo.buffer = uniformData_Rectangle.vkBuffer;
-	vkdescriptorBufferInfo.offset = 0;
-	vkdescriptorBufferInfo.range = sizeof(MyUniformData);
 
 	// now upadte descriptor set directly to the shader
 
-	memset((void*)&vkWriteDescriptorSet, 0, sizeof(VkWriteDescriptorSet));
+	// for above twoo structre it is of 2 array
+	VkWriteDescriptorSet vkWriteDescriptorSet_Array[2];
+	memset((void*)vkWriteDescriptorSet_Array, 0, sizeof(VkWriteDescriptorSet) * _ARRAYSIZE(vkWriteDescriptorSet_Array));
 
-	vkWriteDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	vkWriteDescriptorSet.dstSet = vkDescriptorSet_Rectangle;
-	vkWriteDescriptorSet.dstBinding = 0; // Matches layout(binding = 0) in shader
-	vkWriteDescriptorSet.dstArrayElement = 0;
-	vkWriteDescriptorSet.descriptorCount = 1;
-	vkWriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	vkWriteDescriptorSet.pBufferInfo = &vkdescriptorBufferInfo;
-	vkWriteDescriptorSet.pImageInfo = NULL;
-	vkWriteDescriptorSet.pTexelBufferView = NULL;
 
-	vkUpdateDescriptorSets(vkDevice, 1, &vkWriteDescriptorSet, 0, NULL);
+	vkWriteDescriptorSet_Array[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	vkWriteDescriptorSet_Array[0].dstSet = vkDescriptorSet;
+	vkWriteDescriptorSet_Array[0].dstBinding = 0; // Matches layout(binding = 0) in shader
+	vkWriteDescriptorSet_Array[0].dstArrayElement = 0;
+	vkWriteDescriptorSet_Array[0].descriptorCount = 1;
+	vkWriteDescriptorSet_Array[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	vkWriteDescriptorSet_Array[0].pBufferInfo = &vkdescriptorBufferInfo;
+	vkWriteDescriptorSet_Array[0].pImageInfo = NULL;
+	vkWriteDescriptorSet_Array[0].pTexelBufferView = NULL;
 
-	__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nvkUpdateDescriptorSets() succeededf for reactngle\n");
+	vkWriteDescriptorSet_Array[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	vkWriteDescriptorSet_Array[1].dstSet = vkDescriptorSet;
+	vkWriteDescriptorSet_Array[1].dstBinding = 1;
+	vkWriteDescriptorSet_Array[1].dstArrayElement = 0;
+	vkWriteDescriptorSet_Array[1].descriptorCount = 1;
+	vkWriteDescriptorSet_Array[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	vkWriteDescriptorSet_Array[1].pBufferInfo = NULL;
+	vkWriteDescriptorSet_Array[1].pImageInfo = &vkDescriptorImageInfo;
+	vkWriteDescriptorSet_Array[1].pTexelBufferView = NULL;
+
+	vkUpdateDescriptorSets(vkDevice, _ARRAYSIZE(vkWriteDescriptorSet_Array), vkWriteDescriptorSet_Array, 0, NULL);
+
+	__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nvkUpdateDescriptorSets() succeeded.\n");
 
 
 	return vkresult;
@@ -4350,9 +4590,9 @@ VkResult createPipline(void)
 	vkVertexInputBindingDescription_Array[0].stride = sizeof(float) * 3;
 	vkVertexInputBindingDescription_Array[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	// for color
+	// for texcoord
 	vkVertexInputBindingDescription_Array[1].binding = 1; // corresponding to location  = 1 in vertex shader
-	vkVertexInputBindingDescription_Array[1].stride = sizeof(float) * 3;
+	vkVertexInputBindingDescription_Array[1].stride = sizeof(float) * 2;
 	vkVertexInputBindingDescription_Array[1].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	VkVertexInputAttributeDescription vkVertexInputAttributeDescription_Array[2];
@@ -4364,10 +4604,10 @@ VkResult createPipline(void)
 	vkVertexInputAttributeDescription_Array[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	vkVertexInputAttributeDescription_Array[0].offset = 0;
 
-	// for color
+	// for texcoord
 	vkVertexInputAttributeDescription_Array[1].binding = 1;
 	vkVertexInputAttributeDescription_Array[1].location = 1;
-	vkVertexInputAttributeDescription_Array[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	vkVertexInputAttributeDescription_Array[1].format = VK_FORMAT_R32G32_SFLOAT;
 	vkVertexInputAttributeDescription_Array[1].offset = 0;
 
 	VkPipelineVertexInputStateCreateInfo vkPipelineVertexInputStateCreateInfo;
@@ -4787,7 +5027,7 @@ VkResult buildCommandBuffers(void)
 			vkPipelineLayout, // must match the one used to create pipeline
 			0,              // firstSet
 			1,              // descriptorSetCount
-			&vkDescriptorSet_Triangle,
+			&vkDescriptorSet,
 			0,              // dynamicOffsetCount
 			NULL            // pDynamicOffsets
 		);
@@ -4797,43 +5037,16 @@ VkResult buildCommandBuffers(void)
 		VkDeviceSize vkDeviceSize_Offest_Position[1];
 		memset((void*)vkDeviceSize_Offest_Position, 0, sizeof(VkDeviceSize) * _ARRAYSIZE(vkDeviceSize_Offest_Position));
 
-		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position_Triangle.vkBuffer, vkDeviceSize_Offest_Position);
+		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position.vkBuffer, vkDeviceSize_Offest_Position);
 
 		// bind vertex color vertex buffer
-		VkDeviceSize vkDeviceSize_Offest_Color[1];
-		memset((void*)vkDeviceSize_Offest_Color, 0, sizeof(VkDeviceSize) * _ARRAYSIZE(vkDeviceSize_Offest_Color));
+		VkDeviceSize vkDeviceSize_Offest_Texcoord[1];
+		memset((void*)vkDeviceSize_Offest_Texcoord, 0, sizeof(VkDeviceSize) * _ARRAYSIZE(vkDeviceSize_Offest_Texcoord));
 
-		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 1, 1, &vertexData_Color_Triangle.vkBuffer, vkDeviceSize_Offest_Color);
+		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 1, 1, &vertexData_Texcoord.vkBuffer, vkDeviceSize_Offest_Texcoord);
 
 		// Here we should call Vulkan drawing functions
 		vkCmdDraw(vkCommandBuffer_Array[i], 12, 1, 0, 0);
-
-		// CUBE
-		// bind descriptor set to pipline
-		vkCmdBindDescriptorSets(
-			vkCommandBuffer_Array[i],
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			vkPipelineLayout, // must match the one used to create pipeline
-			0,              // firstSet
-			1,              // descriptorSetCount
-			&vkDescriptorSet_Rectangle,
-			0,              // dynamicOffsetCount
-			NULL            // pDynamicOffsets
-		);
-
-
-		// bind with vertex buffer
-		memset((void*)vkDeviceSize_Offest_Position, 0, sizeof(VkDeviceSize) * _ARRAYSIZE(vkDeviceSize_Offest_Position));
-
-		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position_Rectangle.vkBuffer, vkDeviceSize_Offest_Position);
-
-		// bind vertex color vertex buffer
-		memset((void*)vkDeviceSize_Offest_Color, 0, sizeof(VkDeviceSize) * _ARRAYSIZE(vkDeviceSize_Offest_Color));
-
-		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 1, 1, &vertexData_Color_Rectangle.vkBuffer, vkDeviceSize_Offest_Color);
-
-		// Here we should call Vulkan drawing functions
-		vkCmdDraw(vkCommandBuffer_Array[i], 36, 1, 0, 0);
 
 		// End the render pass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);
@@ -4853,9 +5066,8 @@ VkResult buildCommandBuffers(void)
 	}
 
 	return vkresult;
+
 }
-
-
 VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
 	VkDebugReportFlagsEXT vkDebugReportFlagsEXT,
 	VkDebugReportObjectTypeEXT vkDebugReportObjectTypeEXT,

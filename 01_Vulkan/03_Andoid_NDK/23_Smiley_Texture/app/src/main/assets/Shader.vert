@@ -4,9 +4,9 @@
 
 layout(location = 0) in vec4 vPosition;
 
-layout(location = 1) in vec4 vColor;
+layout(location = 1) in vec2 vTexCoord;
 
-layout(location = 0) out vec4 out_Color;
+layout(location = 0) out vec2 out_TexCoord;
 
 layout(binding = 0) uniform MVPMatrix
 {
@@ -19,7 +19,7 @@ void main(void)
 {
 	// code
 	gl_Position = uMVP.projectionMatrix * uMVP.viewMatrix * uMVP.modelMatrix * vPosition;
-	out_Color = vColor;
+	out_TexCoord = vTexCoord;
 }
 
 
