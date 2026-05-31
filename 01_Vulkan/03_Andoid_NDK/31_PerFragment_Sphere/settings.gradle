@@ -20,7 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Sphere_PerVertex"
+rootProject.name = "Sphere_PerFragment"
 include ':app'
 
 

@@ -115,7 +115,6 @@ uint32_t swapchainImageCount = UINT32_MAX;
 VkImage* SwapchainImage_Array = NULL;
 VkImageView* SwapchainImageView_Array = NULL;
 
-
 // for depth image
 VkFormat vkFormat_Depth = VK_FORMAT_UNDEFINED;
 
@@ -124,8 +123,6 @@ VkImage vkImage_Depth = VK_NULL_HANDLE;
 VkDeviceMemory vkDeviceMemory_Depth = VK_NULL_HANDLE;
 
 VkImageView vkImageView_Depth = VK_NULL_HANDLE;
-
-
 
 // command pool 
 VkCommandPool vkcommandpool = VK_NULL_HANDLE;
@@ -221,6 +218,8 @@ struct MyUniformData
 
 	// keypressed related uniform
 	unsigned int lKeyIsPressed;
+
+	unsigned int padding[3];
 };
 
 struct UniformData
@@ -1290,6 +1289,7 @@ void uninitialise(void)
 
 
 		
+		
 		//Free swapchain Images
 
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
@@ -1576,6 +1576,7 @@ void uninitialise(void)
 		vkInstance = VK_NULL_HANDLE;
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nvkDestroyInstance Done\n");
 	}
+
 
 }
 
@@ -3623,7 +3624,7 @@ VkResult updateUniformbuffer(void)
 	myUniformData.materialSpecular[0] = 0.7f;
 	myUniformData.materialSpecular[1] = 0.7f;
 	myUniformData.materialSpecular[2] = 0.7f;
-	myUniformData.materialSpecular[3] = 1.0f;
+	myUniformData.materialSpecular[3] = 1.4f;
 
 	myUniformData.materialShininess = 128.0f;
 

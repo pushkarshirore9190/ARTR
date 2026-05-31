@@ -221,6 +221,8 @@ struct MyUniformData
 
 	// keypressed related uniform
 	unsigned int lKeyIsPressed;
+
+	unsigned int padding[3];
 };
 
 struct UniformData
@@ -3620,12 +3622,14 @@ VkResult updateUniformbuffer(void)
 	myUniformData.materialDiffuse[2] = 0.7f;
 	myUniformData.materialDiffuse[3] = 1.0f;
 
-	myUniformData.materialSpecular[0] = 0.7f;
-	myUniformData.materialSpecular[1] = 0.7f;
-	myUniformData.materialSpecular[2] = 0.7f;
+	myUniformData.materialSpecular[0] = 1.0f;
+	myUniformData.materialSpecular[1] = 1.0f;
+	myUniformData.materialSpecular[2] = 1.0f;
 	myUniformData.materialSpecular[3] = 1.0f;
 
-	myUniformData.materialShininess = 128.0f;
+    myUniformData.materialShininess = 32.0f;
+
+	//myUniformData.materialShininess = 128.0f;
 
 
 	// update key press related unifrom

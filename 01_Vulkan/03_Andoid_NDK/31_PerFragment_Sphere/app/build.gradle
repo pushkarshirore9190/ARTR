@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'com.prs.Sphere_PerVertex'
+    namespace 'com.prs.Sphere_PerFragment'
     compileSdk 36
     ndkVersion "29.0.14206865"
 
     defaultConfig {
-        applicationId "com.prs.Sphere_PerVertex"
+        applicationId "com.prs.Sphere_PerFragment"
         minSdk 36
         targetSdk 36
         versionCode 1
