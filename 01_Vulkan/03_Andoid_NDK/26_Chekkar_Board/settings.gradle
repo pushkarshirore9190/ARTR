@@ -20,7 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TwoShape_Texture"
+rootProject.name = "Chekkar_Board_Vulkan"
 include ':app'
 
 
