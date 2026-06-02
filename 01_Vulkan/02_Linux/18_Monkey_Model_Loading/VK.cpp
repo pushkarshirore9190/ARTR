@@ -11,6 +11,15 @@
 #include <X11/keysym.h>
 #include<X11/Xatom.h> // for XA_ATOM
 
+// ADD these below your existing includes:
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <string>
+#include <sstream>
+using namespace std;
+
+
 #define VK_USE_PLATFORM_XLIB_KHR
 #include<vulkan/vulkan.h>
 
@@ -49,8 +58,6 @@ FILE * gpFile = NULL;
 
 
 /// VULKAN RELATED GLOBAL VARIABLES///
-// vulkun related global variables
-
 uint32_t enabledInstanceExtensionCount = 0;
 
 
@@ -103,9 +110,12 @@ VkExtent2D vkExtent2D_Swapchain;
 
 
 // swapchain images and swapchain image views relrated data
+
+//for color
 uint32_t swapchainImageCount = UINT32_MAX; 
 VkImage* SwapchainImage_Array = NULL;
 VkImageView* SwapchainImageView_Array = NULL;
+
 
 // for depth image
 VkFormat vkFormat_Depth = VK_FORMAT_UNDEFINED;
@@ -117,11 +127,24 @@ VkDeviceMemory vkDeviceMemory_Depth = VK_NULL_HANDLE;
 VkImageView vkImageView_Depth = VK_NULL_HANDLE;
 
 
+
 // command pool 
 VkCommandPool vkcommandpool = VK_NULL_HANDLE;
 
 // command buffer
 VkCommandBuffer* vkCommandBuffer_Array = NULL;
+
+// OBJ raw parsed data
+vector<float> obj_vertices;
+vector<float> obj_normals;
+vector<float> obj_texcoords;
+vector<int>   vertexIndices;
+vector<int>   normalIndices;
+vector<int>   texcoordIndices;
+
+// flat GPU-ready buffers (same as OpenGL positionBuffer / normalBuffer)
+vector<float> positionBuffer;
+vector<float> normalBuffer;
 
 // render pass
 VkRenderPass vkRenderpass = VK_NULL_HANDLE;
@@ -141,7 +164,7 @@ VkClearColorValue vkClearColorValue;
 
 VkClearDepthStencilValue vkClearDepthStencilValue;
 
-Bool binitialised = False;
+Bool bInitialised = False;
 
 uint32_t currentImageIndex = UINT32_MAX;
 
@@ -173,10 +196,9 @@ typedef struct
 } VertexData;
 
 // poaition
-
 VertexData vertexData_Position;
 
-VertexData vertexData_Color;
+VertexData vertexData_Normal;
 
 // uniform related declarations
 struct MyUniformData
@@ -212,9 +234,10 @@ VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
 // Descriptor set
 VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 
-// For Rotation
+float angleTeapot = 0.0f;
 
-float angle = 0.0f;
+Bool  bAnimate = False;
+
 
 
 // entry point function
@@ -413,6 +436,18 @@ int main(int argc, char *argv[])
                         }
                         break;
 
+					case 'A':
+					case 'a':
+						if (bAnimate == False)
+						{
+							bAnimate = True;
+						}
+						else
+						{
+							bAnimate = False;
+						}
+						break;
+
                         default:
                             break;
                         
@@ -588,6 +623,77 @@ Bool isWindowMinimized(void)
     return windowMinimized;
 }
 
+void loadOBJFile(void)
+{
+    ifstream dataIn;
+    dataIn.open("Model.obj");
+    if (!dataIn.is_open())
+    {
+        fprintf(gpFile, "loadOBJFile() : Failed to open Model.obj\n");
+        exit(-1);
+    }
+
+    string line;
+    while (getline(dataIn, line))
+    {
+        if (line[0] == 'v' && line[1] == ' ')
+        {
+            istringstream ss(line); ss.ignore(2);
+            float x, y, z;
+            if (ss >> x >> y >> z)
+            { obj_vertices.push_back(x); obj_vertices.push_back(y); obj_vertices.push_back(z); }
+        }
+        else if (line[0] == 'v' && line[1] == 'n' && line[2] == ' ')
+        {
+            istringstream ss(line); ss.ignore(3);
+            float x, y, z;
+            if (ss >> x >> y >> z)
+            { obj_normals.push_back(x); obj_normals.push_back(y); obj_normals.push_back(z); }
+        }
+        else if (line[0] == 'v' && line[1] == 't' && line[2] == ' ')
+        {
+            istringstream ss(line); ss.ignore(3);
+            float s, t;
+            if (ss >> s >> t)
+            { obj_texcoords.push_back(s); obj_texcoords.push_back(t); }
+        }
+        else if (line[0] == 'f' && line[1] == ' ')
+        {
+            istringstream ss(line); ss.ignore(2);
+            int vi, ti, ni; char sep;
+            while (ss >> vi >> sep >> ti >> sep >> ni)
+            {
+                vertexIndices.push_back(vi);
+                texcoordIndices.push_back(ti);
+                normalIndices.push_back(ni);
+            }
+        }
+    }
+
+    // Build flat positionBuffer from vertexIndices
+    for (int i = 0; i < (int)vertexIndices.size(); i++)
+    {
+        int idx = (vertexIndices[i] - 1) * 3;
+        positionBuffer.push_back(obj_vertices[idx]);
+        positionBuffer.push_back(obj_vertices[idx + 1]);
+        positionBuffer.push_back(obj_vertices[idx + 2]);
+    }
+
+    // Build flat normalBuffer from normalIndices
+    for (int i = 0; i < (int)normalIndices.size(); i++)
+    {
+        int idx = (normalIndices[i] - 1) * 3;
+        normalBuffer.push_back(obj_normals[idx]);
+        normalBuffer.push_back(obj_normals[idx + 1]);
+        normalBuffer.push_back(obj_normals[idx + 2]);
+    }
+
+    dataIn.close();
+    fprintf(gpFile, "loadOBJFile() : Loaded %zu vertices, %zu normals\n",
+            positionBuffer.size() / 3, normalBuffer.size() / 3);
+}
+
+
 VkResult initialise(void)
 {
 	// function declarations
@@ -729,6 +835,8 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createCommandBuffers() succeeded\n");
 	}
 
+	loadOBJFile();
+
 	// craete VertexBuffer
 	vkresult = createVertexBuffer();
 	if (vkresult != VK_SUCCESS)
@@ -740,6 +848,7 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createVertexBuffer() succeeded\n");
 	}
+
 
 	// createUniform Buffer
 	vkresult = createUniformBuffer();
@@ -879,6 +988,13 @@ VkResult initialise(void)
 	vkClearColorValue.float32[2] = 0.0f;
 	vkClearColorValue.float32[3] = 1.0f;  // analogse to glclear color
 
+	memset((void*)&vkClearDepthStencilValue, 0, sizeof(VkClearDepthStencilValue));
+
+	// set defalut clear depth
+	vkClearDepthStencilValue.depth = 1.0f;
+	vkClearDepthStencilValue.stencil = 0;
+
+
 	// build commmand buffers
 	vkresult = buildCommandBuffers();
 	if (vkresult != VK_SUCCESS)
@@ -893,7 +1009,7 @@ VkResult initialise(void)
 
 	// initialisation is completed
 
-	binitialised = True;
+	bInitialised = True;
 
 
 	fprintf(gpFile, "******************************************* initialise comment *****************************\n");
@@ -926,16 +1042,16 @@ VkResult resize(int width, int heigth)
 	if (heigth <= 0)
 		heigth = 1;
 
-	// check the binitialised variable
-	if (binitialised == False)
+	// check the bInitialised variable
+	if (bInitialised == False)
 	{
 		fprintf(gpFile, "resize() : Initialisation yet not completed or failed\n");
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 
-	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set binitialised  =  False again
-	binitialised = False;
+	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  False again
+	bInitialised = False;
 
 	// set global winwidth and winheight variables
 	winWidth = width;
@@ -1130,7 +1246,7 @@ VkResult resize(int width, int heigth)
 	}
 
 
-	binitialised = True;
+	bInitialised = True;
 
 	return(vkresult);
 }
@@ -1149,7 +1265,7 @@ VkResult display(void)
 
 	// if control comes here before initilisation gets completed return False
 
-	if (binitialised == False)
+	if (bInitialised == False)
 	{
 		fprintf(gpFile, "display(): initliasation yet not completed\n");
 		return (VkResult)VK_FALSE;
@@ -1259,10 +1375,10 @@ VkResult display(void)
 void update(void)
 {
 	// code
-	angle = angle + 0.5f;
-	if (angle >= 360.0f)
+	angleTeapot = angleTeapot + 1.0f;
+	if (angleTeapot >= 360.0f)
 	{
-		angle = angle - 360.0f;
+		angleTeapot = angleTeapot - 360.0f;
 	}
 }
 
@@ -1378,7 +1494,7 @@ void uninitialise(void)
 			vkDestroyDescriptorPool(vkDevice, vkDescriptorPool, NULL);
 			vkDescriptorPool = VK_NULL_HANDLE;
 			vkDescriptorSet = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed vkDescriptorPool and vkDescriptorSet for trangle and rectangle\n");
+			fprintf(gpFile, "\nFreed vkDescriptorPool and vkDescriptorSet\n");
 		}
 
 
@@ -1397,7 +1513,7 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFree vkShaderModule_vertex_shader freed\n");
 		}
 
-		// Destroy uniform buffer for triangle
+		// Destroy uniform buffer
 		if (uniformData.vkBuffer)
 		{
 			vkDestroyBuffer(vkDevice, uniformData.vkBuffer, NULL);
@@ -1412,25 +1528,20 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFreed uniformData.vkDeviceMemory \n");
 		}
 
-		// free color buffer
-		if (vertexData_Color.vkDeviceMemory)
+		if(vertexData_Normal.vkDeviceMemory)
 		{
-			vkFreeMemory(vkDevice, vertexData_Color.vkDeviceMemory, NULL);
-			vertexData_Color.vkDeviceMemory = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertexData_Color.vkDeviceMemory freed\n");
-
+			vkFreeMemory(vkDevice, vertexData_Normal.vkDeviceMemory, NULL);
+			vertexData_Normal.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Normal.vkDeviceMemory freed\n");
 		}
 
-		if (vertexData_Color.vkBuffer)
+		if(vertexData_Normal.vkBuffer)
 		{
-			vkDestroyBuffer(vkDevice, vertexData_Color.vkBuffer, NULL);
-			vertexData_Color.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFree vertexData_Color.vkBuffer freed\n");
-
+			vkDestroyBuffer(vkDevice, vertexData_Normal.vkBuffer, NULL);
+			vertexData_Normal.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Normal.vkBuffer freed\n");
 		}
 
-
-		// for rectgnle
 		if (vertexData_Position.vkDeviceMemory)
 		{
 			vkFreeMemory(vkDevice, vertexData_Position.vkDeviceMemory, NULL);
@@ -1446,7 +1557,6 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFree vertexData_Position.vkBuffer freed\n");
 
 		}
-
 
 		for (uint32_t i = 0; i < swapchainImageCount; i++)
 		{
@@ -3050,115 +3160,6 @@ VkResult createVertexBuffer(void)
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
 
-	float cubeVertices[] =
-	{
-		// Front face     
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-
-		1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-
-		// Right face 
-		1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-
-		// Back face
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-
-		// Left face 
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-
-		// Top face 
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-
-		// Bottom face 
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f
-	};
-
-	float cubeColors[] = {
-		// Front 
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-
-		// Right 
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-
-		// Back 
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-
-		// Left 
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-
-		// Top 
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-
-		// Bottom 
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f,
-		1.0f, 0.5f, 0.0f
-	};
-
-
-	// VERTEX POSITION BUFFER
 	memset((void*)&vertexData_Position, 0, sizeof(VertexData));
 
 	VkBufferCreateInfo vkBufferCreateInfo;
@@ -3167,7 +3168,7 @@ VkResult createVertexBuffer(void)
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(cubeVertices);
+	vkBufferCreateInfo.size = sizeof(float) * positionBuffer.size();
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
 	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Position.vkBuffer);
@@ -3246,35 +3247,36 @@ VkResult createVertexBuffer(void)
 
 	// actual memory mapped
 
-	memcpy(data, cubeVertices, sizeof(cubeVertices));
+	memcpy(data, positionBuffer.data(), sizeof(float) * positionBuffer.size());
 
 	vkUnmapMemory(vkDevice, vertexData_Position.vkDeviceMemory);
 
-	// VERTEX COLOR BUFFER
-	memset((void*)&vertexData_Color, 0, sizeof(VertexData));
 
-	memset((void*)&vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
+	// FOR NORMAL
+	memset((void*)&vertexData_Normal, 0, sizeof(VertexData));
+
+	memset((void*)& vkBufferCreateInfo, 0, sizeof(VkBufferCreateInfo));
 
 	vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	vkBufferCreateInfo.pNext = NULL;
 	vkBufferCreateInfo.flags = 0;
-	vkBufferCreateInfo.size = sizeof(cubeColors);
+	vkBufferCreateInfo.size = sizeof(float) * positionBuffer.size();
 	vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Color.vkBuffer);
+	vkresult = vkCreateBuffer(vkDevice, &vkBufferCreateInfo, NULL, &vertexData_Normal.vkBuffer);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded for vertex color buffer\n");
+		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded for normal\n");
 	}
 
 	memset((void*)&vkMemoryRequirements, 0, sizeof(VkMemoryRequirements));
 
-	vkGetBufferMemoryRequirements(vkDevice, vertexData_Color.vkBuffer, &vkMemoryRequirements);
+	vkGetBufferMemoryRequirements(vkDevice, vertexData_Normal.vkBuffer, &vkMemoryRequirements);
 
 	memset((void*)&vkMemoryAllocateInfo, 0, sizeof(VkMemoryAllocateInfo));
 
@@ -3289,56 +3291,55 @@ VkResult createVertexBuffer(void)
 		{
 			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
-				vkMemoryAllocateInfo.memoryTypeIndex = i;
+				vkMemoryAllocateInfo.memoryTypeIndex = i; 
 				break;
 			}
 		}
 
 		vkMemoryRequirements.memoryTypeBits >>= 1;
-
+	
 	}
 
-	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Color.vkDeviceMemory);
+	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Normal.vkDeviceMemory);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded for vertex color buffer\n");
+		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded for normal\n");
 	}
 
-	vkresult = vkBindBufferMemory(vkDevice, vertexData_Color.vkBuffer, vertexData_Color.vkDeviceMemory, 0);
+	vkresult = vkBindBufferMemory(vkDevice, vertexData_Normal.vkBuffer, vertexData_Normal.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded  for vertex color buffer\n");
+		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded for normal\n");
 	}
 
 	data = NULL;
 
-	vkresult = vkMapMemory(vkDevice, vertexData_Color.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
+	vkresult = vkMapMemory(vkDevice, vertexData_Normal.vkDeviceMemory, 0, vkMemoryAllocateInfo.allocationSize, 0, &data);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed for vertex color buffer Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed for normal Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded for vertex color buffer\n");
+		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded for normal\n");
 	}
 
 	// actual memory mapped
 
-	memcpy(data, cubeColors, sizeof(cubeColors));
+	vkBufferCreateInfo.size = sizeof(float) * normalBuffer.size();
 
-	vkUnmapMemory(vkDevice, vertexData_Color.vkDeviceMemory);
-
+	vkUnmapMemory(vkDevice, vertexData_Normal.vkDeviceMemory);
 
 	return vkresult;
 
@@ -3412,6 +3413,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkAllocateMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, uniformData.vkBuffer, uniformData.vkDeviceMemory, 0);
@@ -3423,6 +3425,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkBindBufferMemory() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// call updateUnifomBuffer
@@ -3435,6 +3438,7 @@ VkResult createUniformBuffer(void)
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : updateUniformbuffer() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
@@ -3457,25 +3461,11 @@ VkResult updateUniformbuffer(void)
 
 	translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -4.0f));
 
-	glm::mat4 rotationMatrix_X = glm::mat4(1.0);
+	glm::mat4 rotationMatrix = glm::mat4(1.0);
 
-	rotationMatrix_X = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)); // x axis rotation
+	rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angleTeapot), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::mat4 rotationMatrix_Y = glm::mat4(1.0);
-
-	rotationMatrix_Y = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f)); // Y axis rotation
-
-	glm::mat4 rotationMatrix_Z = glm::mat4(1.0);
-
-	rotationMatrix_Z = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Z axis rotation
-
-	glm::mat4 rotationMatrix = rotationMatrix_X * rotationMatrix_Y * rotationMatrix_Z;
-
-	glm::mat4 scaleMatrix = glm::mat4(1.0);
-
-	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.75f, 0.75f, 0.75f)); // Y axis rotation
-
-	myUniformData.modelMatrix = translationMatrix * scaleMatrix * rotationMatrix;
+	myUniformData.modelMatrix = translationMatrix * rotationMatrix;	
 
 	myUniformData.viewMatrix = glm::mat4(1.0);
 
@@ -3486,6 +3476,7 @@ VkResult updateUniformbuffer(void)
 	perspectiveProjectionMatrix[1][1] = perspectiveProjectionMatrix[1][1] * (-1.0f);
 
 	myUniformData.projectionMatrix = perspectiveProjectionMatrix;
+
 
 	// map unifrom buffer
 
@@ -3860,9 +3851,6 @@ VkResult createRenderPass(void)
 	VkAttachmentDescription vkAttachmentDescription_array[2];
 
 	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) * ARRAY_SIZE(vkAttachmentDescription_array));
-
-	// for color
-	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) * ARRAY_SIZE(vkAttachmentDescription_array));
 	vkAttachmentDescription_array[0].flags = 0;
 	vkAttachmentDescription_array[0].format = vkFormat_color;
 	vkAttachmentDescription_array[0].samples = VK_SAMPLE_COUNT_1_BIT;   //No multi sampling so 1 bit is enough
@@ -3887,7 +3875,6 @@ VkResult createRenderPass(void)
 
 
 
-
 	// for color
 
 	//Declare and initialize vkAttachmentReference structure
@@ -3901,8 +3888,6 @@ VkResult createRenderPass(void)
 	memset((void*)&vkAttachmentRefrence_Depth, 0, sizeof(VkAttachmentReference));
 	vkAttachmentRefrence_Depth.attachment = 1;			//This means above given array 0th Ataachment reference, O means it is the index number
 	vkAttachmentRefrence_Depth.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-
 
 	//Step 3 : Declare and Initialize vkSubpassDescription
 
@@ -3955,30 +3940,32 @@ VkResult createPipline(void)
 	VkVertexInputBindingDescription vkVertexInputBindingDescription_Array[2];
 	memset((void*)vkVertexInputBindingDescription_Array, 0, sizeof(VkVertexInputBindingDescription) * ARRAY_SIZE(vkVertexInputBindingDescription_Array));
 
-	// for position
-	vkVertexInputBindingDescription_Array[0].binding = 0; // corresponding to location = 0 in vertex shader
+	// Position
+	vkVertexInputBindingDescription_Array[0].binding = 0;
 	vkVertexInputBindingDescription_Array[0].stride = sizeof(float) * 3;
 	vkVertexInputBindingDescription_Array[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	// for color
-	vkVertexInputBindingDescription_Array[1].binding = 1; // corresponding to location  = 1 in vertex shader
+	// Normal
+	vkVertexInputBindingDescription_Array[1].binding = 1;
 	vkVertexInputBindingDescription_Array[1].stride = sizeof(float) * 3;
 	vkVertexInputBindingDescription_Array[1].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
 
 	VkVertexInputAttributeDescription vkVertexInputAttributeDescription_Array[2];
 	memset((void*)vkVertexInputAttributeDescription_Array, 0, sizeof(VkVertexInputAttributeDescription) * ARRAY_SIZE(vkVertexInputAttributeDescription_Array));
 
-	// for position
+	// Position
 	vkVertexInputAttributeDescription_Array[0].binding = 0;
 	vkVertexInputAttributeDescription_Array[0].location = 0;
 	vkVertexInputAttributeDescription_Array[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	vkVertexInputAttributeDescription_Array[0].offset = 0;
 
-	// for color
+	// Normal
 	vkVertexInputAttributeDescription_Array[1].binding = 1;
 	vkVertexInputAttributeDescription_Array[1].location = 1;
 	vkVertexInputAttributeDescription_Array[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 	vkVertexInputAttributeDescription_Array[1].offset = 0;
+
 
 	VkPipelineVertexInputStateCreateInfo vkPipelineVertexInputStateCreateInfo;
 	memset((void*)&vkPipelineVertexInputStateCreateInfo, 0, sizeof(VkPipelineVertexInputStateCreateInfo));
@@ -4024,8 +4011,7 @@ VkResult createPipline(void)
 	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * ARRAY_SIZE(vkPipelineColorBlendAttachmentState_Array));
 
 	vkPipelineColorBlendAttachmentState_Array[0].blendEnable = VK_FALSE;
-	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask =VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
-
+	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask = 0xf;
 
 
 	VkPipelineColorBlendStateCreateInfo vkPipelineColorBlendStateCreateInfo;
@@ -4081,6 +4067,7 @@ VkResult createPipline(void)
 	vkPipelineDepthStencilStateCreateInfo.back.compareOp = VK_COMPARE_OP_ALWAYS;
 	vkPipelineDepthStencilStateCreateInfo.front = vkPipelineDepthStencilStateCreateInfo.back;
 	vkPipelineDepthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
+
 
 
 
@@ -4208,7 +4195,7 @@ VkResult createframeBuffers(void)
 
 	vkFramebuffer_Array = (VkFramebuffer*)malloc(sizeof(VkFramebuffer) * swapchainImageCount);
 
-	
+
 
 	for (uint32_t i = 0; i < swapchainImageCount; i++)
 	{
@@ -4325,7 +4312,7 @@ VkResult createFences(void)
 
 VkResult buildCommandBuffers(void)
 {
-	// Variable declaration
+	// variable declaration
 	VkResult vkresult = VK_SUCCESS;
 
 	// loop per swapchain image
@@ -4335,13 +4322,11 @@ VkResult buildCommandBuffers(void)
 		vkresult = vkResetCommandBuffer(vkCommandBuffer_Array[i], 0);
 		if (vkresult != VK_SUCCESS)
 		{
-			fprintf(gpFile, "buildCommandBuffers() : vkResetCommandBuffer() failed at index [%d]. Error Code: (%d)\n", i, vkresult);
-			return vkresult;
+			fprintf(gpFile, "buildCommandBuffers() : vkResetCommandBuffer() failed at index[%d]. Error Code: (%d)\n", i, vkresult);
+			return (vkresult);
 		}
 		else
-		{
-			fprintf(gpFile, "buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [%d].\n", i);
-		}
+			fprintf(gpFile, "buildCommandBuffers() : vkResetCommandBuffer() successed at index[%d].\n", i);
 
 		VkCommandBufferBeginInfo vkCommandBufferBeginInfo;
 		memset((void*)&vkCommandBufferBeginInfo, 0, sizeof(VkCommandBufferBeginInfo));
@@ -4349,26 +4334,24 @@ VkResult buildCommandBuffers(void)
 		vkCommandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		vkCommandBufferBeginInfo.pNext = NULL;
 		vkCommandBufferBeginInfo.flags = 0;
+		vkCommandBufferBeginInfo.pInheritanceInfo = 0;
 
 		vkresult = vkBeginCommandBuffer(vkCommandBuffer_Array[i], &vkCommandBufferBeginInfo);
 		if (vkresult != VK_SUCCESS)
 		{
-			fprintf(gpFile, "buildCommandBuffers() : VkBeginCommandBuffer() failed at index [%d]. Error Code: (%d)\n", i, vkresult);
-			return vkresult;
+			fprintf(gpFile, "buildCommandBuffers() : vkBeginCommandBuffer() failed at index[%d]. Error Code: (%d)\n", i, vkresult);
+			return (vkresult);
 		}
 		else
-		{
-			fprintf(gpFile, "buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [%d].\n", i);
-		}
+			fprintf(gpFile, "buildCommandBuffers() : vkBeginCommandBuffer() successed at index[%d].\n", i);
 
 		// set clear values
 		VkClearValue vkClearValue_Array[2];
-		memset((void*)vkClearValue_Array, 0, sizeof(VkClearValue) * ARRAY_SIZE(vkClearValue_Array));
+		memset((void*)vkClearValue_Array, 0, sizeof(vkClearValue_Array));
 
 		vkClearValue_Array[0].color = vkClearColorValue;
 		vkClearValue_Array[1].depthStencil.depth = 1.0f;
 		vkClearValue_Array[1].depthStencil.stencil = 0;
-
 
 		VkRenderPassBeginInfo vkRenderPassBeginInfo;
 		memset((void*)&vkRenderPassBeginInfo, 0, sizeof(VkRenderPassBeginInfo));
@@ -4384,61 +4367,55 @@ VkResult buildCommandBuffers(void)
 		vkRenderPassBeginInfo.pClearValues = vkClearValue_Array;
 		vkRenderPassBeginInfo.framebuffer = vkFramebuffer_Array[i];
 
-		// Begin the render pass
+		// begin the renderpass
 		vkCmdBeginRenderPass(vkCommandBuffer_Array[i], &vkRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		// bind with the pipline
+		// bind with the pipeline
 		vkCmdBindPipeline(vkCommandBuffer_Array[i], VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
-		// bind descriptor set to pipline
-		vkCmdBindDescriptorSets(
-			vkCommandBuffer_Array[i],
+		// bind descriptor set to pipeline
+		vkCmdBindDescriptorSets(vkCommandBuffer_Array[i],
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			vkPipelineLayout, // must match the one used to create pipeline
-			0,              // firstSet
-			1,              // descriptorSetCount
+			vkPipelineLayout,  // must match with the one used to create pipeline
+			0,				   // firstSet
+			1,				   // descriptorSetCount
 			&vkDescriptorSet,
-			0,              // dynamicOffsetCount
-			NULL            // pDynamicOffsets
-		);
+			0,				   // dynamicOffsetCount
+			NULL);			   // pDynamicOffsets
 
-
-		// bind vertex position vertex buffer
+		// bind with vertex buffer
 		VkDeviceSize vkDeviceSize_Offest_Position[1];
-		memset((void*)vkDeviceSize_Offest_Position, 0, sizeof(VkDeviceSize) *ARRAY_SIZE(vkDeviceSize_Offest_Position));
+		memset((void*)vkDeviceSize_Offest_Position, 0, sizeof(vkDeviceSize_Offest_Position));
 
 		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position.vkBuffer, vkDeviceSize_Offest_Position);
 
-		// bind vertex color vertex buffer
-		VkDeviceSize vkDeviceSize_Offest_Color[1];
-		memset((void*)vkDeviceSize_Offest_Color, 0, sizeof(VkDeviceSize) *ARRAY_SIZE(vkDeviceSize_Offest_Color));
+		// for Normal
+		VkDeviceSize vkDeviceSize_Offest_Normal[1];
+		memset((void*)vkDeviceSize_Offest_Normal, 0, sizeof(vkDeviceSize_Offest_Normal));
 
-		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 1, 1, &vertexData_Color.vkBuffer, vkDeviceSize_Offest_Color);
+		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 1, 1, &vertexData_Normal.vkBuffer, vkDeviceSize_Offest_Normal);
 
-		// Here we should call Vulkan drawing functions
+		vkCmdDraw(vkCommandBuffer_Array[i], (uint32_t)(positionBuffer.size() / 3), 1, 0, 0);
 
-		vkCmdDraw(vkCommandBuffer_Array[i], 36, 1, 0, 0);
-
-		// End the render pass
+		// end the renderpass
 		vkCmdEndRenderPass(vkCommandBuffer_Array[i]);
 
-		// End command buffer recording
+		// end command buffer recording
 		vkresult = vkEndCommandBuffer(vkCommandBuffer_Array[i]);
 		if (vkresult != VK_SUCCESS)
 		{
-			fprintf(gpFile, "buildCommandBuffers() : vkEndCommandBuffer() failed at index [%d]. Error Code: (%d)\n", i, vkresult);
-			return vkresult;
+			fprintf(gpFile, "buildCommandBuffers() : vkEndCommandBuffer() failed at index[%d]. Error Code: (%d)\n", i, vkresult);
+			return (vkresult);
 		}
 		else
-		{
-			fprintf(gpFile, "buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [%d].\n", i);
-		}
-
+			fprintf(gpFile, "buildCommandBuffers() : vkEndCommandBuffer() successed at index[%d].\n", i);
 	}
 
-	return vkresult;
-
+	return (vkresult);
 }
+
+
+
 VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
 	VkDebugReportFlagsEXT vkDebugReportFlagsEXT,
 	VkDebugReportObjectTypeEXT vkDebugReportObjectTypeEXT,
