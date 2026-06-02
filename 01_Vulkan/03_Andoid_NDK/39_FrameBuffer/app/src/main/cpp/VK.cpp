@@ -275,7 +275,7 @@ unsigned int numVerts = 0;
 VkRenderPass vkRenderpass_fbo = VK_NULL_HANDLE;
 
 // frameBuffer
-VkFramebuffer vkFramebuffer_fbo = NULL;
+VkFramebuffer vkFramebuffer_fbo = VK_NULL_HANDLE;
 
 // Semaphore
 VkSemaphore vkSemaphore_fbo = VK_NULL_HANDLE;
@@ -371,6 +371,7 @@ void android_main(struct android_app* state)
 	// Function declarations
 	VkResult display(void);
 	void update(void);
+	void uninitialise(void);
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -465,10 +466,11 @@ void android_main(struct android_app* state)
             }
 
             // check when to exit
-            if(state ->destroyRequested != 0)
-            {
-                return;
-            }
+			if(state->destroyRequested != 0)
+			{
+				uninitialise();   // ← ADD THIS
+				return;
+			}
     
         }
 
@@ -559,14 +561,21 @@ void engine_handle_cmd(struct android_app* app, int32_t cmd)
 				if(bInitialised == false)
 				{
 					vkresult = initialise();
-					if (vkresult != VK_SUCCESS)
+					if(vkresult != VK_SUCCESS)
 					{
-						__android_log_print(ANDROID_LOG_INFO, "PRS:", "engine_handle_cmd() : initialise() function failed (%d)\n", vkresult);
+						__android_log_print(ANDROID_LOG_INFO, "PRS:", "engine_handle_cmd() : initialise() failed (%d)\n", vkresult);
 						return;
 					}
-					else
+				}
+				else
+				{
+					// Surface changed — must reinitialize
+					uninitialise();
+					vkresult = initialise();
+					if(vkresult != VK_SUCCESS)
 					{
-						__android_log_print(ANDROID_LOG_INFO, "PRS:", "engine_handle_cmd() : initialise() succeeded\n");
+						__android_log_print(ANDROID_LOG_INFO, "PRS:", "engine_handle_cmd() : re-initialise() failed (%d)\n", vkresult);
+						return;
 					}
 				}
 
@@ -595,6 +604,12 @@ void engine_handle_cmd(struct android_app* app, int32_t cmd)
             engine->bActive = false;
             __android_log_print(ANDROID_LOG_INFO, "PRS:", "APP_CMD_LOST_FOCUS : Lost Focus\n");
             break;
+
+		case APP_CMD_DESTROY:
+			uninitialise();
+			__android_log_print(ANDROID_LOG_INFO, "PRS:", "APP_CMD_DESTROY : Activity destroyed\n");
+			break;
+			
     }
 }
 
@@ -1461,7 +1476,7 @@ VkResult resize(int width, int heigth)
 	if (vkSwapchainKHR)
 	{
 		vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
-		vkSwapchainKHR = NULL;		//Bhanda swachha
+		vkSwapchainKHR = VK_NULL_HANDLE;		//Bhanda swachha
 
 	}
 
@@ -1718,7 +1733,7 @@ VkResult display(void)
 	}
 
 	// here there will be your drawing code
-	vkDeviceWaitIdle(vkDevice);
+	//vkDeviceWaitIdle(vkDevice);
 
 
 	return(vkresult);
@@ -1989,7 +2004,7 @@ void uninitialise(void)
 		if (vkSwapchainKHR)
 		{
 			vkDestroySwapchainKHR(vkDevice, vkSwapchainKHR, NULL);
-			vkSwapchainKHR = NULL;		//Bhanda swachha
+			vkSwapchainKHR = VK_NULL_HANDLE;		//Bhanda swachha
 			__android_log_print(ANDROID_LOG_INFO, "PRS:", "\n vkSwapchainKHR is Freed\n");
 
 		}
@@ -2027,10 +2042,16 @@ void uninitialise(void)
 		__android_log_print(ANDROID_LOG_INFO, "PRS:", "\nvkDestroyInstance Done\n");
 	}
 
-	androidNativeWindow = NULL;
-	androidAssetManager = NULL;
-	swapchainImageCount = UINT32_MAX;
-	currentImageIndex = UINT32_MAX;
+	vkPhysicalDevice_selected = VK_NULL_HANDLE;
+	graphicsQueueFamilyIndex_Selected = UINT_MAX;
+	physicalDeviceCount = 0;
+	vkQueue = VK_NULL_HANDLE;
+	vkFormat_color = VK_FORMAT_UNDEFINED;
+	vkFormat_Depth = VK_FORMAT_UNDEFINED;
+	winWidth = 0;
+	winHeight = 0;
+	bInitialised = false;        // ensure false even if early-return happened
+	bInitialised_fbo = false;    // same
 
 }
 
