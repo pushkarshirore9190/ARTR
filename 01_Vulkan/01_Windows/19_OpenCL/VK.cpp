@@ -1156,11 +1156,23 @@ cl_int initialise_OpenCL(void)
 	}
 
 	// create OpenCL context
-	oclContext = clCreateContext(NULL, 1, &oclDeviceID, NULL, NULL, &oclResult);
+	// create OpenCL context WITH platform property — required for Vulkan external memory interop
+	cl_context_properties oclContextProperties[] =
+	{
+		CL_CONTEXT_PLATFORM, (cl_context_properties)oclPlatformID,
+		0
+	};
+
+	oclContext = clCreateContext(oclContextProperties, 1, &oclDeviceID, NULL, NULL, &oclResult);
 	if (oclResult != CL_SUCCESS)
 	{
-		fprintf(gpFile, "initialise_OpenCL() : clCreateContext() failed\n");
+		fprintf(gpFile, "initialise_OpenCL() : clCreateContext() failed (%d)\n", oclResult);
 		return(oclResult);
+	}
+	else
+	{
+		fprintf(gpFile, "initialise_OpenCL() : clCreateContext() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// create OpenCL command queue
