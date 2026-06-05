@@ -1,15 +1,23 @@
-﻿// windows header files
-#include<windows.h>
-#include"VK.h"
-#include<stdio.h> // for file IO
-#include<stdlib.h> // for exit
+// standard header file
+#include<stdio.h> // for prinf()
+#include<stdlib.h>  // for exit()
+#include<memory.h> // for memset()
 
-#define VK_USE_PLATFORM_WIN32_KHR  // tells in which platform you are
+
+// X11 header files
+#include<X11/Xlib.h> // for all XWindow APIs
+#include<X11/Xutil.h> // for XVisiualInfo and related API
+#include<X11/XKBlib.h>
+#include <X11/keysym.h>
+#include<X11/Xatom.h> // for XA_ATOM
+
+
+#define VK_USE_PLATFORM_XLIB_KHR
 #include<vulkan/vulkan.h>
+
 
 // cuda related headers
 #include<cuda_runtime.h>
-
 
 // glm related macros and header files
 #define GLM_FORCE_RADIANS
@@ -17,30 +25,32 @@
 #include"glm/glm.hpp"
 #include"glm/gtc/matrix_transform.hpp"
 
-// vulkun related libraries
-#pragma comment(lib, "vulkan-1.lib")
-
 
 // Macros
-#define Win_WIDTH 800
-#define Win_HEIGHT 600
+#define WIN_WIDTH 800
+#define WIN_HEIGHT 600
+#define ARRAY_SIZE(x) sizeof(x)/sizeof(x[0])
 
 
-//global function declaration
-LRESULT CALLBACK Wndproc(HWND, UINT, WPARAM, LPARAM);
-
-const char* gpszAppName = "ARTR";
-
-// global variable declaration
-FILE* gpFile = NULL; 
+// global varialble declaration
+const char * gpszAppName = "ARTR";
 
 
-HWND ghwnd = NULL;
-BOOL gbActive = FALSE;
-DWORD dwstyle = 0;
-WINDOWPLACEMENT wprev;
-BOOL gbFullscreen = FALSE;
-BOOL bWindowMinimized = FALSE;
+Display *gpDisplay = NULL;
+Colormap colormap;
+Window window;
+XVisualInfo *gpXvisualInfo = NULL;
+
+
+int winWidth = WIN_WIDTH;
+int winHeight = WIN_HEIGHT;
+
+Bool bActiveWIndow = False;
+Bool bEscapeKeyIsPressed = False;
+Bool bFullscreen = False;
+Bool bWindowMinimized = False;
+
+FILE * gpFile = NULL;
 
 
 // vulkun related global variables
@@ -91,8 +101,6 @@ VkColorSpaceKHR vkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 // presentation mode
 VkPresentModeKHR vkPresentModeKHR = VK_PRESENT_MODE_FIFO_KHR;
 
-int winWidth = Win_WIDTH;
-int winHeight = Win_HEIGHT;
 
 //swap chain related global variables
 VkSwapchainKHR vkSwapchainKHR = VK_NULL_HANDLE;
@@ -136,12 +144,12 @@ VkClearColorValue vkClearColorValue;
 
 VkClearDepthStencilValue vkClearDepthStencilValue;
 
-BOOL bInitialised = FALSE;
+Bool bInitialised = False;
 
 uint32_t currentImageIndex = UINT32_MAX;
 
 // Validation
-BOOL bValidation = TRUE;
+Bool bValidation = True;
 
 uint32_t enabledValidationLayerCount = 0;
 
@@ -209,7 +217,7 @@ VertexData vertex_position_1024x1024_graphics;
 
 VkCommandBuffer* vkCommandBuffer_For_1024x1024_graphics_Array = NULL;
 
-BOOL bMesh1024Choosen = TRUE;
+Bool bMesh1024Choosen = True;
 
 char colorFromKey = 'O';
 
@@ -226,7 +234,7 @@ void* pos_Cuda = NULL;
 
 VertexData vertex_External;
 
-BOOL bOnGPU = FALSE;
+Bool bOnGPU = False;
 
 
 // CUDA kernel for sine wave
@@ -255,324 +263,434 @@ __global__ void sinWaveKernel(float4* pos, int width, int height, float time)
 }
 
 
-//entry_point function
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
+// entry point function
+int main(int argc, char *argv[])
 {
-	// Function Declaration 
+    // Function Declaration 
 	VkResult initialise(void);
 	void uninitialise(void);
 	VkResult display(void);
 	void update(void);
-
-	// local variable declarations
-	WNDCLASSEX wndclass;
-	HWND hwnd;
-	MSG msg;
-	TCHAR szAppName[255];
-	int iResult = 0;
-	BOOL bDone = FALSE;
-
-	VkResult vkresult = VK_SUCCESS;
-
-	//int height = 600;
-	//int width = 800;
-	int window_x_coordinate = GetSystemMetrics(SM_CXSCREEN);
-	int window_y_coordinate = GetSystemMetrics(SM_CYSCREEN);
-	int y;
-	int x;
-	x = (window_x_coordinate / 2) - Win_WIDTH / 2;
-	y = (window_y_coordinate / 2) - Win_HEIGHT / 2;
-
-	//code
-	gpFile = fopen("Log.txt", "w");
-	if (gpFile == NULL)
-	{
-		MessageBox(NULL, TEXT("log file cannot be open"), TEXT("Eroor"), MB_OK | MB_ICONERROR);
-		exit(0);
-	}
-	fprintf(gpFile, "programm started successfully...\n");
-
-	wsprintf(szAppName, TEXT("%s"), gpszAppName);
-
-	//WndclassEX initialisation
-
-	wndclass.cbSize = sizeof(WNDCLASSEX);
-	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wndclass.cbClsExtra = 0;
-	wndclass.cbWndExtra = 0;
-	wndclass.lpfnWndProc = Wndproc;
-	wndclass.hInstance = hInstance;
-	wndclass.hbrBackground= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wndclass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndclass.lpszClassName = szAppName;
-	wndclass.lpszMenuName = NULL;
-	wndclass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-
-	//register wndclassEX
-
-	RegisterClassEx(&wndclass);
+	void toggleFullScreen(void);
+	VkResult resize(int, int);
+    Bool isWindowMinimized(void);
 
 
-	// create window
-	hwnd = CreateWindowEx(WS_EX_APPWINDOW, 
-		szAppName,
-		TEXT("PRS : Vulkun"),
-		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+    VkResult vkresult = VK_SUCCESS;
 
 
-		x,// upperleft x-coordinate
-		y,// upperleft y-coordinate
-		Win_WIDTH,// width
-		Win_HEIGHT,// height
+    // Local Variable Declation
+    XVisualInfo XvisualInfo;
+    int iNumFBConfig = 0;
+    XSetWindowAttributes WindowAttributes;
+    int defaultScreen;
+    int defaultDepth;
+    Status status;
+    XSetWindowAttributes windowAttribute;
+    int styleMask;
+    Atom windowManagerDelete;
+    XEvent event;
+    KeySym keysym;
+    int screenWidth;
+    int screenHeight;
+    char keys[26];
+    Bool bDone = False;
 
-		NULL,
-		NULL,
-		hInstance,
-		NULL);
+    // code
 
-	ghwnd = hwnd;
+    gpFile = fopen("Log.txt","w");
+    if(gpFile == NULL)
+    {
+        printf(" main(): Log File Can Not Be Created. Exiting Now ...\n");
+        exit(1);
+    }
+    else
+    {
+        fprintf(gpFile," main() : Programm Started Successfully. \n");
+    }
 
-	// INITIALISATION
+	if (XInitThreads() == 0) {
+        fprintf(gpFile, "main(): XInitThreads() failed\n");
+        uninitialise();
+        exit(1);
+    }
 
-	vkresult = initialise();
+    // Open the connection with x-server interface and get gpDisplay interface
+    gpDisplay = XOpenDisplay(NULL);
+    if(gpDisplay == NULL)
+    {
+        fprintf(gpFile, "main(): XOpenDisplay Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    // Get Default screen from above gpDisplay
+    defaultScreen = XDefaultScreen(gpDisplay);
+
+    // Get Default Depth from above two 
+    //defaultDepth = XDefaultDepth(gpDisplay,defaultScreen);
+
+    // Get Visiualinfo from above three
+    memset((void*)&XvisualInfo,0,sizeof(XVisualInfo));
+
+    XvisualInfo.screen = defaultScreen;
+    gpXvisualInfo = XGetVisualInfo(gpDisplay,VisualScreenMask,&XvisualInfo,&iNumFBConfig);
+
+    if(gpXvisualInfo == NULL)
+    {
+        fprintf(gpFile,"main(): XGetVisualInfo Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    fprintf(gpFile, "Found Number Of iNumFBConfig = %d\n",iNumFBConfig);
+
+    // create colormap
+    colormap = XCreateColormap(gpDisplay,
+    XRootWindow(gpDisplay,XvisualInfo.screen),gpXvisualInfo->visual,AllocNone);
+
+    // set Window attributes / Properties
+    memset((void*)&windowAttribute,0,sizeof(XSetWindowAttributes));
+
+    windowAttribute.border_pixel = 0;
+    windowAttribute.background_pixel = XBlackPixel(gpDisplay,defaultScreen);
+    windowAttribute.background_pixmap = 0;
+    windowAttribute.colormap = colormap;
+    windowAttribute.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | KeyPressMask | PointerMotionMask | StructureNotifyMask | PropertyChangeMask | FocusChangeMask;
+     // set the style of window
+    styleMask = CWBorderPixel | CWBackPixel | CWColormap | CWEventMask;
+
+    // Now finally create window
+    window = XCreateWindow(gpDisplay,
+    XRootWindow(gpDisplay,XvisualInfo.screen),
+    0,
+    0,
+    WIN_WIDTH,
+    WIN_HEIGHT,
+    0,
+    gpXvisualInfo->depth,
+    InputOutput,
+    gpXvisualInfo->visual,
+    styleMask,
+    &windowAttribute);
+
+    if(!window)
+    {
+        fprintf(gpFile,"main(): XCreateWindow Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    vkresult = initialise();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "WinMain() : Initialise functioon failed\n");
-		DestroyWindow(hwnd);
-		hwnd = NULL;
+		fprintf(gpFile, "Winmain() : Intialise() failed with error code : %d\n", vkresult);
+        uninitialise();
+        exit(0);
 	}
 	else
 	{
-		fprintf(gpFile, "Winmain() : Intialise() succeeded\n");
+		fprintf(gpFile, "Winmain() : Intialise() Succeded. \n");
 	}
 
-	// show the window
-	ShowWindow(hwnd, iCmdShow);
+    // Give caption to window
+    XStoreName(gpDisplay,window,"PRS : Vulkan");
 
-	SetForegroundWindow(hwnd);
-	SetFocus(hwnd);
+    // specify window manager delete atom
+    windowManagerDelete = XInternAtom(gpDisplay,"WM_DELETE_WINDOW",True);
 
-	
+    // set above atom as protocol for window manager
+    XSetWMProtocols(gpDisplay,window,&windowManagerDelete,1);
 
-	// gameloop
-	while (bDone == FALSE)
-	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-				bDone = TRUE;
+     // show / map the window
+    XMapWindow(gpDisplay,window);
 
-			else
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
 
-			}
+    // Center the Window
+    screenWidth = XWidthOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
+    screenHeight = XHeightOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
+    XMoveWindow(gpDisplay,window,(screenWidth - WIN_WIDTH) / 2 , (screenHeight - WIN_HEIGHT) / 2);
 
-		}
+    // Event Loop
+    while (bDone == False)
+    {
+        while (XPending(gpDisplay))
+        {
+           
+            XNextEvent(gpDisplay,&event);
+            switch (event.type)
+            {
+                case MapNotify:
+                    break;
+                case FocusIn: // simlar to WM_SETFOCUS
+                    bActiveWIndow = True;
+                    break;
+                case FocusOut: // simlar to WM_KILLFOCUS
+                    bActiveWIndow = False;
+                    break;
+                case KeyPress :
+                    keysym = XkbKeycodeToKeysym(gpDisplay,event.xkey.keycode,0,0);
 
-		else
-		{
-			if (gbActive == TRUE)
-			{
-				if (bWindowMinimized == FALSE)
-				{
-					// RENDER
-					vkresult =  display();
-					if (vkresult != VK_FALSE && vkresult != VK_SUCCESS && vkresult != VK_ERROR_OUT_OF_DATE_KHR && vkresult != VK_SUBOPTIMAL_KHR)
-					{
-						fprintf(gpFile, "Initialisation() :  call to display failed\n");
-						bDone = TRUE;
-					}
+                switch (keysym)
+                {
+                    case XK_Escape:
+                        bEscapeKeyIsPressed = True;
+                        break; 
 
-					// update
-					update();
-				}
-			}
+                    default:
+                        break;   
+                }
 
-		}
-	}
+                XLookupString(&event.xkey,keys,sizeof(keys),NULL,NULL);
 
-	// UNINITIALISATION
-	uninitialise();
+                switch(keys[0])
+                {
+                    case 'F':
+                    case 'f':
+                        if(bFullscreen == False)
+                        {
+                            toggleFullScreen();
+                            bFullscreen = True;
+                        }
+                        else
+                        {
+                            toggleFullScreen();
+                            bFullscreen = False;
+                        }
+                        break;
+					case 'K':
+					case 'k':
+						colorFromKey = 'K';
+						break;
 
-	return((int)msg.wParam);
+					case 'R':
+					case 'r':
+						colorFromKey = 'R';
+						break;
+
+					case 'G':
+					case 'g':
+						colorFromKey = 'G';
+						break;
+
+					case 'B':
+					case 'b':
+						colorFromKey = 'B';
+						break;
+
+					case 'C':
+					case 'c':
+						colorFromKey = 'C';
+						break;
+
+					case 'M':
+					case 'm':
+						colorFromKey = 'M';
+						break;
+
+					case 'Y':
+					case 'y':
+						colorFromKey = 'Y';
+						break;
+
+					case 'V':
+					case 'v':
+						colorFromKey = 'V';
+						break;
+
+					case 'S':
+					case 's':
+						colorFromKey = 'S';
+						break;
+
+					case 'O':
+					case 'o':
+						colorFromKey = 'O';
+						break;
+
+					case 'P':
+					case 'p':
+						bOnGPU = False;
+						break;
+
+					case 'H':
+					case 'h':
+						bOnGPU = True;
+						break;
+
+                        default:
+                            break;
+                        
+                }
+                break;
+
+                case ConfigureNotify: // similar to WM_SIZE
+                    winWidth = event.xconfigure.width;
+                    winHeight = event.xconfigure.height;
+                    resize(winWidth,winHeight);
+                    break;
+
+                case PropertyNotify:
+                    if (isWindowMinimized() == True)
+                    {
+                        bWindowMinimized = True;
+                    }
+                    else
+                    {
+                        bWindowMinimized = False;
+                    }
+                    break;
+
+                case DestroyNotify:
+                    break;
+    
+                case 33 : // for WM_DESTROY
+                    bDone = True;
+                    break;
+                break;
+                default:
+                break;
+            }
+        }
+
+        if (bActiveWIndow == True)
+        {
+            if (bEscapeKeyIsPressed == True)
+            {
+                bDone = True;
+            }
+
+            // Display
+            if (bWindowMinimized == False)
+            {
+                // RENDER
+                vkresult =  display();
+                if (vkresult != VK_FALSE && vkresult != VK_SUCCESS && vkresult != VK_ERROR_OUT_OF_DATE_KHR && vkresult != VK_SUBOPTIMAL_KHR)
+                {
+                    fprintf(gpFile, "Initialisation() :  call to display failed\n");
+                    bDone = True;
+                }
+
+                // update
+                update();
+            }
+        }
+    }
+
+    uninitialise();
+
+    printf("End of the programm\n");
+
+    return 0; 
 }
 
-
-//callback function
-LRESULT CALLBACK Wndproc(HWND hwnd , UINT iMsg, WPARAM wParam, LPARAM lParam)
+void toggleFullScreen(void)
 {
-	// function declaration
-	void ToggleFullscreen(void);
-	VkResult resize(int, int);
+    // Local Variable Declaration
+    Atom windowManagerStateNormal;
+    Atom windowManagerStateFullscreen;
+    XEvent event; 
 
-	// code
-	switch (iMsg)
-	{
-	case WM_SETFOCUS:
-		gbActive = TRUE;
-		break;
-	case WM_KILLFOCUS:
-		gbActive = FALSE;
-		break;
-	case WM_CREATE:
-		memset(&wprev, 0, sizeof(WINDOWPLACEMENT));
-		wprev.length = sizeof(WINDOWPLACEMENT);
-		break;
-	case WM_SIZE:
-		if (wParam == SIZE_MINIMIZED)
-		{
-			bWindowMinimized = TRUE;
-		}
-		else
-		{
-			resize(LOWORD(lParam), HIWORD(lParam));
-			bWindowMinimized = FALSE;
-		}
-		break;
-	case WM_ERASEBKGND:
-		return(0);
-	case WM_KEYDOWN:
-		switch (LOWORD(wParam))
-		{
-		case VK_ESCAPE:
-			DestroyWindow(hwnd);
-			break;
-		
-		case 52: // key '4' for 1024 x 1024 mesh
-			bMesh1024Choosen = TRUE;
-			break;
-		}
-		break;
+    // code
+    windowManagerStateNormal = XInternAtom(gpDisplay,"_NET_WM_STATE",False);
 
+    windowManagerStateFullscreen = XInternAtom(gpDisplay,"_NET_WM_STATE_FULLSCREEN",False);
 
-	case WM_CHAR:
-		switch (LOWORD(wParam))
-		{
-		case 'F':
-		case 'f':
-			if (gbFullscreen == FALSE)
-			{
-				ToggleFullscreen();
-				gbFullscreen = TRUE;
-			}
-			else
-			{
-				ToggleFullscreen();
-				gbFullscreen = FALSE;
-			}
-			break;
-		
-		case 'K':
-		case 'k':
-			colorFromKey = 'K';
-			break;
+    // memeset event struct and fill it with above two atoms
+    memset((void*)&event,0,sizeof(XEvent));
 
-		case 'R':
-		case 'r':
-			colorFromKey = 'R';
-			break;
+    event.type = ClientMessage;
+    event.xclient.window = window;
+    event.xclient.message_type = windowManagerStateNormal;
+    event.xclient.format = 32;
+    event.xclient.data.l[0] = bFullscreen?0:1;
+    event.xclient.data.l[1] = windowManagerStateFullscreen;
 
-		case 'G':
-		case 'g':
-			colorFromKey = 'G';
-			break;
+    // send the event
+    XSendEvent(gpDisplay,
+    XRootWindow(gpDisplay,gpXvisualInfo->screen),
+    False,
+    SubstructureNotifyMask,
+    &event);
 
-		case 'B':
-		case 'b':
-			colorFromKey = 'B';
-			break;
-
-		case 'C':
-		case 'c':
-			colorFromKey = 'C';
-			break;
-
-		case 'M':
-		case 'm':
-			colorFromKey = 'M';
-			break;
-
-		case 'Y':
-		case 'y':
-			colorFromKey = 'Y';
-			break;
-
-		case 'V':
-		case 'v':
-			colorFromKey = 'V';
-			break;
-
-		case 'S':
-		case 's':
-			colorFromKey = 'S';
-			break;
-
-		case 'O':
-		case 'o':
-			colorFromKey = 'O';
-			break;
-
-		case 'P':
-		case 'p':
-			bOnGPU = FALSE;
-			break;
-
-		case 'H':
-		case 'h':
-			bOnGPU = TRUE;
-			break;
-
-		}
-		break;
-
-	case WM_CLOSE:
-		DestroyWindow(hwnd);
-		break;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-
-	default:
-		break;
-
-	}
-	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
 
 }
 
-void ToggleFullscreen(void)
+Bool isWindowMinimized(void)
 {
-	// local variable decalration
-	MONITORINFO mi = { sizeof(MONITORINFO) };
+    // function declaration
+    void uninitialise(void);
 
-	//code
-	if (gbFullscreen == FALSE)
-	{
-		dwstyle = GetWindowLong(ghwnd, GWL_STYLE);
+    // Local Varible Delcaration
+    Bool windowMinimized = False;
+    int iResult = -1;
+    Atom Return_Property_Type = None;
+    int Return_Property_Format = -1;
+    unsigned long number_of_returned_items = 0;
+    unsigned long number_of_bytes_remained = 0;
+    unsigned char *returned_property_data_array = NULL;
+    Atom wm_state = XInternAtom(gpDisplay,"_NET_WM_STATE", True);
 
-		if (dwstyle & WS_OVERLAPPEDWINDOW)
-		{
-			if (GetWindowPlacement(ghwnd, &wprev) && GetMonitorInfo(MonitorFromWindow(ghwnd, MONITORINFOF_PRIMARY), &mi))
-			{
-				SetWindowLong(ghwnd, GWL_STYLE, dwstyle & ~WS_OVERLAPPEDWINDOW);
-				SetWindowPos(ghwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOZORDER | SWP_FRAMECHANGED);
-			}
-		}
-		ShowCursor(FALSE);
-	}
-	else
-	{
-		SetWindowPlacement(ghwnd, &wprev);
-		SetWindowLong(ghwnd, GWL_STYLE, dwstyle | WS_OVERLAPPEDWINDOW);
-		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
-		ShowCursor(TRUE);
+    if(wm_state == None)
+    {
+        fprintf(gpFile,"isWindowMinimized(): XInternAtom Failed To Find _NET_WM_STATE \n");
+        uninitialise();
+        exit(1);
+    }
 
-	}
+    Atom wm_state_hidden = XInternAtom(gpDisplay,"_NET_WM_STATE_HIDDEN", True);
+    if(wm_state_hidden == None)
+    {
+        fprintf(gpFile,"isWindowMinimized(): XInternAtom Failed To Find _NET_WM_STATE_HIDDEN \n");
+        uninitialise();
+        exit(1);
+    }
 
+    iResult = XGetWindowProperty(gpDisplay,
+                                 window,
+                                 wm_state,
+                                 0L,
+                                 1024,
+                                 False,
+                                 XA_ATOM,
+                                 &Return_Property_Type,
+                                 &Return_Property_Format,
+                                 &number_of_returned_items,
+                                 &number_of_bytes_remained,
+                                 &returned_property_data_array);
+
+    if(iResult != Success || returned_property_data_array == NULL)
+    {
+        if(returned_property_data_array != NULL)
+        {
+            XFree(returned_property_data_array);
+            returned_property_data_array = NULL;
+        }
+
+        return False;
+    }
+    else
+    {
+        // loop the returned array to get required property
+        Atom *atomArray = (Atom *)returned_property_data_array;
+        for(unsigned long i = 0; i < number_of_returned_items; i++)
+        {
+            // check whether array contain hidden property or not
+            if(atomArray[i] == wm_state_hidden)
+            {
+                windowMinimized = True;
+                break;
+            }
+        }
+    }
+
+    if(returned_property_data_array != NULL)
+    {
+        XFree(returned_property_data_array);
+        returned_property_data_array = NULL;
+    }
+
+    return windowMinimized;
 }
 
 VkResult initialise(void)
@@ -951,7 +1069,7 @@ VkResult initialise(void)
 
 	// initialisation is completed
 
-	bInitialised = TRUE;
+	bInitialised = True;
 
 
 	fprintf(gpFile, "******************************************* Initialise comment *****************************\n");
@@ -960,7 +1078,6 @@ VkResult initialise(void)
 
 	return(vkresult);
 }
-
 
 cudaError_t initialise_Cuda(void)
 {
@@ -1044,6 +1161,7 @@ cudaError_t initialise_Cuda(void)
 }
 
 
+
 VkResult resize(int width, int heigth)
 {
 	// function declaration ;
@@ -1066,15 +1184,15 @@ VkResult resize(int width, int heigth)
 		heigth = 1;
 
 	// check the bInitialised variable
-	if (bInitialised == FALSE)
+	if (bInitialised == False)
 	{
 		fprintf(gpFile, "resize() : Initialisation yet not completed or failed\n");
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 
-	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  FALSE again
-	bInitialised = FALSE;
+	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  False again
+	bInitialised = False;
 
 	// set global winwidth and winheight variables
 	winWidth = width;
@@ -1268,7 +1386,7 @@ VkResult resize(int width, int heigth)
 	}
 
 
-	bInitialised = TRUE;
+	bInitialised = True;
 
 	return(vkresult);
 }
@@ -1289,17 +1407,17 @@ VkResult display(void)
 
 	// code
 
-	// if control comes here before initilisation gets completed return false
+	// if control comes here before initilisation gets completed return False
 
-	if (bInitialised == FALSE)
+	if (bInitialised == False)
 	{
 		fprintf(gpFile, "display(): initliasation yet not completed\n");
 		return (VkResult)VK_FALSE;
 	}
 
-	if(bOnGPU == TRUE)
+	if(bOnGPU == True)
 	{
-		if(bMesh1024Choosen == TRUE)
+		if(bMesh1024Choosen == True)
 		{
 			// run cuda kernal
 			dim3 block (8,8,1);
@@ -1328,7 +1446,7 @@ VkResult display(void)
 
 	else
 	{
-		if(bMesh1024Choosen == TRUE)
+		if(bMesh1024Choosen == True)
 		{
 			prepairSinwaveForCPU(1024, 1024, AnimationTime);
 			vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
@@ -1337,7 +1455,7 @@ VkResult display(void)
 	}
 
 
-	if(bMesh1024Choosen == TRUE)
+	if(bMesh1024Choosen == True)
 	{
 		vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
 	}
@@ -1448,6 +1566,7 @@ VkResult display(void)
 	vkDeviceWaitIdle(vkDevice);
 
 
+
 	return(vkresult);
 
 }
@@ -1456,32 +1575,28 @@ void update(void)
 {
 	// code
 	AnimationTime = AnimationTime + 0.05f;
-	
 }
 
 
 void uninitialise(void)
 {
 	// Function declarations
-	void ToggleFullscreen(void);
+	void toggleFullScreen(void);
 
-	// cuda related function declarations
-	cudaError uninitialise_Cuda(void);
+    // restore fullscreen
+    if(bFullscreen == True)
+    {
+        toggleFullScreen();
+        bFullscreen = False;
+    }
 
-	// Code
-	if (gbFullscreen == TRUE)
-	{
-		ToggleFullscreen();
-	}
-
-	if (ghwnd)
-	{
-		DestroyWindow(ghwnd);
-		ghwnd = NULL;
-	}
+    if(window)
+    {
+        XDestroyWindow(gpDisplay,window);
+    }
 
 
-	//No need to destroy/uninitialize vkQueue
+	//No need to destroy/uninitialise vkQueue
 
 
 	//Vulkan related any destruction *HAS TO BE AFTER VkDevice*
@@ -1832,7 +1947,7 @@ VkResult createVulkanInstance(void)
 	}
 
 	// Fill validation layers
-	if (bValidation == TRUE)
+	if (bValidation == True)
 	{
 		vkresult = fillValidationLayerNames();
 		if (vkresult != VK_SUCCESS)
@@ -1861,7 +1976,7 @@ VkResult createVulkanInstance(void)
 	vkApplicationInfo.apiVersion = VK_API_VERSION_1_3;
 
 
-	// step 3 : Initialize struct VkInstanceCreateInfo
+	// step 3 : initialise struct VkInstanceCreateInfo
 	VkInstanceCreateInfo vkInstanceCreateInfo;
 	memset((void*)&vkInstanceCreateInfo, 0, sizeof(VkInstanceCreateInfo));
 
@@ -1871,7 +1986,7 @@ VkResult createVulkanInstance(void)
 	vkInstanceCreateInfo.enabledExtensionCount = enabledInstanceExtensionCount;
 	vkInstanceCreateInfo.ppEnabledExtensionNames = enabledInstanceExtensionNames_array;  // Corrected the field name
 
-	if (bValidation == TRUE)
+	if (bValidation == True)
 	{
 		vkInstanceCreateInfo.enabledLayerCount = enabledValidationLayerCount;
 		vkInstanceCreateInfo.ppEnabledLayerNames = enabledValidationLayerNames_Array;
@@ -1907,7 +2022,7 @@ VkResult createVulkanInstance(void)
 	}
 
 	// do for validationcallback
-	if (bValidation == TRUE)
+	if (bValidation == True)
 	{
 		vkresult = createValidationCallbackfuntion();
 		if (vkresult != VK_SUCCESS)
@@ -1987,7 +2102,7 @@ VkResult fillExtensionNames(void)
 
 	// step 4: Check for required extensions
 	VkBool32 vulkunSurfaceExtensionFound = VK_FALSE;
-	VkBool32 win32SurfaceExtensionFound = VK_FALSE;
+	VkBool32 xlibSurfaceExtensionFound = VK_FALSE;
 	VkBool32 debugReportExtensionFound = VK_FALSE;
 
 	for (uint32_t i = 0; i < instanceExtensionCount; i++)
@@ -1998,17 +2113,17 @@ VkResult fillExtensionNames(void)
 			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
 		}
 
-		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_WIN32_SURFACE_EXTENSION_NAME) == 0)
+		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_XLIB_SURFACE_EXTENSION_NAME) == 0)
 		{
-			win32SurfaceExtensionFound = VK_TRUE;
-			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+			xlibSurfaceExtensionFound = VK_TRUE;
+			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
 		}
 
 		if (strcmp(InstanceExtensionNames_array[i], VK_EXT_DEBUG_REPORT_EXTENSION_NAME) == 0)
 		{
 			debugReportExtensionFound = VK_TRUE;
 
-			if (bValidation == TRUE)
+			if (bValidation == True)
 			{
 				enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
 			}
@@ -2040,21 +2155,21 @@ VkResult fillExtensionNames(void)
 		fprintf(gpFile, "fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found\n");
 	}
 
-	if (win32SurfaceExtensionFound == VK_FALSE)
+	if (xlibSurfaceExtensionFound == VK_FALSE)
 	{
 		vkresult = VK_ERROR_INITIALIZATION_FAILED; // return hardcoded failure
-		fprintf(gpFile, "fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME not found\n");
+		fprintf(gpFile, "fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME not found\n");
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME found\n");
+		fprintf(gpFile, "fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME found\n");
 	}
 
 
 	if (vulkunSurfaceExtensionFound == VK_FALSE)
 	{
-		if (bValidation == TRUE)
+		if (bValidation == True)
 		{
 			vkresult = VK_ERROR_INITIALIZATION_FAILED; // return hardcoded failure
 			fprintf(gpFile, "fillExtensionNames() : validation is on but required  VK_EXT_DEBUG_REPORT_EXTENSION_NAME not found\n");
@@ -2067,7 +2182,7 @@ VkResult fillExtensionNames(void)
 	}
 	else
 	{
-		if (bValidation == TRUE)
+		if (bValidation == True)
 		{
 			fprintf(gpFile, "fillExtensionNames() : validation is on and  VK_EXT_DEBUG_REPORT_EXTENSION_NAME is also found\n");
 		}
@@ -2201,7 +2316,7 @@ VkResult createValidationCallbackfuntion(void)
 	if (vkDestroyDebugReportCallbackEXT_fnptr == NULL)
 	{
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
-		fprintf(gpFile, "createValidationCallbackFunction() : vkGetInstanceProcAddr() failed to get function pointer for vkDestroyDebugReportCallbackEXT\n",__FUNCTION__);
+		fprintf(gpFile, "createValidationCallbackFunction() : vkGetInstanceProcAddr() failed to get function pointer for vkDestroyDebugReportCallbackEXT\n");
 		return vkresult;
 	}
 	else
@@ -2241,16 +2356,16 @@ VkResult getSupportedSurface(void)
 {
 	VkResult vkresult = VK_SUCCESS;
 
-	VkWin32SurfaceCreateInfoKHR vkWin32SurfaceCreateInfoKHR;
-	memset((void*)&vkWin32SurfaceCreateInfoKHR, 0, sizeof(VkWin32SurfaceCreateInfoKHR));
+	VkXlibSurfaceCreateInfoKHR vkXlibSurfaceCreateInfoKHR;
+	memset((void*)&vkXlibSurfaceCreateInfoKHR, 0, sizeof(VkXlibSurfaceCreateInfoKHR));
 
-	vkWin32SurfaceCreateInfoKHR.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	vkWin32SurfaceCreateInfoKHR.pNext = NULL;
-	vkWin32SurfaceCreateInfoKHR.flags = 0;
-	vkWin32SurfaceCreateInfoKHR.hinstance = (HINSTANCE)GetWindowLongPtr(ghwnd, GWLP_HINSTANCE);
-	vkWin32SurfaceCreateInfoKHR.hwnd = ghwnd;
+	vkXlibSurfaceCreateInfoKHR.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+	vkXlibSurfaceCreateInfoKHR.pNext = NULL;
+	vkXlibSurfaceCreateInfoKHR.flags = 0;
+	vkXlibSurfaceCreateInfoKHR.dpy = gpDisplay;
+	vkXlibSurfaceCreateInfoKHR.window = window;
 
-	vkresult = vkCreateWin32SurfaceKHR(vkInstance, &vkWin32SurfaceCreateInfoKHR, NULL, &vkSurfaceKHR);
+	vkresult = vkCreateXlibSurfaceKHR(vkInstance, &vkXlibSurfaceCreateInfoKHR, NULL, &vkSurfaceKHR);
 	if(vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "getSupportedSurface() : vkCreateWin32SurfaceKHR Failed\n");
@@ -2559,7 +2674,6 @@ VkResult fillDeviceExtensionNames(void)
 
     // Step 4: Check for required extensions
     VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
-	VkBool32 vulkanExternalMemoryWin32ExtensionFound = VK_FALSE;
 
     for (uint32_t i = 0; i < deviceExtensionCount; i++)
     {
@@ -2568,13 +2682,6 @@ VkResult fillDeviceExtensionNames(void)
             vulkanSwapchainExtensionFound = VK_TRUE;
             enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
         }
-		
-		// Check for VK_KHR_external_memory_win32 extension
-		if (strcmp(DeviceExtensionNames_array[i], VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME) == 0)
-		{
-			vulkanExternalMemoryWin32ExtensionFound = VK_TRUE;
-			enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME;
-		}
     }
 
     // Step 5: Free the allocated memory for extension names
@@ -2592,18 +2699,6 @@ VkResult fillDeviceExtensionNames(void)
         return vkresult;
     }
     fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME found\n");
-
-	// Check for VK_KHR_external_memory_win32 extension
-	if (vulkanExternalMemoryWin32ExtensionFound == VK_FALSE)
-	{
-		vkresult = VK_ERROR_INITIALIZATION_FAILED; // Return hardcoded failure
-		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME not found\n");
-		return vkresult;
-	}
-	else
-	{
-		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME found\n");
-	}
 
     // Step 7: Print enabled extension names
     for (uint32_t i = 0; i < enableDeviceExtensionCount; i++)
@@ -4155,7 +4250,7 @@ VkResult createRenderPass(void)
 
 	VkAttachmentDescription vkAttachmentDescription_array[2]; // now depth come so its 2
 
-	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) * _ARRAYSIZE(vkAttachmentDescription_array));
+	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) * ARRAY_SIZE(vkAttachmentDescription_array));
 
 	// for color
 	vkAttachmentDescription_array[0].flags = 0;
@@ -4216,7 +4311,7 @@ VkResult createRenderPass(void)
 	vkRenderPassCreateInfo.flags = 0;
 	vkRenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	vkRenderPassCreateInfo.pNext = NULL;
-	vkRenderPassCreateInfo.attachmentCount = _ARRAYSIZE(vkAttachmentDescription_array);
+	vkRenderPassCreateInfo.attachmentCount = ARRAY_SIZE(vkAttachmentDescription_array);
 	vkRenderPassCreateInfo.pAttachments = vkAttachmentDescription_array;
 	vkRenderPassCreateInfo.subpassCount = 1;
 	vkRenderPassCreateInfo.pSubpasses = &vkSubpassDesciption;
@@ -4244,14 +4339,14 @@ VkResult createPipline(void)
 
 	// vertex input state
 	VkVertexInputBindingDescription vkVertexInputBindingDescription_Array[1];
-	memset((void*)vkVertexInputBindingDescription_Array, 0, sizeof(VkVertexInputBindingDescription) * _ARRAYSIZE(vkVertexInputBindingDescription_Array));
+	memset((void*)vkVertexInputBindingDescription_Array, 0, sizeof(VkVertexInputBindingDescription) * ARRAY_SIZE(vkVertexInputBindingDescription_Array));
 
 	vkVertexInputBindingDescription_Array[0].binding = 0;
 	vkVertexInputBindingDescription_Array[0].stride = sizeof(float) * 4;
 	vkVertexInputBindingDescription_Array[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	VkVertexInputAttributeDescription vkVertexInputAttributeDescription_Array[1];
-	memset((void*)vkVertexInputAttributeDescription_Array, 0, sizeof(VkVertexInputAttributeDescription) * _ARRAYSIZE(vkVertexInputAttributeDescription_Array));
+	memset((void*)vkVertexInputAttributeDescription_Array, 0, sizeof(VkVertexInputAttributeDescription) * ARRAY_SIZE(vkVertexInputAttributeDescription_Array));
 
 	vkVertexInputAttributeDescription_Array[0].binding = 0;
 	vkVertexInputAttributeDescription_Array[0].location = 0;
@@ -4264,9 +4359,9 @@ VkResult createPipline(void)
 	vkPipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vkPipelineVertexInputStateCreateInfo.pNext = NULL;
 	vkPipelineVertexInputStateCreateInfo.flags = 0;
-	vkPipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = _ARRAYSIZE(vkVertexInputBindingDescription_Array);
+	vkPipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = ARRAY_SIZE(vkVertexInputBindingDescription_Array);
 	vkPipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = vkVertexInputBindingDescription_Array;
-	vkPipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = _ARRAYSIZE(vkVertexInputAttributeDescription_Array);
+	vkPipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = ARRAY_SIZE(vkVertexInputAttributeDescription_Array);
 	vkPipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vkVertexInputAttributeDescription_Array;
 
 
@@ -4299,7 +4394,7 @@ VkResult createPipline(void)
 
 	// colorBlend State
 	VkPipelineColorBlendAttachmentState vkPipelineColorBlendAttachmentState_Array[1];
-	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array));
+	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * ARRAY_SIZE(vkPipelineColorBlendAttachmentState_Array));
 
 	vkPipelineColorBlendAttachmentState_Array[0].blendEnable = VK_FALSE;
 	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask =VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
@@ -4312,7 +4407,7 @@ VkResult createPipline(void)
 	vkPipelineColorBlendStateCreateInfo.pNext = NULL;
 	vkPipelineColorBlendStateCreateInfo.flags = 0;
 
-	vkPipelineColorBlendStateCreateInfo.attachmentCount = _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array);
+	vkPipelineColorBlendStateCreateInfo.attachmentCount = ARRAY_SIZE(vkPipelineColorBlendAttachmentState_Array);
 	vkPipelineColorBlendStateCreateInfo.pAttachments = vkPipelineColorBlendAttachmentState_Array;
 
 
@@ -4378,7 +4473,7 @@ VkResult createPipline(void)
 
 	// shader state
 	VkPipelineShaderStageCreateInfo vkPipelineShaderStageCreateInfo_Array[2];
-	memset((void*)vkPipelineShaderStageCreateInfo_Array, 0, sizeof(VkPipelineShaderStageCreateInfo)* _ARRAYSIZE(vkPipelineShaderStageCreateInfo_Array));
+	memset((void*)vkPipelineShaderStageCreateInfo_Array, 0, sizeof(VkPipelineShaderStageCreateInfo)* ARRAY_SIZE(vkPipelineShaderStageCreateInfo_Array));
 
 	// for vertex shader
 	vkPipelineShaderStageCreateInfo_Array[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -4442,7 +4537,7 @@ VkResult createPipline(void)
 	vkGraphicsPipelineCreateInfo.pDepthStencilState = &vkPipelineDepthStencilStateCreateInfo;
 	vkGraphicsPipelineCreateInfo.pDynamicState = NULL;
 	vkGraphicsPipelineCreateInfo.pMultisampleState = &vkPipelineMultisampleStateCreateInfo;
-	vkGraphicsPipelineCreateInfo.stageCount = _ARRAYSIZE(vkPipelineShaderStageCreateInfo_Array);
+	vkGraphicsPipelineCreateInfo.stageCount = ARRAY_SIZE(vkPipelineShaderStageCreateInfo_Array);
 	vkGraphicsPipelineCreateInfo.pStages = vkPipelineShaderStageCreateInfo_Array;
 	vkGraphicsPipelineCreateInfo.pTessellationState = NULL;
 	vkGraphicsPipelineCreateInfo.layout = vkPipelineLayout;
@@ -4491,7 +4586,7 @@ VkResult createframeBuffers(void)
 	{
 		// Declare array of VkImageView
 		VkImageView vkImageView_Attchment_Array[2];
-		memset((void*)vkImageView_Attchment_Array, 0, sizeof(VkImageView) * _ARRAYSIZE(vkImageView_Attchment_Array));
+		memset((void*)vkImageView_Attchment_Array, 0, sizeof(VkImageView) * ARRAY_SIZE(vkImageView_Attchment_Array));
 
 		VkFramebufferCreateInfo vkFramebufferCreateInfo;
 		memset((void*)&vkFramebufferCreateInfo, 0, sizeof(VkFramebufferCreateInfo));
@@ -4500,7 +4595,7 @@ VkResult createframeBuffers(void)
 		vkFramebufferCreateInfo.pNext = NULL;
 		vkFramebufferCreateInfo.flags = 0;
 		vkFramebufferCreateInfo.renderPass = vkRenderpass;
-		vkFramebufferCreateInfo.attachmentCount = _ARRAYSIZE(vkImageView_Attchment_Array);
+		vkFramebufferCreateInfo.attachmentCount = ARRAY_SIZE(vkImageView_Attchment_Array);
 		vkFramebufferCreateInfo.pAttachments = vkImageView_Attchment_Array;
 		vkFramebufferCreateInfo.width = vkExtent2D_Swapchain.width;
 		vkFramebufferCreateInfo.height = vkExtent2D_Swapchain.height;
@@ -4699,7 +4794,7 @@ VkResult buildCommandBuffers(void)
 		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAYSIZE(vkDeviceSize_Offest_Array));
 		
 
-		if (bOnGPU == TRUE)
+		if (bOnGPU == True)
 		{
 			// GPU path: CUDA kernel already wrote sine wave into vertex_External buffer
 			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_External.vkBuffer, vkDeviceSize_Offest_Array);
