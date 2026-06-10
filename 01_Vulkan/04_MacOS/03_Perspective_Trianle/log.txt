@@ -257,7 +257,3 @@ buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
 buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
 buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
 buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
-initialise() : buildCommandBuffers() succeeded
-******************************************* Initialise comment *****************************
-Initialised()  :  Initialisation() Complete Successfully
-Initialisation successful
