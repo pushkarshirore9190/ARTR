@@ -211,61 +211,6 @@ VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 @end
 
 @interface View : NSView
-
--(VkResult)initialise;
--(VkResult)resize:(int)width :(int)height;
-
--(VkResult)createVulkanInstance;
--(VkResult)fillExtensionNames;
--(VkResult)fillValidationLayerNames;
--(VkResult)createValidationCallbackfuntion;
-
--(VkResult)getSupportedSurface;
--(VkResult)getPhysicalDevice;
--(VkResult)printVkInfo;
-
--(VkResult)fillDeviceExtensionNames;
--(VkResult)createVulkanDevice;
-
--(VkResult)fillDeviceExtensionNames;
--(VkResult)getPhysicalDeviceSurfaceFormatAndColorSpace;
--(VkResult)getPhysicalDevicePresentMode;
-
--(void)getDeviceQueue;
-
--(VkResult)createSwapchain:(VkBool32)isResize;
--(VkResult)createImagesAndImageViews;
-
--(VkResult)createCommandPool;
--(VkResult)createCommandBuffers;
-
--(VkResult)createVertexBuffer;
--(VkResult)createUniformBuffer;
-
--(VkResult)createShaders;
-
--(VkResult)createDescriptorSetLayout;
--(VkResult)createPiplineLayout;
-
--(VkResult)createDescriptorpool;
--(VkResult)createDescriptorSet;
-
--(VkResult)createRenderPass;
--(VkResult)createPipline;
-
--(VkResult)createFrameBuffers;
-
--(VkResult)createSemaphores;
--(VkResult)createFences;
-
--(VkResult)buildCommandBuffers;
--(VkResult)updateUniformbuffer;
-
--(VkResult)render;
-
--(void)update;
--(void)uninitialise;
-
 @end
 
 // entry point function
@@ -365,13 +310,18 @@ int main(int argc, char* argv[])
 
 		// set gloal view object here
 		gpView = (NSView*)self;
+        
+        VkResult result = [self initialise];
 
-        int result = [self initialise];
-
-        if (result == -1)
+        if (result != VK_SUCCESS)
+        {
             fprintf(gpFile, "Initialisation failed\n");
+            return self;
+        }
         else
+        {
             fprintf(gpFile, "Initialisation successful\n");
+        }
 
         // create a display link capable of being used with all active displays
         CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
