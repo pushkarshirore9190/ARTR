@@ -3125,8 +3125,8 @@ CVReturn displayLinkCallback(CVDisplayLinkRef myDisplayLink, const CVTimeStamp* 
     vkPipelineRasterizationStateCreateInfo.flags = 0;
 
     vkPipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-    vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-    vkPipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    //vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    //vkPipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     vkPipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
 
 
@@ -3135,7 +3135,7 @@ CVReturn displayLinkCallback(CVDisplayLinkRef myDisplayLink, const CVTimeStamp* 
     memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array));
 
     vkPipelineColorBlendAttachmentState_Array[0].blendEnable = VK_FALSE;
-    vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask = VK_COLOR_COMPONENT_G_BIT;
+	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask =VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
 
     VkPipelineColorBlendStateCreateInfo vkPipelineColorBlendStateCreateInfo;
