@@ -1,11 +1,14 @@
-﻿// windows header files
-#include<windows.h>
-#include"VK.h"
-#include<stdio.h> // for file IO
-#include<stdlib.h> // for exit
+#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 
-#define VK_USE_PLATFORM_WIN32_KHR  // tells in which platform you are
-#include<vulkan/vulkan.h>
+#import <QuartzCore/CVDisplayLink.h> // this is for coreVideo display link
+#import<QuartzCore/CAMetalLayer.h> // Metal based core animation layer
+
+// vulkan related moltenvk header files
+#include<MoltenVK/mvk_vulkan.h>
+
+// Vulkan related header files
+#include <vulkan/vulkan.h>  // VK_USE_PLATFORM_MACOS_MVK dont redefine this macro as it is already defined in mvk_vulkan.h
 
 // glm related macros and header files
 #define GLM_FORCE_RADIANS
@@ -13,44 +16,44 @@
 #include"glm/glm.hpp"
 #include"glm/gtc/matrix_transform.hpp"
 
-// vulkun related libraries
-#pragma comment(lib, "vulkan-1.lib")
+// macros
+#define WIN_WIDTH 800
+#define WIN_HEIGHT 600
+
+#define _ARRAYSIZE(array) (sizeof(array) / sizeof(array[0]))
 
 
-
-// Macros
-#define Win_WIDTH 800
-#define Win_HEIGHT 600
+// global function declarations
+CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const CVTimeStamp* , CVOptionFlags , CVOptionFlags* , void*);
 
 
-//global function declaration
-LRESULT CALLBACK Wndproc(HWND, UINT, WPARAM, LPARAM);
+// global variable declarations
+int winWidth = WIN_WIDTH;
+int winHeight = WIN_HEIGHT;
+
+BOOL bActiveWindow = NO;
+BOOL bFullScreen = NO;
+BOOL bWindowMinimized = NO;
+
+char gszLogFileName[] = "Log.txt";
+FILE *gpFile = NULL;
+
+NSView *gpView = nil;
 
 const char* gpszAppName = "ARTR";
 
-// global variable declaration
-FILE* gpFile = NULL; 
-
-
-HWND ghwnd = NULL;
-BOOL gbActive = FALSE;
-DWORD dwstyle = 0;
-WINDOWPLACEMENT wprev;
-BOOL gbFullscreen = FALSE;
-BOOL bWindowMinimized = FALSE;
-
-
 // vulkun related global variables
-
 uint32_t enabledInstanceExtensionCount = 0;
 
-
-const char* enabledInstanceExtensionNames_array[3];  // VK_KHR_SURFACE_EXTENSION_NAME and VK_KHR_WIN32_SURFACE_EXTENSION_NAME and VK_EXT_DEBUG_REPORT_EXTENSION_NAME
-
+const char* enabledInstanceExtensionNames_array[4];  // VK_KHR_SURFACE_EXTENSION_NAME and VK_KHR_MACOS_SURFACE_EXTENSION_NAME and VK_EXT_DEBUG_REPORT_EXTENSION_NAME and VK_PORTABILITY_ENUMERATION_EXTENSION_NAME
 
 // instance extension related variables
-
 VkInstance vkInstance = VK_NULL_HANDLE;
+
+
+uint32_t enableDeviceExtensionCount = 0;
+
+const char* enabledDeviceExtensionNames_array[2];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME and VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
 
 
 // Vulakn Presentation Surface
@@ -70,10 +73,6 @@ uint32_t physicalDeviceCount = 0;
 VkPhysicalDevice* vkPhysicalDevice_Array = NULL;
 
 
-uint32_t enableDeviceExtensionCount = 0;
-
-const char* enabledDeviceExtensionNames_array[1];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME
-
 // Vulkan Device
 VkDevice vkDevice = VK_NULL_HANDLE;
 
@@ -88,8 +87,6 @@ VkColorSpaceKHR vkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 // presentation mode
 VkPresentModeKHR vkPresentModeKHR = VK_PRESENT_MODE_FIFO_KHR;
 
-int winWidth = Win_WIDTH;
-int winHeight = Win_HEIGHT;
 
 //swap chain related global variables
 VkSwapchainKHR vkSwapchainKHR = VK_NULL_HANDLE;
@@ -136,12 +133,12 @@ VkClearColorValue vkClearColorValue;
 
 VkClearDepthStencilValue vkClearDepthStencilValue;
 
-BOOL bInitialised = FALSE;
+BOOL bInitialised = NO;
 
 uint32_t currentImageIndex = UINT32_MAX;
 
 // Validation
-BOOL bValidation = TRUE;
+BOOL bValidation = YES;
 
 uint32_t enabledValidationLayerCount = 0;
 
@@ -198,7 +195,6 @@ VkShaderModule vkShaderModule_fragment_shader = VK_NULL_HANDLE;
 // discrptorsetlayout object
 VkDescriptorSetLayout vkDescriptorSetLayout = VK_NULL_HANDLE;
 
-
 // Pipeline Layout Object
 VkPipelineLayout vkPipelineLayout = VK_NULL_HANDLE;
 
@@ -210,296 +206,358 @@ VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
 
 
 
+// forward interface declarations
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
+@end
 
-//entry_point function
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
+@interface View : NSView
+
+-(VkResult)initialise;
+-(VkResult)resize:(int)width :(int)height;
+
+-(VkResult)createVulkanInstance;
+-(VkResult)fillExtensionNames;
+-(VkResult)fillValidationLayerNames;
+-(VkResult)createValidationCallbackfuntion;
+
+-(VkResult)getSupportedSurface;
+-(VkResult)getPhysicalDevice;
+-(VkResult)printVkInfo;
+
+-(VkResult)fillDeviceExtensionNames;
+-(VkResult)createVulkanDevice;
+
+-(VkResult)fillDeviceExtensionNames;
+-(VkResult)getPhysicalDeviceSurfaceFormatAndColorSpace;
+-(VkResult)getPhysicalDevicePresentMode;
+
+-(void)getDeviceQueue;
+
+-(VkResult)createSwapchain:(VkBool32)isResize;
+-(VkResult)createImagesAndImageViews;
+
+-(VkResult)createCommandPool;
+-(VkResult)createCommandBuffers;
+
+-(VkResult)createVertexBuffer;
+-(VkResult)createUniformBuffer;
+
+-(VkResult)createShaders;
+
+-(VkResult)createDescriptorSetLayout;
+-(VkResult)createPiplineLayout;
+
+-(VkResult)createDescriptorpool;
+-(VkResult)createDescriptorSet;
+
+-(VkResult)createRenderPass;
+-(VkResult)createPipline;
+
+-(VkResult)createFrameBuffers;
+
+-(VkResult)createSemaphores;
+-(VkResult)createFences;
+
+-(VkResult)buildCommandBuffers;
+-(VkResult)updateUniformbuffer;
+
+-(VkResult)render;
+
+-(void)update;
+-(void)uninitialise;
+
+@end
+
+// entry point function
+int main(int argc, char* argv[])
 {
-	// Function Declaration 
-	VkResult initialise(void);
-	void uninitialise(void);
-	VkResult display(void);
-	void update(void);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-	// local variable declarations
-	WNDCLASSEX wndclass;
-	HWND hwnd;
-	MSG msg;
-	TCHAR szAppName[255];
-	int iResult = 0;
-	BOOL bDone = FALSE;
+    NSApplication *app = [NSApplication sharedApplication];
+    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-	VkResult vkresult = VK_SUCCESS;
+    AppDelegate *delegate = [[AppDelegate alloc] init];
+    [app setDelegate:delegate];
 
-	//int height = 600;
-	//int width = 800;
-	int window_x_coordinate = GetSystemMetrics(SM_CXSCREEN);
-	int window_y_coordinate = GetSystemMetrics(SM_CYSCREEN);
-	int y;
-	int x;
-	x = (window_x_coordinate / 2) - Win_WIDTH / 2;
-	y = (window_y_coordinate / 2) - Win_HEIGHT / 2;
+    [app run];
 
-	//code
-	gpFile = fopen("Log.txt", "w");
-	if (gpFile == NULL)
-	{
-		MessageBox(NULL, TEXT("log file cannot be open"), TEXT("Eroor"), MB_OK | MB_ICONERROR);
-		exit(0);
-	}
-	fprintf(gpFile, "programm started successfully...\n");
+    [delegate release];
+    [pool release];
 
-	wsprintf(szAppName, TEXT("%s"), gpszAppName);
-
-	//WndclassEX initialisation
-
-	wndclass.cbSize = sizeof(WNDCLASSEX);
-	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wndclass.cbClsExtra = 0;
-	wndclass.cbWndExtra = 0;
-	wndclass.lpfnWndProc = Wndproc;
-	wndclass.hInstance = hInstance;
-	wndclass.hbrBackground= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wndclass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndclass.lpszClassName = szAppName;
-	wndclass.lpszMenuName = NULL;
-	wndclass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-
-	//register wndclassEX
-
-	RegisterClassEx(&wndclass);
-
-
-	// create window
-	hwnd = CreateWindowEx(WS_EX_APPWINDOW, 
-		szAppName,
-		TEXT("PRS : Vulkun"),
-		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
-
-
-		x,// upperleft x-coordinate
-		y,// upperleft y-coordinate
-		Win_WIDTH,// width
-		Win_HEIGHT,// height
-
-		NULL,
-		NULL,
-		hInstance,
-		NULL);
-
-	ghwnd = hwnd;
-
-	// INITIALISATION
-
-	vkresult = initialise();
-	if (vkresult != VK_SUCCESS)
-	{
-		fprintf(gpFile, "WinMain() : Initialise functioon failed\n");
-		DestroyWindow(hwnd);
-		hwnd = NULL;
-	}
-	else
-	{
-		fprintf(gpFile, "Winmain() : Intialise() succeeded\n");
-	}
-
-	// show the window
-	ShowWindow(hwnd, iCmdShow);
-
-	SetForegroundWindow(hwnd);
-	SetFocus(hwnd);
-
-	
-
-	// gameloop
-	while (bDone == FALSE)
-	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-				bDone = TRUE;
-
-			else
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-
-			}
-
-		}
-
-		else
-		{
-			if (gbActive == TRUE)
-			{
-				if (bWindowMinimized == FALSE)
-				{
-					// RENDER
-					vkresult =  display();
-					if (vkresult != VK_FALSE && vkresult != VK_SUCCESS && vkresult != VK_ERROR_OUT_OF_DATE_KHR && vkresult != VK_SUBOPTIMAL_KHR)
-					{
-						fprintf(gpFile, "Initialisation() :  call to display failed\n");
-						bDone = TRUE;
-					}
-
-					// update
-					update();
-				}
-			}
-
-		}
-	}
-
-	// UNINITIALISATION
-	uninitialise();
-
-	return((int)msg.wParam);
+    return 0;
 }
 
-
-//callback function
-LRESULT CALLBACK Wndproc(HWND hwnd , UINT iMsg, WPARAM wParam, LPARAM lParam)
+// app delegate implementation
+@implementation AppDelegate
 {
-	// function declaration
-	void ToggleFullscreen(void);
-	VkResult resize(int, int);
-
-	// code
-	switch (iMsg)
-	{
-	case WM_SETFOCUS:
-		gbActive = TRUE;
-		break;
-	case WM_KILLFOCUS:
-		gbActive = FALSE;
-		break;
-	case WM_CREATE:
-		memset(&wprev, 0, sizeof(WINDOWPLACEMENT));
-		wprev.length = sizeof(WINDOWPLACEMENT);
-		break;
-	case WM_SIZE:
-		if (wParam == SIZE_MINIMIZED)
-		{
-			bWindowMinimized = TRUE;
-		}
-		else
-		{
-			resize(LOWORD(lParam), HIWORD(lParam));
-			bWindowMinimized = FALSE;
-		}
-		break;
-	case WM_ERASEBKGND:
-		return(0);
-	case WM_KEYDOWN:
-		switch (LOWORD(wParam))
-		{
-		case VK_ESCAPE:
-			DestroyWindow(hwnd);
-			break;
-		}
-		break;
-
-
-	case WM_CHAR:
-		switch (LOWORD(wParam))
-		{
-		case 'F':
-		case 'f':
-			if (gbFullscreen == FALSE)
-			{
-				ToggleFullscreen();
-				gbFullscreen = TRUE;
-			}
-			else
-			{
-				ToggleFullscreen();
-				gbFullscreen = FALSE;
-			}
-			break;
-		}
-		break;
-
-	case WM_CLOSE:
-		DestroyWindow(hwnd);
-		break;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-
-	default:
-		break;
-
-	}
-	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
-
+    NSWindow *window;
+    View *view;
 }
 
-void ToggleFullscreen(void)
+-(void)applicationDidFinishLaunching:(NSNotification*)notification
 {
-	// local variable decalration
-	MONITORINFO mi = { sizeof(MONITORINFO) };
+    NSBundle* appBundle = [NSBundle mainBundle];
+    NSString* appDirPath = [appBundle bundlePath];
+    NSString* parentDirPath = [appDirPath stringByDeletingLastPathComponent];
 
-	//code
-	if (gbFullscreen == FALSE)
-	{
-		dwstyle = GetWindowLong(ghwnd, GWL_STYLE);
+    NSString* logFileNameWithPath = [NSString stringWithFormat:@"%@/log.txt", parentDirPath];
+    const char* pszLogFileNameWithPath = [logFileNameWithPath cStringUsingEncoding:NSASCIIStringEncoding];
 
-		if (dwstyle & WS_OVERLAPPEDWINDOW)
-		{
-			if (GetWindowPlacement(ghwnd, &wprev) && GetMonitorInfo(MonitorFromWindow(ghwnd, MONITORINFOF_PRIMARY), &mi))
-			{
-				SetWindowLong(ghwnd, GWL_STYLE, dwstyle & ~WS_OVERLAPPEDWINDOW);
-				SetWindowPos(ghwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOZORDER | SWP_FRAMECHANGED);
-			}
-		}
-		ShowCursor(FALSE);
-	}
-	else
-	{
-		SetWindowPlacement(ghwnd, &wprev);
-		SetWindowLong(ghwnd, GWL_STYLE, dwstyle | WS_OVERLAPPEDWINDOW);
-		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
-		ShowCursor(TRUE);
+    gpFile = fopen(pszLogFileNameWithPath, "w");
+    if (gpFile == NULL)
+    {
+        printf("Log file not created");
+        [NSApp terminate:self];
+        return;
+    }
 
-	}
+    fprintf(gpFile, "Program started successfully\n");
 
+    NSRect win_rect = NSMakeRect(0.0, 0.0, 800.0, 600.0);
+
+    window = [[NSWindow alloc] initWithContentRect:win_rect
+                                         styleMask:NSWindowStyleMaskTitled |
+                                                   NSWindowStyleMaskClosable |
+                                                   NSWindowStyleMaskMiniaturizable |
+                                                   NSWindowStyleMaskResizable
+                                           backing:NSBackingStoreBuffered
+                                             defer:NO];
+
+    [window setTitle:@"PRS : Cocoa window"];
+    [window center];
+    [window setBackgroundColor:[NSColor blackColor]];
+
+    view = [[View alloc] initWithFrame:win_rect];
+    [window setContentView:view];
+
+    [window setDelegate:self];
+
+    [window makeKeyAndOrderFront:self];
+    [NSApp activateIgnoringOtherApps:YES];
 }
 
-VkResult initialise(void)
+-(void)applicationWillTerminate:(NSNotification*)notification
+{
+}
+
+-(void)dealloc
+{
+    [view release];
+    [window release];
+    [super dealloc];
+}
+@end
+
+// View implementation
+@implementation View
+    {
+        @private
+            CVDisplayLinkRef displayLink;
+    }
+
+-(id)initWithFrame:(NSRect)frame
+{
+    self = [super initWithFrame:frame];
+    if(self)
+    {
+        // convert our view into CAMetalLayered backing view
+        [self setWantsLayer:YES];
+
+		// set gloal view object here
+		gpView = (NSView*)self;
+
+        int result = [self initialise];
+
+        if (result == -1)
+            fprintf(gpFile, "Initialisation failed\n");
+        else
+            fprintf(gpFile, "Initialisation successful\n");
+
+        // create a display link capable of being used with all active displays
+        CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
+
+        // set the display link as our rendering output callback
+        CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback, self);
+
+        // activate the display link
+        CVDisplayLinkStart(displayLink);
+
+    }
+    return self;
+}
+
+-(void)windowDidBecomeKey:(NSNotification*)notification
+{
+    bActiveWindow = YES;
+}
+
+-(void)windowDidResignKey:(NSNotification*)notification
+{
+
+    bActiveWindow = NO;
+}
+
+-(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize
+{
+    CVDisplayLinkStop(displayLink);
+    
+    if(bWindowMinimized == NO)
+    {
+		[self resize:frameSize.width :frameSize.height];
+    }
+    return frameSize;
+}
+
+-(void)windowDidResize : (NSNotification*)notification 
+{
+    if(bWindowMinimized == NO)
+    {
+        CVDisplayLinkStart(displayLink);
+    }
+}
+
+-(void)windowWillMiniaturize:(NSNotification*)notification
+{
+    // stop the display link
+    CVDisplayLinkStop(displayLink);
+
+    bWindowMinimized = YES;
+}
+
+-(void)windowDidDeminiaturize:(NSNotification*)notification
+{
+    // start the display link again
+    CVDisplayLinkStart(displayLink);
+
+    bWindowMinimized = NO;
+}
+
+-(void)windowWillClose:(NSNotification*)notification
+{
+    [self uninitialise];
+    [NSApp terminate:self];
+}
+
+-(CVReturn)getFrameForTime:(const CVTimeStamp*)pOutputTime
+{
+    // code
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    // render the sence
+    [self drawView];
+
+    [pool release];
+
+    return kCVReturnSuccess;
+    
+}
+
+-(void)drawRect:(NSRect)dirtyRect
+{
+    [self drawView];
+}
+
+-(void)drawView
+{
+    [self render];
+    [self update];
+}
+
++(Class)layerClass
+{
+    //code
+    return [CAMetalLayer class];
+}
+
+// continusoly demand the updated layer which is updated by redering
+-(BOOL)wantsUpdateLayer
+{
+    // code
+    return YES;
+}
+
+// to have the result of set wantsUpdateLayer follwing function should be return YES if resizing is done
+
+-(CALayer*)makeBackingLayer
+{
+    CALayer *layer = [[[self class] layerClass] layer];
+
+    CGSize viewSize = [self convertSizeToBacking:CGSizeMake(1.0, 1.0)];
+
+    [layer setContentsScale:MIN(viewSize.width, viewSize.height)];
+
+    return layer;
+}
+
+-(BOOL)acceptsFirstResponder
+{
+    [[self window] makeFirstResponder:self];
+    return YES;
+}
+
+-(void)keyDown:(NSEvent*)event
+{
+    int key = (int)[[event characters] characterAtIndex:0];
+
+    switch(key)
+    {
+        case 27:
+            if(bFullScreen == YES)
+            {
+                [[self window] toggleFullScreen:self];
+                bFullScreen = NO;
+            }
+            [[self window] performClose:self];
+            break;
+
+        case 'F':
+        case 'f':
+            [[self window] toggleFullScreen:nil];
+            bFullScreen = !bFullScreen;
+            break;
+    }
+}
+
+-(void)dealloc
+{
+    if(displayLink)
+    {
+        CVDisplayLinkStop(displayLink);
+        CVDisplayLinkRelease(displayLink);
+        displayLink = NULL;
+    }
+    [super dealloc];
+}
+
+// user methods
+-(VkResult) initialise    
 {
 	// function declarations
 
-	VkResult createVulkanInstance(void);
-	VkResult getSupportedSurface(void);
-	VkResult getPhysicalDevice(void);
-	VkResult printVkInfo(void);
-	VkResult createVulkanDevice(void);
-	void getDeviceQueue(void);
-	VkResult createSwapchain(VkBool32);
-	VkResult createImagesAndImageViews(void);
-	VkResult createCommandPool(void);
-	VkResult createCommandBuffers(void);
-	VkResult createVertexBuffer(void);
-	VkResult createUniformBuffer(void);
-	VkResult createShaders(void);
-	VkResult createDiscriptorSetLayout(void);
-	VkResult createPiplineLayout(void);
-	VkResult createDescriptorpool(void);
-	VkResult createDescriptorSet(void);
-	VkResult createRenderPass(void);
-	VkResult createPipline(void);
-	VkResult createframeBuffers(void);
-	VkResult createSemaphores(void);
-	VkResult createFences(void);
-	VkResult buildCommandBuffers(void);
+    // chnages
+    //1. change all YES to YES and all NO to NO
+    //2. chnage all user define functions declaration call to objective c method definition syntax
+    // 3. chnage all function declarator in objective c method definition to objective c method definition syntax
+    // 4. remove all function definitions and replace with objective c method definition syntax
+
+    // conceptual chnages function
+    // 1. createVulkanInstance()
+    // 2. fillExtensionNames()
+    // 3. getSupportedSurface()
+    // 4. fillDeviceExtensionNames()
+    // 5. creteSwapchain()
+    // 6. createImagesAndImageViews()
+    // 7. createVertexBuffer()
+    // 8. createUniformBuffer()
+    // 9. createShaders()
+    // 10. createPipeline
 
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
 
 	// code
-	vkresult = createVulkanInstance();
+    vkresult = [self createVulkanInstance];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createVulkanInstance() function failed\n");
@@ -513,7 +571,7 @@ VkResult initialise(void)
 	// variable declarations
 
 	// create Vulkan Presentation Surface
-	vkresult = getSupportedSurface();
+    vkresult = [self getSupportedSurface];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : getSupportedSurface() function failed\n");
@@ -525,7 +583,7 @@ VkResult initialise(void)
 	}
 
 	// select required physical device and its queue family index
-	vkresult = getPhysicalDevice();
+	vkresult = [self getPhysicalDevice];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : getPhysicalDevice() function failed (%d)\n", vkresult);
@@ -537,7 +595,7 @@ VkResult initialise(void)
 	}
 
 	// print vulkan info
-	vkresult = printVkInfo();
+	vkresult = [self printVkInfo];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : printVkInfo() function failed (%d)\n", vkresult);
@@ -548,7 +606,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : printVkInfo() succeeded\n");
 	}
 
-	vkresult = createVulkanDevice();
+	vkresult = [self createVulkanDevice];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createVulkanDevice() function failed (%d)\n", vkresult);
@@ -560,10 +618,10 @@ VkResult initialise(void)
 	}
 
 	// get device queue
-	getDeviceQueue();
+	[self getDeviceQueue];
 
 	// createSwapchain
-	vkresult = createSwapchain(VK_FALSE);
+	vkresult = [self createSwapchain:VK_FALSE];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createSwapchain() function failed (%d)\n", vkresult);
@@ -574,7 +632,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createSwapchain() succeeded\n");
 	}
 
-	vkresult = createImagesAndImageViews();
+	vkresult = [self createImagesAndImageViews];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createImagesAndImageViews() function failed (%d)\n", vkresult);
@@ -585,7 +643,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createImagesAndImageViews() succeeded\n");
 	}
 
-	vkresult = createCommandPool();
+	vkresult = [self createCommandPool];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createCommandPool() function failed (%d)\n", vkresult);
@@ -596,7 +654,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createCommandPool() succeeded\n");
 	}
 
-	vkresult = createCommandBuffers();
+	vkresult = [self createCommandBuffers];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createCommandBuffers() function failed (%d)\n", vkresult);
@@ -608,7 +666,7 @@ VkResult initialise(void)
 	}
 
 	// craete VertexBuffer
-	vkresult = createVertexBuffer();
+	vkresult = [self createVertexBuffer];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createVertexBuffer() function failed (%d)\n", vkresult);
@@ -620,7 +678,7 @@ VkResult initialise(void)
 	}
 
 	// createUniform Buffer
-	vkresult = createUniformBuffer();
+	vkresult = [self createUniformBuffer];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createUniformBuffer() function failed (%d)\n", vkresult);
@@ -633,7 +691,7 @@ VkResult initialise(void)
 
 
 
-	vkresult = createShaders();
+	vkresult = [self createShaders];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createShaders() function failed (%d)\n", vkresult);
@@ -644,7 +702,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createShaders() succeeded\n");
 	}
 
-	vkresult = createDiscriptorSetLayout();
+	vkresult = [self createDescriptorSetLayout];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createDiscriptorSetLayout() function failed (%d)\n", vkresult);
@@ -655,7 +713,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createDiscriptorSetLayout() succeeded\n");
 	}
 
-	vkresult = createPiplineLayout();
+    vkresult = [self createPiplineLayout];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createPiplineLayout() function failed (%d)\n", vkresult);
@@ -667,7 +725,7 @@ VkResult initialise(void)
 	}
 
 	// create descriptorpool
-	vkresult = createDescriptorpool();
+	vkresult = [self createDescriptorpool];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createDescriptorpool() function failed (%d)\n", vkresult);
@@ -679,7 +737,7 @@ VkResult initialise(void)
 	}
 
 	// create descriptorset
-	vkresult = createDescriptorSet();
+	vkresult = [self createDescriptorSet];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createDescriptorset() function failed (%d)\n", vkresult);
@@ -692,7 +750,7 @@ VkResult initialise(void)
 
 
 
-	vkresult = createRenderPass();
+	vkresult = [self createRenderPass];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createRenderPass() function failed (%d)\n", vkresult);
@@ -703,7 +761,7 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createRenderPass() succeeded\n");
 	}
 
-	vkresult = createPipline();
+	vkresult = [self createPipline];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createPipline() function failed (%d)\n", vkresult);
@@ -714,19 +772,19 @@ VkResult initialise(void)
 		fprintf(gpFile, "initialise() : createPipline() succeeded\n");
 	}
 
-	vkresult = createframeBuffers();
+	vkresult = [self createFrameBuffers];
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "initialise() : createframeBuffer() function failed (%d)\n", vkresult);
+		fprintf(gpFile, "initialise() : createFrameBuffers() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 	else
 	{
-		fprintf(gpFile, "initialise() : createframeBuffer() succeeded\n");
+		fprintf(gpFile, "initialise() : createFrameBuffers() succeeded\n");
 	}
 
 	// craete semaphores
-	vkresult = createSemaphores();
+	vkresult = [self createSemaphores];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createSemaphores() function failed (%d)\n", vkresult);
@@ -738,7 +796,7 @@ VkResult initialise(void)
 	}
 
 	//create Fences
-	vkresult = createFences();
+	vkresult = [self createFences];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : createFences() function failed (%d)\n", vkresult);
@@ -765,7 +823,7 @@ VkResult initialise(void)
 	vkClearDepthStencilValue.stencil = 0;
 
 	// build commmand buffers
-	vkresult = buildCommandBuffers();
+	vkresult = [self buildCommandBuffers];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "initialise() : buildCommandBuffers() function failed (%d)\n", vkresult);
@@ -778,7 +836,7 @@ VkResult initialise(void)
 
 	// initialisation is completed
 
-	bInitialised = TRUE;
+	bInitialised = YES;
 
 
 	fprintf(gpFile, "******************************************* Initialise comment *****************************\n");
@@ -788,21 +846,8 @@ VkResult initialise(void)
 	return(vkresult);
 }
 
-
-
-VkResult resize(int width, int heigth)
-{
-	// function declaration ;
-	VkResult createSwapchain(VkBool32);
-	VkResult createImagesAndImageViews(void);
-	VkResult createCommandBuffers(void);
-	VkResult createPiplineLayout(void);
-	VkResult createRenderPass(void);
-	VkResult createPipline(void);
-	VkResult createframeBuffers(void);
-	VkResult buildCommandBuffers(void);
-
-	
+-(VkResult) resize : (int)width : (int)heigth
+{	
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -812,15 +857,15 @@ VkResult resize(int width, int heigth)
 		heigth = 1;
 
 	// check the bInitialised variable
-	if (bInitialised == FALSE)
+	if (bInitialised == NO)
 	{
 		fprintf(gpFile, "resize() : Initialisation yet not completed or failed\n");
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 
-	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  FALSE again
-	bInitialised = FALSE;
+	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  NO again
+	bInitialised = NO;
 
 	// set global winwidth and winheight variables
 	winWidth = width;
@@ -955,49 +1000,49 @@ VkResult resize(int width, int heigth)
 	////// RECREATE FIR RESIZE \\\\\\\
 
 	// create swapchain
-	vkresult = createSwapchain(VK_FALSE);
+    vkresult = [self createSwapchain:VK_FALSE];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createSwapchain() function failed (%d)\n", vkresult);
 		return VK_ERROR_INITIALIZATION_FAILED; // Hardcoded return value
 	}
 
-	vkresult = createImagesAndImageViews();
+	vkresult = [self createImagesAndImageViews];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createImagesAndImageViews() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
-	vkresult = createRenderPass();
+	vkresult = [self createRenderPass];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createRenderPass() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
-	vkresult = createPiplineLayout();
+	vkresult = [self createPiplineLayout];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createPiplineLayout() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
-	vkresult = createPipline();
+	vkresult = [self createPipline];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createPipline() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
-	vkresult = createframeBuffers();
+	vkresult = [self createFrameBuffers];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createframeBuffer() function failed (%d)\n", vkresult);
 		return(vkresult);
 	}
 
-	vkresult = createCommandBuffers();
+	vkresult = [self createCommandBuffers];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : createCommandBuffers() function failed (%d)\n", vkresult);
@@ -1006,7 +1051,7 @@ VkResult resize(int width, int heigth)
 
 
 	// build commmand buffers
-	vkresult = buildCommandBuffers();
+	vkresult = [self buildCommandBuffers];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, " resize() : buildCommandBuffers() function failed (%d)\n", vkresult);
@@ -1014,44 +1059,34 @@ VkResult resize(int width, int heigth)
 	}
 
 
-	bInitialised = TRUE;
+	bInitialised = YES;
 
 	return(vkresult);
 }
 
-VkResult display(void)
-{
 
-	// function declaration
-	VkResult resize(int, int);
-	VkResult updateUniformbuffer(void);
+-(VkResult) render
+{
 	 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
 
 	// code
 
-	// if control comes here before initilisation gets completed return false
+	// if control comes here before initilisation gets completed return NO
 
-	if (bInitialised == FALSE)
+	if (bInitialised == NO)
 	{
-		fprintf(gpFile, "display(): initliasation yet not completed\n");
+		fprintf(gpFile, "render(): initliasation yet not completed\n");
 		return (VkResult)VK_FALSE;
 	}
 
 	// acquire index of next swapchain image
 	vkresult = vkAcquireNextImageKHR(vkDevice, vkSwapchainKHR, UINT64_MAX, vkSemaphore_backbuffer, VK_NULL_HANDLE, &currentImageIndex);
-	if (vkresult != VK_SUCCESS)
+	if (vkresult != VK_SUCCESS && vkresult != VK_SUBOPTIMAL_KHR && vkresult != VK_ERROR_OUT_OF_DATE_KHR)
 	{
-		if (vkresult == VK_ERROR_OUT_OF_DATE_KHR || vkresult == VK_SUBOPTIMAL_KHR)
-		{
-			resize(winWidth, winHeight);
-		}
-		else
-		{
-			fprintf(gpFile, "display() : vkAcquireNextImageKHR failed with error: %d\n", vkresult);
-			return(vkresult);
-		}
+		fprintf(gpFile, "render() : vkAcquireNextImageKHR failed with error: %d\n", vkresult);
+		return(vkresult);
 	}
 
 	// use fence to allow host to wait for completion of execution previous commmand buffer
@@ -1059,7 +1094,7 @@ VkResult display(void)
 	vkresult = vkWaitForFences(vkDevice, 1, &vkFence_Array[currentImageIndex], VK_TRUE, UINT64_MAX);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "display() : vkWaitForFences failed with error: %d\n", vkresult);
+		fprintf(gpFile, "render() : vkWaitForFences failed with error: %d\n", vkresult);
 		return(vkresult);
 	}
 
@@ -1067,7 +1102,7 @@ VkResult display(void)
 	vkresult = vkResetFences(vkDevice, 1, &vkFence_Array[currentImageIndex]);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "display() : vkResetFences failed with error: %d\n", vkresult);
+		fprintf(gpFile, "render() : vkResetFences failed with error: %d\n", vkresult);
 		return(vkresult);
 	}
 
@@ -1093,7 +1128,7 @@ VkResult display(void)
 	vkresult = vkQueueSubmit(vkQueue, 1, &vksubmitInfo, vkFence_Array[currentImageIndex]);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "display() : vkQueueSubmit failed with error: %d\n", vkresult);
+		fprintf(gpFile, "render() : vkQueueSubmit failed with error: %d\n", vkresult);
 		return(vkresult);
 	}
 
@@ -1114,21 +1149,19 @@ VkResult display(void)
 	vkresult = vkQueuePresentKHR(vkQueue, &vkPresentInfoKHR);
 	if (vkresult != VK_SUCCESS)
 	{
-		if (vkresult == VK_ERROR_OUT_OF_DATE_KHR || vkresult == VK_SUBOPTIMAL_KHR)
-		{
-			resize(winWidth, winHeight);
-		}
-		else
-		{
-			fprintf(gpFile, "display() : vkQueuePresentKHR failed with error: %d\n", vkresult);
-			return(vkresult);
-		}
+		if (vkresult != VK_SUCCESS && vkresult != VK_SUBOPTIMAL_KHR && vkresult != VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            fprintf(gpFile, "render() : vkQueuePresentKHR failed with error: %d\n", vkresult);
+            return(vkresult);
+        }
 	}
 
-	vkresult = updateUniformbuffer();
+    vkDeviceWaitIdle(vkDevice);
+
+    vkresult = [self updateUniformbuffer];
 	if(vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "display() : updateUniformbuffer() failed with error: %d\n", vkresult);
+		fprintf(gpFile, "render() : updateUniformbuffer() failed with error: %d\n", vkresult);
 		return(vkresult);
 	}
 
@@ -1140,28 +1173,29 @@ VkResult display(void)
 
 }
 
-void update(void)
+
+-(void)update
 {
-	// code
+    // code
 }
 
-
-void uninitialise(void)
+-(void)uninitialise
 {
-	// Function declarations
-	void ToggleFullscreen(void);
 
 	// Code
-	if (gbFullscreen == TRUE)
-	{
-		ToggleFullscreen();
-	}
+    if(displayLink)
+    {
+        CVDisplayLinkStop(displayLink);
+        CVDisplayLinkRelease(displayLink);
+        displayLink = NULL;
+    }
+    // if window is in full screen mode then first exit from full screen mode
 
-	if (ghwnd)
-	{
-		DestroyWindow(ghwnd);
-		ghwnd = NULL;
-	}
+	 if(bFullScreen == YES)
+    {
+        [[self window] toggleFullScreen:nil];
+        bFullScreen = NO;
+    }
 
 
 	//No need to destroy/uninitialize vkQueue
@@ -1291,8 +1325,6 @@ void uninitialise(void)
 			uniformData.vkDeviceMemory = VK_NULL_HANDLE;
 			fprintf(gpFile, "\nFreed uniformData.vkDeviceMemory \n");
 		}
-
-
 
 
 		if (vertexData_Position.vkDeviceMemory)
@@ -1432,25 +1464,28 @@ void uninitialise(void)
 		fclose(gpFile);
 		gpFile = NULL;
 	}
-
 }
 
-//////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
-
-VkResult createVulkanInstance(void)
+// global function definitions
+CVReturn displayLinkCallback(CVDisplayLinkRef myDisplayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* renderer)
 {
-	// function declarations
-	VkResult fillExtensionNames();
+    // code
+    CVReturn result = [(View*)renderer getFrameForTime:outputTime];
 
-	VkResult fillValidationLayerNames(void);
+    return result;
+}
 
-	VkResult createValidationCallbackfuntion(void);
+
+/////////////////////////////////////////////////////.   Vulkan related global function definitions   ./////////////////////////////////////////////////////
+
+-(VkResult) createVulkanInstance
+{
 
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
 
 	// code
-	vkresult = fillExtensionNames();
+    vkresult = [self fillExtensionNames];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVulkanInstance() : fillExtensionNames function failed\n");
@@ -1462,9 +1497,9 @@ VkResult createVulkanInstance(void)
 	}
 
 	// Fill validation layers
-	if (bValidation == TRUE)
+	if (bValidation == YES)
 	{
-		vkresult = fillValidationLayerNames();
+		vkresult = [self fillValidationLayerNames];
 		if (vkresult != VK_SUCCESS)
 		{
 			fprintf(gpFile, "createVulkanInstance() : fillValidationLayerNames() function failed (VkResult: %d)\n", vkresult);
@@ -1497,11 +1532,12 @@ VkResult createVulkanInstance(void)
 
 	vkInstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;  // Corrected the structure type
 	vkInstanceCreateInfo.pNext = NULL;
+	vkInstanceCreateInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;  // for MoltenVK to avoid VK_ERROR_INCOMPATIBLE_DRIVER error
 	vkInstanceCreateInfo.pApplicationInfo = &vkApplicationInfo;
 	vkInstanceCreateInfo.enabledExtensionCount = enabledInstanceExtensionCount;
 	vkInstanceCreateInfo.ppEnabledExtensionNames = enabledInstanceExtensionNames_array;  // Corrected the field name
 
-	if (bValidation == TRUE)
+	if (bValidation == YES)
 	{
 		vkInstanceCreateInfo.enabledLayerCount = enabledValidationLayerCount;
 		vkInstanceCreateInfo.ppEnabledLayerNames = enabledValidationLayerNames_Array;
@@ -1537,9 +1573,9 @@ VkResult createVulkanInstance(void)
 	}
 
 	// do for validationcallback
-	if (bValidation == TRUE)
+	if (bValidation == YES)
 	{
-		vkresult = createValidationCallbackfuntion();
+		vkresult = [self createValidationCallbackfuntion];
 		if (vkresult != VK_SUCCESS)
 		{
 			fprintf(gpFile, "createVulkanInstance() : createValidationCallbackfuntion() function failed (VkResult: %d)\n", vkresult);
@@ -1556,7 +1592,7 @@ VkResult createVulkanInstance(void)
 }
 
 
-VkResult fillExtensionNames(void)
+-(VkResult) fillExtensionNames
 {
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -1617,8 +1653,9 @@ VkResult fillExtensionNames(void)
 
 	// step 4: Check for required extensions
 	VkBool32 vulkunSurfaceExtensionFound = VK_FALSE;
-	VkBool32 win32SurfaceExtensionFound = VK_FALSE;
+	VkBool32 macOSSurfaceExtensionFound = VK_FALSE;
 	VkBool32 debugReportExtensionFound = VK_FALSE;
+	VkBool32 vulkanPortabilityEnumerationExtensionFound = VK_FALSE; // 1.2.31.0
 
 	for (uint32_t i = 0; i < instanceExtensionCount; i++)
 	{
@@ -1628,10 +1665,18 @@ VkResult fillExtensionNames(void)
 			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
 		}
 
-		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_WIN32_SURFACE_EXTENSION_NAME) == 0)
+		// VK_MVK_MACOS_SURFACE_EXTENSION_NAME
+
+		if (strcmp(InstanceExtensionNames_array[i], VK_MVK_MACOS_SURFACE_EXTENSION_NAME) == 0)
 		{
-			win32SurfaceExtensionFound = VK_TRUE;
-			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+			macOSSurfaceExtensionFound = VK_TRUE;
+			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
+		}
+
+		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0)
+		{
+			vulkanPortabilityEnumerationExtensionFound = VK_TRUE;
+			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME;
 		}
 
 		if (strcmp(InstanceExtensionNames_array[i], VK_EXT_DEBUG_REPORT_EXTENSION_NAME) == 0)
@@ -1670,15 +1715,26 @@ VkResult fillExtensionNames(void)
 		fprintf(gpFile, "fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found\n");
 	}
 
-	if (win32SurfaceExtensionFound == VK_FALSE)
+	if (macOSSurfaceExtensionFound == VK_FALSE)
 	{
 		vkresult = VK_ERROR_INITIALIZATION_FAILED; // return hardcoded failure
-		fprintf(gpFile, "fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME not found\n");
+		fprintf(gpFile, "fillExtensionNames() : VK_MVK_MACOS_SURFACE_EXTENSION_NAME not found\n");
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME found\n");
+		fprintf(gpFile, "fillExtensionNames() : VK_MVK_MACOS_SURFACE_EXTENSION_NAME found\n");
+	}
+
+	if (vulkanPortabilityEnumerationExtensionFound == VK_FALSE)
+	{
+		vkresult = VK_ERROR_INITIALIZATION_FAILED; // return hardcoded failure
+		fprintf(gpFile, "fillExtensionNames() : VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME not found\n");
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "fillExtensionNames() : VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME found\n");
 	}
 
 
@@ -1718,7 +1774,8 @@ VkResult fillExtensionNames(void)
 	return vkresult;
 }
 
-VkResult fillValidationLayerNames(void)
+
+-(VkResult) fillValidationLayerNames
 {
 	// variable declarations
 	VkResult vkresult = VK_SUCCESS;
@@ -1804,7 +1861,8 @@ VkResult fillValidationLayerNames(void)
 	return vkresult;
 }
 
-VkResult createValidationCallbackfuntion(void)
+
+-(VkResult) createValidationCallbackfuntion
 {
 	// function declaration
 	VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(VkDebugReportFlagsEXT, VkDebugReportObjectTypeEXT, uint64_t, size_t, int32_t, const char*, const char*, void*);
@@ -1831,7 +1889,7 @@ VkResult createValidationCallbackfuntion(void)
 	if (vkDestroyDebugReportCallbackEXT_fnptr == NULL)
 	{
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
-		fprintf(gpFile, "createValidationCallbackFunction() : vkGetInstanceProcAddr() failed to get function pointer for vkDestroyDebugReportCallbackEXT\n",__FUNCTION__);
+		fprintf(gpFile, "createValidationCallbackFunction() : vkGetInstanceProcAddr() failed to get function pointer for with error code %d\n vkDestroyDebugReportCallbackEXT\n", vkresult);
 		return vkresult;
 	}
 	else
@@ -1867,35 +1925,38 @@ VkResult createValidationCallbackfuntion(void)
 
 }
 
-VkResult getSupportedSurface(void)
+
+-(VkResult) getSupportedSurface
 {
+	// code
+
 	VkResult vkresult = VK_SUCCESS;
 
-	VkWin32SurfaceCreateInfoKHR vkWin32SurfaceCreateInfoKHR;
-	memset((void*)&vkWin32SurfaceCreateInfoKHR, 0, sizeof(VkWin32SurfaceCreateInfoKHR));
+	VkMacOSSurfaceCreateInfoMVK vkMacOSSurfaceCreateInfoMVK;
+	memset((void*)&vkMacOSSurfaceCreateInfoMVK, 0, sizeof(VkMacOSSurfaceCreateInfoMVK));
 
-	vkWin32SurfaceCreateInfoKHR.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	vkWin32SurfaceCreateInfoKHR.pNext = NULL;
-	vkWin32SurfaceCreateInfoKHR.flags = 0;
-	vkWin32SurfaceCreateInfoKHR.hinstance = (HINSTANCE)GetWindowLongPtr(ghwnd, GWLP_HINSTANCE);
-	vkWin32SurfaceCreateInfoKHR.hwnd = ghwnd;
+	vkMacOSSurfaceCreateInfoMVK.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+	vkMacOSSurfaceCreateInfoMVK.pNext = NULL;
+	vkMacOSSurfaceCreateInfoMVK.flags = 0;
+	vkMacOSSurfaceCreateInfoMVK.pView = gpView;
 
-	vkresult = vkCreateWin32SurfaceKHR(vkInstance, &vkWin32SurfaceCreateInfoKHR, NULL, &vkSurfaceKHR);
+	vkresult = vkCreateMacOSSurfaceMVK(vkInstance, &vkMacOSSurfaceCreateInfoMVK, NULL, &vkSurfaceKHR);
 	if(vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "getSupportedSurface() : vkCreateWin32SurfaceKHR Failed\n");
+		fprintf(gpFile, "getSupportedSurface() : vkCreateMacOSSurfaceMVK Failed\n");
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "getSupportedSurface() : vkCreateWin32SurfaceKHR succeded \n");
+		fprintf(gpFile, "getSupportedSurface() : vkCreateMacOSSurfaceMVK succeded \n");
 	}
 
 	return vkresult;
 
 }
 
-VkResult getPhysicalDevice(void)
+
+-(VkResult) getPhysicalDevice
 {
 	VkResult vkresult = VK_SUCCESS;
 
@@ -2051,7 +2112,7 @@ VkResult getPhysicalDevice(void)
 	return vkresult;
 }
 
-VkResult printVkInfo()
+-(VkResult) printVkInfo
 {
 	VkResult vkresult = VK_SUCCESS;
 
@@ -2125,7 +2186,7 @@ VkResult printVkInfo()
 }
 
 
-VkResult fillDeviceExtensionNames(void)
+-(VkResult) fillDeviceExtensionNames
 {
     // Variable declarations
     VkResult vkresult = VK_SUCCESS;
@@ -2189,6 +2250,7 @@ VkResult fillDeviceExtensionNames(void)
 
     // Step 4: Check for required extensions
     VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
+	VkBool32 vulkanPortabilitySubsetExtensionFound = VK_FALSE; 
 
     for (uint32_t i = 0; i < deviceExtensionCount; i++)
     {
@@ -2197,6 +2259,13 @@ VkResult fillDeviceExtensionNames(void)
             vulkanSwapchainExtensionFound = VK_TRUE;
             enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
         }
+
+		// Check for VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
+		if (strcmp(DeviceExtensionNames_array[i], VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) == 0)
+		{
+			vulkanPortabilitySubsetExtensionFound = VK_TRUE;
+			enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME;
+		}
     }
 
     // Step 5: Free the allocated memory for extension names
@@ -2215,6 +2284,15 @@ VkResult fillDeviceExtensionNames(void)
     }
     fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME found\n");
 
+	if (vulkanPortabilitySubsetExtensionFound == VK_FALSE)
+	{
+		vkresult = VK_ERROR_INITIALIZATION_FAILED; // Return hardcoded failure
+		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME not found\n");
+		return vkresult;
+	}
+	fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME found\n");
+
+
     // Step 7: Print enabled extension names
     for (uint32_t i = 0; i < enableDeviceExtensionCount; i++)
     {
@@ -2224,17 +2302,13 @@ VkResult fillDeviceExtensionNames(void)
     return vkresult;
 }
 
-VkResult createVulkanDevice(void)
+-(VkResult) createVulkanDevice
 {
-	// function declaration
-	VkResult fillDeviceExtensionNames(void);
-
-
 	// variable declaration
 	VkResult vkresult = VK_SUCCESS;
 
 	// fill device extension names
-	vkresult = fillDeviceExtensionNames();
+	vkresult = [self fillDeviceExtensionNames];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVulkanDevice() : fillDeviceExtensionNames function failed\n");
@@ -2291,7 +2365,7 @@ VkResult createVulkanDevice(void)
 }
 
 
-void getDeviceQueue(void)
+-(void) getDeviceQueue
 {
 	vkGetDeviceQueue(vkDevice, graphicsQueueFamilyIndex_Selected, 0, &vkQueue);
 
@@ -2306,7 +2380,7 @@ void getDeviceQueue(void)
 	}
 }
 
-VkResult getPhysicalDeviceSurfaceFormatAndColorSpace(void)
+-(VkResult) getPhysicalDeviceSurfaceFormatAndColorSpace
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -2374,7 +2448,7 @@ VkResult getPhysicalDeviceSurfaceFormatAndColorSpace(void)
 }
 
 
-VkResult getPhysicalDevicePresentMode(void)
+-(VkResult) getPhysicalDevicePresentMode
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -2455,17 +2529,13 @@ VkResult getPhysicalDevicePresentMode(void)
 	return vkresult;
 }
 
-VkResult createSwapchain(VkBool32 vsync)
+-(VkResult) createSwapchain:(VkBool32)vsync
 {
-	// function declarations
-	VkResult getPhysicalDeviceSurfaceFormatAndColorSpace(void);
-	VkResult getPhysicalDevicePresentMode(void);
-
 	// variable declaration
 	VkResult vkresult = VK_SUCCESS;
 
 	// code
-	vkresult = getPhysicalDeviceSurfaceFormatAndColorSpace();
+	vkresult = [self getPhysicalDeviceSurfaceFormatAndColorSpace];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createSwapchain() : getPhysicalDeviceSurfaceFormatAndColorSpace() function failed (%d)\n", vkresult);
@@ -2552,7 +2622,7 @@ VkResult createSwapchain(VkBool32 vsync)
 	}
 
 	// step 7 : get presentation mode
-	vkresult = getPhysicalDevicePresentMode();
+	vkresult = [self getPhysicalDevicePresentMode];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createSwapchain() : getPhysicalDevicePresentMode() function failed (%d)\n", vkresult);
@@ -2599,10 +2669,8 @@ VkResult createSwapchain(VkBool32 vsync)
 	return vkresult;
 }
 
-VkResult createImagesAndImageViews(void)
+-(VkResult) createImagesAndImageViews
 {
-	// function declarations
-	VkResult getSupportedDepthFormat(void);
 
 	// variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -2681,7 +2749,7 @@ VkResult createImagesAndImageViews(void)
 
 	// for depth image
 
-	vkresult = getSupportedDepthFormat();
+	vkresult = [self getSupportedDepthFormat];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : getSupportedDepthFormat() function failed for iteration (%d)\n", vkresult);
@@ -2701,8 +2769,10 @@ VkResult createImagesAndImageViews(void)
 	vkImageCreateInfo.flags = 0;
 	vkImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;  // 1D, 2D, or 3D image
 	vkImageCreateInfo.format = vkFormat_Depth;  // Format of image data
-	vkImageCreateInfo.extent.width = winWidth;  // Image width
-	vkImageCreateInfo.extent.height = winHeight; // Image height
+	// vkImageCreateInfo.extent.width = winWidth;  // Image width
+	//vkImageCreateInfo.extent.height = winHeight; // Image height
+	vkImageCreateInfo.extent.width = vkExtent2D_Swapchain.width;
+    vkImageCreateInfo.extent.height = vkExtent2D_Swapchain.height;
 	vkImageCreateInfo.extent.depth = 1;     // For 2D image, depth is 1
 	vkImageCreateInfo.mipLevels = 1;        // Number of mipmap levels
 	vkImageCreateInfo.arrayLayers = 1;      // Number of array layers
@@ -2735,6 +2805,8 @@ VkResult createImagesAndImageViews(void)
 	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
 	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
 
+	VkBool32 foundMatchingMemoryType_Depth = VK_FALSE;
+
 	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
 	{
 		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
@@ -2742,12 +2814,24 @@ VkResult createImagesAndImageViews(void)
 			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 			{
 				vkMemoryAllocateInfo.memoryTypeIndex = i;
+				foundMatchingMemoryType_Depth = VK_TRUE;
 				break;
 			}
 		}
 
 		vkMemoryRequirements.memoryTypeBits >>= 1;
 
+	}
+
+	if (foundMatchingMemoryType_Depth == VK_FALSE)
+	{
+		vkresult = VK_ERROR_OUT_OF_DEVICE_MEMORY; 
+		fprintf(gpFile, "createImagesAndImageViews() : Failed to find suitable memory type for depth image\n");
+		return vkresult; // Return hardcoded error code
+	}
+	else
+	{
+		fprintf(gpFile, "createImagesAndImageViews() : Suitable memory type found for depth image at index %d\n", vkMemoryAllocateInfo.memoryTypeIndex);
 	}
 
 	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vkDeviceMemory_Depth);
@@ -2779,7 +2863,13 @@ VkResult createImagesAndImageViews(void)
 	vkImageViewCreateInfo.pNext = NULL;
 	vkImageViewCreateInfo.flags = 0;
 	vkImageViewCreateInfo.format = vkFormat_Depth;
-	vkImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	vkImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+	if(vkFormat_Depth == VK_FORMAT_D32_SFLOAT_S8_UINT || vkFormat_Depth == VK_FORMAT_D24_UNORM_S8_UINT || vkFormat_Depth == VK_FORMAT_D16_UNORM_S8_UINT)
+	{
+		vkImageViewCreateInfo.subresourceRange.aspectMask = vkImageViewCreateInfo.subresourceRange.aspectMask | VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+
 	vkImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 	vkImageViewCreateInfo.subresourceRange.levelCount = 1;
 	vkImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -2802,7 +2892,8 @@ VkResult createImagesAndImageViews(void)
 	return vkresult;
 }
 
-VkResult getSupportedDepthFormat(void)
+
+-(VkResult) getSupportedDepthFormat
 {
 	// code
 	
@@ -2840,7 +2931,7 @@ VkResult getSupportedDepthFormat(void)
 	return vkresult;
 }
 
-VkResult createCommandPool(void)
+-(VkResult) createCommandPool
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -2870,8 +2961,7 @@ VkResult createCommandPool(void)
 	return vkresult;
 }
 
-
-VkResult createCommandBuffers(void)
+-(VkResult) createCommandBuffers
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -2906,7 +2996,7 @@ VkResult createCommandBuffers(void)
 	return vkresult;
 }
 
-VkResult createVertexBuffer(void)
+-(VkResult) createVertexBuffer
 {
 
 	// Variable declaration
@@ -2954,6 +3044,8 @@ VkResult createVertexBuffer(void)
 	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
 	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
 
+	VkBool32 foundMatchingMemoryType_Vertex = VK_FALSE;
+
 	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
 	{
 		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
@@ -2961,12 +3053,24 @@ VkResult createVertexBuffer(void)
 			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
 				vkMemoryAllocateInfo.memoryTypeIndex = i; 
+				foundMatchingMemoryType_Vertex = VK_TRUE;
 				break;
 			}
 		}
 
 		vkMemoryRequirements.memoryTypeBits >>= 1;
 	
+	}
+
+	if (foundMatchingMemoryType_Vertex == VK_FALSE)
+	{
+		vkresult = VK_ERROR_OUT_OF_HOST_MEMORY; 
+		fprintf(gpFile, "createVertexBuffer() : Failed to find suitable memory type for vertex buffer\n");
+		return vkresult; // Return hardcoded error code
+	}
+	else
+	{
+		fprintf(gpFile, "createVertexBuffer() : Suitable memory type found for vertex buffer at index %d\n", vkMemoryAllocateInfo.memoryTypeIndex);
 	}
 
 	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &vertexData_Position.vkDeviceMemory);
@@ -3015,10 +3119,8 @@ VkResult createVertexBuffer(void)
 
 }
 
-VkResult createUniformBuffer(void)
+-(VkResult) createUniformBuffer
 {
-	// funcition declarations
-	VkResult updateUniformbuffer(void);
 
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3059,6 +3161,8 @@ VkResult createUniformBuffer(void)
 	vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
 	vkMemoryAllocateInfo.memoryTypeIndex = 0; // initial value before entering into loop
 
+	VkBool32 foundMatchingMemoryType_Uniform = VK_FALSE;
+
 	for (uint32_t i = 0; i < vkPhysicalDeviceMemoryProperties.memoryTypeCount; i++)
 	{
 		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
@@ -3066,12 +3170,24 @@ VkResult createUniformBuffer(void)
 			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
 				vkMemoryAllocateInfo.memoryTypeIndex = i;
+				foundMatchingMemoryType_Uniform = VK_TRUE;
 				break;
 			}
 		}
 
 		vkMemoryRequirements.memoryTypeBits >>= 1;
 
+	}
+
+	if (foundMatchingMemoryType_Uniform == VK_FALSE)
+	{
+		vkresult = VK_ERROR_OUT_OF_HOST_MEMORY;
+		fprintf(gpFile, "createUniformBuffer() : Failed to find suitable memory type for uniform buffer\n");
+		return vkresult; // Return hardcoded error code
+	}
+	else
+	{
+		fprintf(gpFile, "createUniformBuffer() : Suitable memory type found for uniform buffer at index %d\n", vkMemoryAllocateInfo.memoryTypeIndex);
 	}
 
 	vkresult = vkAllocateMemory(vkDevice, &vkMemoryAllocateInfo, NULL, &uniformData.vkDeviceMemory);
@@ -3097,7 +3213,7 @@ VkResult createUniformBuffer(void)
 	}
 
 	// call updateUnifomBuffer
-	vkresult = updateUniformbuffer();
+	vkresult = [self updateUniformbuffer];
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createUniformBuffer() : updateUniformbuffer() function failed. Error Code: (%d)\n", vkresult);
@@ -3112,7 +3228,7 @@ VkResult createUniformBuffer(void)
 	return vkresult;
 }
 
-VkResult updateUniformbuffer(void)
+-(VkResult) updateUniformbuffer
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3152,8 +3268,7 @@ VkResult updateUniformbuffer(void)
 	return vkresult;
 }
 
-
-VkResult createShaders(void)
+-(VkResult) createShaders
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3161,13 +3276,23 @@ VkResult createShaders(void)
 	//code
 
 	// for vertex shaders
+	NSBundle* appBundle = [NSBundle mainBundle];
+
+	NSString* appDirname = [appBundle bundlePath];
+
+	NSString* parentDirPath = [appDirname stringByDeletingLastPathComponent];	
+
 	const char* szfileName = "Shader.vert.spv";
 
+	NSString* shaderfileNameWithPath = [NSString stringWithFormat:@"%@/%s", parentDirPath, szfileName];
+
+	const char* pszshaderFileNameWithPath = [shaderfileNameWithPath cStringUsingEncoding:NSUTF8StringEncoding];
+	
 	FILE* fp = NULL;
 
 	size_t size;
 
-	fp = fopen(szfileName, "rb");
+	fp = fopen(pszshaderFileNameWithPath, "rb");
 
 	if (fp == NULL)
 	{
@@ -3228,6 +3353,7 @@ VkResult createShaders(void)
 	else
 	{
 		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded fro vertex shader.\n");
+		fflush(gpFile);
 	}
 
 
@@ -3241,13 +3367,17 @@ VkResult createShaders(void)
 
 	// for fragmnt shader
 
-	szfileName = "Shader.frag.spv";
+	// for fragment shader
 
-	fp = NULL;
+	szfileName = "Shader.frag.spv";
 
 	size = 0;
 
-	fp = fopen(szfileName, "rb");
+	shaderfileNameWithPath = [NSString stringWithFormat:@"%@/%s", parentDirPath, szfileName];
+
+	pszshaderFileNameWithPath = [shaderfileNameWithPath cStringUsingEncoding:NSUTF8StringEncoding];
+
+	fp = fopen(pszshaderFileNameWithPath, "rb");
 
 	if (fp == NULL)
 	{
@@ -3294,21 +3424,29 @@ VkResult createShaders(void)
 
 	vkShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	vkShaderModuleCreateInfo.pNext = NULL;
-	vkShaderModuleCreateInfo.flags = 0; // future use can be haapend but now zero
+	vkShaderModuleCreateInfo.flags = 0;
 	vkShaderModuleCreateInfo.codeSize = size;
 	vkShaderModuleCreateInfo.pCode = (uint32_t*)shaderData;
 
-	vkresult = vkCreateShaderModule(vkDevice, &vkShaderModuleCreateInfo, NULL, &vkShaderModule_fragment_shader);
+	vkresult = vkCreateShaderModule(
+					vkDevice,
+					&vkShaderModuleCreateInfo,
+					NULL,
+					&vkShaderModule_fragment_shader);
+
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createShaders() : vkCreateShaderModule() function failed. for fragment shader Error Code: (%d)\n", vkresult);
+		fprintf(gpFile,
+				"createShaders() : vkCreateShaderModule() function failed for fragment shader. Error Code: (%d)\n",
+				vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded for fragment shader.\n");
+		fprintf(gpFile,
+				"createShaders() : vkCreateShaderModule() succeeded for fragment shader.\n");
+		fflush(gpFile);
 	}
-
 
 	if (shaderData)
 	{
@@ -3316,12 +3454,13 @@ VkResult createShaders(void)
 		shaderData = NULL;
 	}
 
-	fprintf(gpFile, "fragment Module sucessfully created\n");
+	fprintf(gpFile, "Fragment Shader Module successfully created\n");
 
 	return vkresult;
 }
 
-VkResult createDiscriptorSetLayout(void)
+
+-(VkResult) createDescriptorSetLayout
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3359,15 +3498,16 @@ VkResult createDiscriptorSetLayout(void)
 	else
 	{
 		fprintf(gpFile, "createDescriptorSetLayout() : vkCreateDescriptorSetLayout() succeeded.\n");
+		fflush(gpFile);
 	}
-
 
 
 	return vkresult;
 
 }
 
-VkResult createPiplineLayout(void)
+
+-(VkResult) createPiplineLayout
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3390,17 +3530,19 @@ VkResult createPiplineLayout(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createPiplineLayout() : vkCreatePipelineLayout() failed. Error Code: (%d)\n", vkresult);
+		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createPiplineLayout() : vkCreatePipelineLayout() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	return vkresult;
 }
 
-VkResult createDescriptorpool(void)
+-(VkResult) createDescriptorpool
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3431,13 +3573,14 @@ VkResult createDescriptorpool(void)
 	else
 	{
 		fprintf(gpFile, "createDescriptorpool() : vkCreateDescriptorPool() succeeded.\n");
+		fflush(gpFile);
 	}
 
 
 	return vkresult;
 }
 
-VkResult createDescriptorSet(void)
+-(VkResult) createDescriptorSet
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3464,6 +3607,7 @@ VkResult createDescriptorSet(void)
 	else
 	{
 		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() succeeded.\n");
+		fflush(gpFile);
 	}
 	
 	// describe whether we want image as uniform or buffer as unuform 
@@ -3473,6 +3617,7 @@ VkResult createDescriptorSet(void)
 	vkdescriptorBufferInfo.buffer = uniformData.vkBuffer;
 	vkdescriptorBufferInfo.offset = 0;
 	vkdescriptorBufferInfo.range = sizeof(MyUniformData);
+	fflush(gpFile);
 
 	// now upadte descriptor set directly to the shader
 
@@ -3493,12 +3638,13 @@ VkResult createDescriptorSet(void)
 	vkUpdateDescriptorSets(vkDevice, 1, &vkWriteDescriptorSet, 0, NULL);
 
 	fprintf(gpFile, "\nvkUpdateDescriptorSets() succeeded.\n");
+	fflush(gpFile);
 
 
 	return vkresult;
 }
 
-VkResult createRenderPass(void)
+-(VkResult) createRenderPass
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3560,6 +3706,31 @@ VkResult createRenderPass(void)
 	vkSubpassDesciption.preserveAttachmentCount = 0;
 	vkSubpassDesciption.pPreserveAttachments = NULL;
 
+	// if subpass dependency synchronization
+
+	VkSubpassDependency vkSubpassDependency_Array[2];
+	memset((void*)vkSubpassDependency_Array, 0, sizeof(VkSubpassDependency) * _ARRAYSIZE(vkSubpassDependency_Array));
+
+	// for Color 
+	vkSubpassDependency_Array[0].srcSubpass = VK_SUBPASS_EXTERNAL; // this means implicit subpass before render pass begin
+	vkSubpassDependency_Array[0].dstSubpass = 0; // this means first subpass which is 0th index in subpass array
+	vkSubpassDependency_Array[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // this means color attachment stage of src subpass
+	vkSubpassDependency_Array[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // this means color attachment stage of dst subpass	
+	vkSubpassDependency_Array[0].srcAccessMask = 0; // this means which type of access of src subpass
+	vkSubpassDependency_Array[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; // this means which type of access of dst subpass
+	vkSubpassDependency_Array[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT; 
+
+	// for depth
+	vkSubpassDependency_Array[1].srcSubpass = VK_SUBPASS_EXTERNAL; // this means implicit subpass before render pass begin
+	vkSubpassDependency_Array[1].dstSubpass = 0; // this means first subpass which is 0th index in subpass array
+	vkSubpassDependency_Array[1].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; 
+	vkSubpassDependency_Array[1].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; // this means depth attachment stage of dst subpass	
+	vkSubpassDependency_Array[1].srcAccessMask = 0; // this means which type of access of src subpass
+	vkSubpassDependency_Array[1].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; // this means which type of access of dst subpass
+	vkSubpassDependency_Array[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT; // this means by default dependency
+
+
+
 	//Step 4: Declare and initialize vkrenderpass create info structure
 	VkRenderPassCreateInfo vkRenderPassCreateInfo;
 	memset((void*)&vkRenderPassCreateInfo, 0, sizeof(VkRenderPassCreateInfo));
@@ -3570,7 +3741,9 @@ VkResult createRenderPass(void)
 	vkRenderPassCreateInfo.pAttachments = vkAttachmentDescription_array;
 	vkRenderPassCreateInfo.subpassCount = 1;
 	vkRenderPassCreateInfo.pSubpasses = &vkSubpassDesciption;
-	vkRenderPassCreateInfo.pDependencies = NULL;
+	vkRenderPassCreateInfo.dependencyCount = _ARRAYSIZE(vkSubpassDependency_Array);
+	vkRenderPassCreateInfo.pDependencies = vkSubpassDependency_Array;
+
 
 	// Create render pass
 	vkresult = vkCreateRenderPass(vkDevice, &vkRenderPassCreateInfo, NULL, &vkRenderpass);
@@ -3582,12 +3755,13 @@ VkResult createRenderPass(void)
 	else
 	{
 		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	return vkresult;
 }
 
-VkResult createPipline(void)
+-(VkResult) createPipline
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3699,6 +3873,8 @@ VkResult createPipline(void)
 	memset((void*)&vkPipelineDepthStencilStateCreateInfo, 0, sizeof(VkPipelineDepthStencilStateCreateInfo));
 
 	vkPipelineDepthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	vkPipelineDepthStencilStateCreateInfo.pNext = NULL;
+	vkPipelineDepthStencilStateCreateInfo.flags = 0;
 	vkPipelineDepthStencilStateCreateInfo.depthTestEnable = VK_TRUE;            // Enable depth test
 	vkPipelineDepthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;          
 	vkPipelineDepthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL; 
@@ -3774,6 +3950,7 @@ VkResult createPipline(void)
 	else
 	{
 		fprintf(gpFile, "createPipline() : vkCreatePipelineCache() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// create actual graphics pipline
@@ -3813,6 +3990,7 @@ VkResult createPipline(void)
 	else
 	{
 		fprintf(gpFile, "createPipeline() : vkCreateGraphicsPipelines() succeeded.\n");
+		fflush(gpFile);
 	}
 
 	// we have done with pipline cache so destroy it
@@ -3829,7 +4007,7 @@ VkResult createPipline(void)
 }
 
 
-VkResult createframeBuffers(void)
+-(VkResult) createFrameBuffers
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3864,19 +4042,20 @@ VkResult createframeBuffers(void)
 		vkresult = vkCreateFramebuffer(vkDevice, &vkFramebufferCreateInfo, NULL, &vkFramebuffer_Array[i]);
 		if (vkresult != VK_SUCCESS)
 		{
-			fprintf(gpFile, "createframeBuffers() : vkCreateFramebuffer() function failed. Error Code: (%d)\n", vkresult);
+			fprintf(gpFile, "createFrameBuffers() : vkCreateFramebuffer() function failed. Error Code: (%d)\n", vkresult);
 			return vkresult;
 		}
 		else
 		{
-			fprintf(gpFile, "createframeBuffers() : vkCreateFramebuffer() succeeded.\n");
+			fprintf(gpFile, "createFrameBuffers() : vkCreateFramebuffer() succeeded.\n");
+			fflush(gpFile);
 		}
 	}
 
 	return vkresult;
 }
 
-VkResult createSemaphores(void)
+-(VkResult) createSemaphores
 {
 	// code
 
@@ -3917,7 +4096,7 @@ VkResult createSemaphores(void)
 
 
 
-VkResult createFences(void)
+-(VkResult) createFences
 {
 	// code
 
@@ -3944,13 +4123,14 @@ VkResult createFences(void)
 		else
 		{
 			fprintf(gpFile, "createFences() : vkCreateFence() succeeded.\n");
+			fflush(gpFile);
 		}
 	}
 
 	return vkresult;
 }
 
-VkResult buildCommandBuffers(void)
+-(VkResult) buildCommandBuffers
 {
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3968,6 +4148,7 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [%d].\n", i);
+			fflush(gpFile);
 		}
 
 		VkCommandBufferBeginInfo vkCommandBufferBeginInfo;
@@ -3986,6 +4167,7 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [%d].\n", i);
+			fflush(gpFile);
 		}
 
 		// set clear values
@@ -4032,7 +4214,7 @@ VkResult buildCommandBuffers(void)
 
 		// bind with vertex buffer
 		VkDeviceSize vkDeviceSize_Offest_Array[1];
-		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAYSIZE(vkDeviceSize_Offest_Array));
+		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * _ARRAYSIZE(vkDeviceSize_Offest_Array));
 
 		vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertexData_Position.vkBuffer, vkDeviceSize_Offest_Array);
 
@@ -4052,6 +4234,7 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [%d].\n", i);
+			fflush(gpFile);
 		}
 
 	}
@@ -4059,6 +4242,8 @@ VkResult buildCommandBuffers(void)
 	return vkresult;
 
 }
+
+
 VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
 	VkDebugReportFlagsEXT vkDebugReportFlagsEXT,
 	VkDebugReportObjectTypeEXT vkDebugReportObjectTypeEXT,
@@ -4077,6 +4262,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
 	return VK_FALSE;
 }
 
-
+@end
 
 
