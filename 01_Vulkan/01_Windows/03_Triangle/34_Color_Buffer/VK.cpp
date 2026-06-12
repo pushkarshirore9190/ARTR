@@ -679,9 +679,7 @@ VkResult initialise(void)
 	{
 		fprintf(gpFile, "initialise() : createDescriptorset() succeeded\n");
 	}
-
-
-
+	
 	vkresult = createRenderPass();
 	if (vkresult != VK_SUCCESS)
 	{
