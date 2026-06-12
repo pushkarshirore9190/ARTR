@@ -2705,7 +2705,7 @@ CVReturn displayLinkCallback(CVDisplayLinkRef myDisplayLink, const CVTimeStamp* 
 
     // Variable declaration
     VkResult vkresult = VK_SUCCESS;
-	
+
 	float traingle_Position[] =
 	{
 		0.0f,50.0f,0.0f,
@@ -2972,7 +2972,9 @@ CVReturn displayLinkCallback(CVDisplayLinkRef myDisplayLink, const CVTimeStamp* 
 
 	}
 
+
 	myUniformData.projectionMatrix = orthoGraphicProjectionMatrix;
+    myUniformData.projectionMatrix[1][1] *= -1.0f;
 
 	// map unifrom buffer
 
@@ -3488,8 +3490,8 @@ CVReturn displayLinkCallback(CVDisplayLinkRef myDisplayLink, const CVTimeStamp* 
     vkPipelineRasterizationStateCreateInfo.flags = 0;
 
     vkPipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-    // vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-    // vkPipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    //vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    //vkPipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     vkPipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
 
 
