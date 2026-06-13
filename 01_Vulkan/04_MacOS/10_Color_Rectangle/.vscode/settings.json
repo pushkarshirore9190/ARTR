@@ -1,0 +1,6 @@
+{
+    "github.copilot.chat.agent.autoFix": true,
+    "github.copilot.chat.claudeAgent.allowDangerouslySkipPermissions": true,
+    "github.copilot.chat.scopeSelection": true,
+    "github.copilot.completions.chat.enabled": true
+}
