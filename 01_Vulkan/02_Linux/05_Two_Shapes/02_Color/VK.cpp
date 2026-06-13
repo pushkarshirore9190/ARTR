@@ -1346,7 +1346,7 @@ void uninitialise(void)
 			vkDescriptorPool = VK_NULL_HANDLE;
 			vkDescriptorSet_Rectangle = VK_NULL_HANDLE;
 			vkDescriptorSet_Triangle = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed vkDescriptorPool and vkDescriptorSet\n");
+			fprintf(gpFile, "\nFreed vkDescriptorPool and vkDescriptorSet for trangle and rectangle\n");
 		}
 
 
@@ -1365,6 +1365,39 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFree vkShaderModule_vertex_shader freed\n");
 		}
 
+		// Destroy uniform buffer for triangle
+		if (uniformData_Rectangle.vkBuffer)
+		{
+			vkDestroyBuffer(vkDevice, uniformData_Rectangle.vkBuffer, NULL);
+			uniformData_Rectangle.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFreed uniformData_Rectangle.vkBuffer \n");
+		}
+
+		if (uniformData_Rectangle.vkDeviceMemory)
+		{
+			vkFreeMemory(vkDevice, uniformData_Rectangle.vkDeviceMemory, NULL);
+			uniformData_Rectangle.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFreed uniformData_Rectangle.vkDeviceMemory \n");
+		}
+
+		// free color buffer
+		if (vertexData_Color_Rectangle.vkDeviceMemory)
+		{
+			vkFreeMemory(vkDevice, vertexData_Color_Rectangle.vkDeviceMemory, NULL);
+			vertexData_Color_Rectangle.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Color_Rectangle.vkDeviceMemory freed\n");
+
+		}
+
+		if (vertexData_Color_Rectangle.vkBuffer)
+		{
+			vkDestroyBuffer(vkDevice, vertexData_Color_Rectangle.vkBuffer, NULL);
+			vertexData_Color_Rectangle.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Color_Rectangle.vkBuffer freed\n");
+
+		}
+
+
 		// Destroy uniform buffer for recatngle
 		if (uniformData_Triangle.vkBuffer)
 		{
@@ -1380,19 +1413,21 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFreed uniformData_Triangle.vkDeviceMemory \n");
 		}
 
-		// Destroy uniform buffer for triangle
-		if (uniformData_Rectangle.vkBuffer)
+		// free color buffer
+		if (vertexData_Color_Triangle.vkDeviceMemory)
 		{
-			vkDestroyBuffer(vkDevice, uniformData_Rectangle.vkBuffer, NULL);
-			uniformData_Rectangle.vkBuffer = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed uniformData_Rectangle.vkBuffer \n");
+			vkFreeMemory(vkDevice, vertexData_Color_Triangle.vkDeviceMemory, NULL);
+			vertexData_Color_Triangle.vkDeviceMemory = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Color_Triangle.vkDeviceMemory freed\n");
+
 		}
 
-		if (uniformData_Rectangle.vkDeviceMemory)
+		if (vertexData_Color_Triangle.vkBuffer)
 		{
-			vkFreeMemory(vkDevice, uniformData_Rectangle.vkDeviceMemory, NULL);
-			uniformData_Rectangle.vkDeviceMemory = VK_NULL_HANDLE;
-			fprintf(gpFile, "\nFreed uniformData_Rectangle.vkDeviceMemory \n");
+			vkDestroyBuffer(vkDevice, vertexData_Color_Triangle.vkBuffer, NULL);
+			vertexData_Color_Triangle.vkBuffer = VK_NULL_HANDLE;
+			fprintf(gpFile, "\nFree vertexData_Color_Triangle.vkBuffer freed\n");
+
 		}
 
 		// for rectgnle
@@ -1510,7 +1545,7 @@ void uninitialise(void)
 
 	}
 
-	//uninitialise/destroy vulkan instance
+	//uninitialize/destroy vulkan instance
 	if (vkInstance)
 	{
 		vkDestroyInstance(vkInstance, NULL);
@@ -1518,29 +1553,14 @@ void uninitialise(void)
 		fprintf(gpFile, "\nvkDestroyInstance Done\n");
 	}
 
-    if(colormap)
-    {
-        XFreeColormap(gpDisplay,colormap);
-    }
-
-    if(gpXvisualInfo)
-    {
-        XFree((void*)gpXvisualInfo);
-        gpXvisualInfo = NULL;
-    }
-
-    if(gpDisplay)
-    {
-        XCloseDisplay(gpDisplay);
-        gpDisplay = NULL;
-    }
 
 	if (gpFile)
 	{
-		fprintf(gpFile, "\nuninitialise->Program Terminated Successfully.\n");
+		fprintf(gpFile, "\nUninitialize->Program Terminated Successfully.\n");
 		fclose(gpFile);
 		gpFile = NULL;
 	}
+
 
 }
 
@@ -1549,7 +1569,7 @@ void uninitialise(void)
 VkResult createVulkanInstance(void)
 {
 	// function declarations
-	VkResult fillExtensionNames();
+	VkResult fillExtensionNames(void);
 
 	VkResult fillValidationLayerNames(void);
 
