@@ -682,7 +682,6 @@ VkResult initialise(void)
 	}
 
 
-
 	vkresult = createShaders();
 	if (vkresult != VK_SUCCESS)
 	{
