@@ -251,3 +251,27 @@ createDescriptorSet() : vkCreateDescriptorPool() succeeded.
 vkUpdateDescriptorSets() succeeded.
 initialise() : createDescriptorset() succeeded
 createRenderPass() : vkCreateRenderPass() succeeded.
+initialise() : createRenderPass() succeeded
+createPipline() : vkCreatePipelineCache() succeeded.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+initialise() : createPipline() succeeded
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+initialise() : createFrameBuffers() succeeded
+createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.
+createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.
+initialise() : createSemaphores() succeeded
+createFences() : vkCreateFence() succeeded.
+createFences() : vkCreateFence() succeeded.
+initialise() : createFences() succeeded
+buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
+buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
+buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
+buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
+buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
+buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
+initialise() : buildCommandBuffers() succeeded
+******************************************* Initialise comment *****************************
+Initialised()  :  Initialisation() Complete Successfully
+Initialisation successful
