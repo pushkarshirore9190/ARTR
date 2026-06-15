@@ -3594,7 +3594,7 @@ VkResult createDiscriptorSetLayout(void)
 	vkdescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	vkdescriptorSetLayoutBinding.binding = 0;  // this 0 is related with the binding  = 0 of vertex shader
 	vkdescriptorSetLayoutBinding.descriptorCount = 1;
-	vkdescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	vkdescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT ;
 	vkdescriptorSetLayoutBinding.pImmutableSamplers = NULL;
 
 
