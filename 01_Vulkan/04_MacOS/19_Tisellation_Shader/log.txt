@@ -210,31 +210,29 @@ createVertexBuffer() : Suitable memory type found for vertex buffer at index 1
 createVertexBuffer() : vkAllocateMemory() succeeded.
 createVertexBuffer() : vkBindBufferMemory() succeeded.
 createVertexBuffer() : vkMapMemory() succeeded.
-createVertexBuffer() : vkCreateBuffer() succeeded for normal
-createVertexBuffer() : vkAllocateMemory() succeeded for normal
-createVertexBuffer() : vkBindBufferMemory() succeeded for normal
-createVertexBuffer() : vkMapMemory() succeeded for normal
-createVertexBuffer() : vkCreateBuffer() succeeded for texcoord
-createVertexBuffer() : vkAllocateMemory() succeeded for texcoord
-createVertexBuffer() : vkBindBufferMemory() succeeded for texcoord
-createVertexBuffer() : vkMapMemory() succeeded for texcoord
 initialise() : createVertexBuffer() succeeded
-createVertexBuffer() : vkCreateBuffer() succeeded position index buffer 
-createVertexBuffer() : Suitable memory type found for vertex buffer at index 1
-createVertexBuffer() : vkAllocateMemory() succeeded for position index buffer 
-createVertexBuffer() : vkBindBufferMemory() succeeded for position index buffer
-createVertexBuffer() : vkMapMemory() succeeded for position index buffer
-initialise() : createIndexBuffer() succeeded
 createUniformBuffer() : vkCreateBuffer() succeeded.
 createUniformBuffer() : Suitable memory type found for uniform buffer at index 1
 createUniformBuffer() : vkAllocateMemory() succeeded.
 createUniformBuffer() : vkBindBufferMemory() succeeded.
 createUniformBuffer() : updateUniformbuffer() succeeded.
 initialise() : createUniformBuffer() succeeded
-createShaders() : Successfully created shader module for Shader_PV.vert.spv
-createShaders() : Successfully created shader module for Shader_PV.frag.spv
-createShaders() : Successfully created shader module for Shader_PF.vert.spv
-createShaders() : Successfully created shader module for Shader_PF.frag.spv
+createShaders() : createShader succeeded to open vertexshader.spv file
+createShaders() : createShader succeeded to read vertexshader.spv file
+createShaders() : vkCreateShaderModule() succeeded fro vertex shader.
+Vertexshader Module sucessfully created
+createShaders() : createShader succeeded to open tessellation control shader file
+createShaders() : succeeded to read tessellation control shader file
+createShaders() : vkCreateShaderModule() succeeded for tessellation control shader
+Tessellation Control Shader Module successfully created
+createShaders() : createShader succeeded to open tessellation evaluation shader file
+createShaders() : succeeded to read tessellation evaluation shader file
+createShaders() : vkCreateShaderModule() succeeded for tessellation evaluation shader
+Tessellation Evaluation Shader Module successfully created
+createShaders() : createShader succeeded to open fragmentshader.spv file
+createShaders() : createShader succeeded to read fragmentshader.spv file
+createShaders() : vkCreateShaderModule() succeeded for fragment shader.
+Fragment Shader Module successfully created
 initialise() : createShaders() succeeded
 createDescriptorSetLayout() : vkCreateDescriptorSetLayout() succeeded.
 initialise() : createDiscriptorSetLayout() succeeded
@@ -249,8 +247,7 @@ initialise() : createDescriptorset() succeeded
 createRenderPass() : vkCreateRenderPass() succeeded.
 initialise() : createRenderPass() succeeded
 createPipline() : vkCreatePipelineCache() succeeded.
-createPipeline() : Per-Vertex pipeline created successfully.
-createPipeline() : Per-Fragment pipeline created successfully.
+createPipeline() : vkCreateGraphicsPipelines() succeeded.
 createPipeline() : Free vkPipelineCache freed
 initialise() : createPipline() succeeded
 createframeBuffers() : vkCreateFramebuffer() succeeded.
@@ -262,83 +259,13 @@ initialise() : createSemaphores() succeeded
 createFences() : vkCreateFence() succeeded.
 createFences() : vkCreateFence() succeeded.
 initialise() : createFences() succeeded
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
 initialise() : buildCommandBuffers() succeeded
 ******************************************* Initialise comment *****************************
 Initialised()  :  Initialisation() Complete Successfully
 Initialisation successful
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'V'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'F'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'V'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'F'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'V'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'F'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'V'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'F'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'V'
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[0].
-buildCommandBuffers() : vkResetCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkBeginCommandBuffer() successed at index[1].
-buildCommandBuffers() : vkEndCommandBuffer() successed at index[1].
-rebuildCommandBuffersIfReady(): command buffers re-recorded for shader 'F'
