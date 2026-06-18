@@ -1224,7 +1224,6 @@ int main(int argc, char* argv[])
 		return vkresult;
 	}
 
-	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  NO again
 	bInitialised = NO;
 
 	// set global winwidth and winheight variables
@@ -1399,27 +1398,20 @@ int main(int argc, char* argv[])
         fprintf(gpFile, "resize() : createCommandBuffers() failed (%d)\n", vkresult);
         return(vkresult);
     }
-    // REPLACE the current STEP 8 → STEP 12 block with this:
-
-    // STEP 8: Recreate FBO — this handles its own pool, descriptor set, and command buffer
+   
     [self resize_fbo:FBO_WIDTH :FBO_HEIGHT];
 
-    // STEP 9: Reset ONLY the main descriptor pool
-    // (FBO pool was already reset inside resize_fbo above — do NOT reset it again
-    //  or vkCommandBuffer_fbo will reference an invalidated descriptor set)
+   
     vkResetDescriptorPool(vkDevice, vkDescriptorPool, 0);
 
-    // STEP 10: Recreate main descriptor set
-    // At this point vksampler_fbo and vkImageView_fbo are valid (created by resize_fbo)
+    
     vkresult = [self createDescriptorSet];
     if (vkresult != VK_SUCCESS)
     {
         fprintf(gpFile, "resize() : createDescriptorSet() failed (%d)\n", vkresult);
         return(vkresult);
     }
-    // STEP 11 is REMOVED — resize_fbo already handled createDescriptorSet_fbo
-
-    // STEP 12: Rebuild main command buffers
+   
     vkresult = [self buildCommandBuffers];
     if (vkresult != VK_SUCCESS)
     {
@@ -1430,8 +1422,6 @@ int main(int argc, char* argv[])
 
     bInitialised = YES;
 
-    // STEP 13: Recreate backbuffer semaphore to fix
-    // "semaphore already signaled" error
     if (vkSemaphore_backbuffer)
     {
         vkDestroySemaphore(vkDevice, vkSemaphore_backbuffer, NULL);
