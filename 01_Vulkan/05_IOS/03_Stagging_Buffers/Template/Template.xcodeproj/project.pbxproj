@@ -1,0 +1,559 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6EF12B202FF585B7001D1B34 /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EF12B1D2FF585B7001D1B34 /* MoltenVK.xcframework */; };
+		6EF12B212FF585B7001D1B34 /* MoltenVK.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6EF12B1D2FF585B7001D1B34 /* MoltenVK.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6EF12B222FF585B7001D1B34 /* VkLayer_khronos_validation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EF12B1E2FF585B7001D1B34 /* VkLayer_khronos_validation.framework */; };
+		6EF12B232FF585B7001D1B34 /* VkLayer_khronos_validation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6EF12B1E2FF585B7001D1B34 /* VkLayer_khronos_validation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6EF12B242FF585B7001D1B34 /* vulkan.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EF12B1F2FF585B7001D1B34 /* vulkan.framework */; };
+		6EF12B252FF585B7001D1B34 /* vulkan.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6EF12B1F2FF585B7001D1B34 /* vulkan.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6EF12B292FF5887C001D1B34 /* vulkan in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6EF12B282FF5887C001D1B34 /* vulkan */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6EF12B262FF585B7001D1B34 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				6EF12B212FF585B7001D1B34 /* MoltenVK.xcframework in Embed Frameworks */,
+				6EF12B232FF585B7001D1B34 /* VkLayer_khronos_validation.framework in Embed Frameworks */,
+				6EF12B252FF585B7001D1B34 /* vulkan.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF12B272FF5877B001D1B34 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				6EF12B292FF5887C001D1B34 /* vulkan in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		6E230DDD2FE318250073CD22 /* StaggingBuffer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StaggingBuffer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EF12B1D2FF585B7001D1B34 /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../../../../VulkanSDK/Vulkan/iOS/lib/MoltenVK.xcframework; sourceTree = "<group>"; };
+		6EF12B1E2FF585B7001D1B34 /* VkLayer_khronos_validation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VkLayer_khronos_validation.framework; path = ../../../../../../VulkanSDK/Vulkan/iOS/lib/VkLayer_khronos_validation.framework; sourceTree = "<group>"; };
+		6EF12B1F2FF585B7001D1B34 /* vulkan.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = vulkan.framework; path = ../../../../../../VulkanSDK/Vulkan/iOS/lib/vulkan.framework; sourceTree = "<group>"; };
+		6EF12B282FF5887C001D1B34 /* vulkan */ = {isa = PBXFileReference; lastKnownFileType = folder; path = vulkan; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6E230DF42FE318260073CD22 /* Exceptions for "Template" folder in "Template" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				glm/CMakeLists.txt,
+				glm/detail/func_common_simd.inl,
+				glm/detail/func_common.inl,
+				glm/detail/func_exponential_simd.inl,
+				glm/detail/func_exponential.inl,
+				glm/detail/func_geometric_simd.inl,
+				glm/detail/func_geometric.inl,
+				glm/detail/func_integer_simd.inl,
+				glm/detail/func_integer.inl,
+				glm/detail/func_matrix_simd.inl,
+				glm/detail/func_matrix.inl,
+				glm/detail/func_packing_simd.inl,
+				glm/detail/func_packing.inl,
+				glm/detail/func_trigonometric_simd.inl,
+				glm/detail/func_trigonometric.inl,
+				glm/detail/func_vector_relational_simd.inl,
+				glm/detail/func_vector_relational.inl,
+				glm/detail/type_half.inl,
+				glm/detail/type_mat2x2.inl,
+				glm/detail/type_mat2x3.inl,
+				glm/detail/type_mat2x4.inl,
+				glm/detail/type_mat3x2.inl,
+				glm/detail/type_mat3x3.inl,
+				glm/detail/type_mat3x4.inl,
+				glm/detail/type_mat4x2.inl,
+				glm/detail/type_mat4x3.inl,
+				glm/detail/type_mat4x4_simd.inl,
+				glm/detail/type_mat4x4.inl,
+				glm/detail/type_quat_simd.inl,
+				glm/detail/type_quat.inl,
+				glm/detail/type_vec_simd.inl,
+				glm/detail/type_vec1.inl,
+				glm/detail/type_vec2.inl,
+				glm/detail/type_vec3.inl,
+				glm/detail/type_vec4.inl,
+				glm/ext/matrix_clip_space.inl,
+				glm/ext/matrix_common.inl,
+				glm/ext/matrix_integer.inl,
+				glm/ext/matrix_transform.inl,
+				glm/ext/quaternion_common_simd.inl,
+				glm/ext/quaternion_common.inl,
+				glm/ext/quaternion_exponential.inl,
+				glm/ext/quaternion_transform.inl,
+				glm/ext/scalar_common.inl,
+				glm/ext/scalar_integer.inl,
+				glm/ext/scalar_packing.inl,
+				glm/ext/vector_reciprocal.inl,
+				glm/ext/vector_relational.inl,
+				glm/glm.cppm,
+				glm/gtc/bitfield.inl,
+				glm/gtc/color_space.inl,
+				glm/gtc/constants.inl,
+				glm/gtc/epsilon.inl,
+				glm/gtc/integer.inl,
+				glm/gtc/matrix_access.inl,
+				glm/gtc/matrix_inverse.inl,
+				glm/gtc/matrix_transform.inl,
+				glm/gtc/noise.inl,
+				glm/gtc/packing.inl,
+				glm/gtc/quaternion_simd.inl,
+				glm/gtc/quaternion.inl,
+				glm/gtc/random.inl,
+				glm/gtc/round.inl,
+				glm/gtc/type_precision.inl,
+				glm/gtc/type_ptr.inl,
+				glm/gtc/ulp.inl,
+				glm/gtx/associated_min_max.inl,
+				glm/gtx/bit.inl,
+				glm/gtx/closest_point.inl,
+				glm/gtx/color_encoding.inl,
+				glm/gtx/color_space_YCoCg.inl,
+				glm/gtx/color_space.inl,
+				glm/gtx/common.inl,
+				glm/gtx/compatibility.inl,
+				glm/gtx/component_wise.inl,
+				glm/gtx/dual_quaternion.inl,
+				glm/gtx/easing.inl,
+				glm/gtx/euler_angles.inl,
+				glm/gtx/extend.inl,
+				glm/gtx/extended_min_max.inl,
+				glm/gtx/exterior_product.inl,
+				glm/gtx/fast_exponential.inl,
+				glm/gtx/fast_square_root.inl,
+				glm/gtx/fast_trigonometry.inl,
+				glm/gtx/float_normalize.inl,
+				glm/gtx/functions.inl,
+				glm/gtx/gradient_paint.inl,
+				glm/gtx/handed_coordinate_space.inl,
+				glm/gtx/hash.inl,
+				glm/gtx/integer.inl,
+				glm/gtx/intersect.inl,
+				glm/gtx/io.inl,
+				glm/gtx/log_base.inl,
+				glm/gtx/matrix_cross_product.inl,
+				glm/gtx/matrix_decompose.inl,
+				glm/gtx/matrix_factorisation.inl,
+				glm/gtx/matrix_interpolation.inl,
+				glm/gtx/matrix_major_storage.inl,
+				glm/gtx/matrix_operation.inl,
+				glm/gtx/matrix_query.inl,
+				glm/gtx/matrix_transform_2d.inl,
+				glm/gtx/mixed_product.inl,
+				glm/gtx/norm.inl,
+				glm/gtx/normal.inl,
+				glm/gtx/normalize_dot.inl,
+				glm/gtx/optimum_pow.inl,
+				glm/gtx/orthonormalize.inl,
+				glm/gtx/pca.inl,
+				glm/gtx/perpendicular.inl,
+				glm/gtx/polar_coordinates.inl,
+				glm/gtx/projection.inl,
+				glm/gtx/quaternion.inl,
+				glm/gtx/raw_data.inl,
+				glm/gtx/rotate_normalized_axis.inl,
+				glm/gtx/rotate_vector.inl,
+				glm/gtx/scalar_relational.inl,
+				glm/gtx/spline.inl,
+				glm/gtx/std_based_type.inl,
+				glm/gtx/string_cast.inl,
+				glm/gtx/structured_bindings.inl,
+				glm/gtx/texture.inl,
+				glm/gtx/transform.inl,
+				glm/gtx/transform2.inl,
+				glm/gtx/type_aligned.inl,
+				glm/gtx/type_trait.inl,
+				glm/gtx/vector_angle.inl,
+				glm/gtx/vector_query.inl,
+				glm/gtx/wrap.inl,
+				Info.plist,
+			);
+			target = 6E230DDC2FE318250073CD22 /* Template */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		6E230DDF2FE318250073CD22 /* Template */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6E230DF42FE318260073CD22 /* Exceptions for "Template" folder in "Template" target */,
+			);
+			path = Template;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6E230DDA2FE318250073CD22 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EF12B202FF585B7001D1B34 /* MoltenVK.xcframework in Frameworks */,
+				6EF12B222FF585B7001D1B34 /* VkLayer_khronos_validation.framework in Frameworks */,
+				6EF12B242FF585B7001D1B34 /* vulkan.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6E230DD42FE318250073CD22 = {
+			isa = PBXGroup;
+			children = (
+				6EF12B282FF5887C001D1B34 /* vulkan */,
+				6E230DDF2FE318250073CD22 /* Template */,
+				6EF12B1C2FF585B7001D1B34 /* Frameworks */,
+				6E230DDE2FE318250073CD22 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6E230DDE2FE318250073CD22 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6E230DDD2FE318250073CD22 /* StaggingBuffer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6EF12B1C2FF585B7001D1B34 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6EF12B1D2FF585B7001D1B34 /* MoltenVK.xcframework */,
+				6EF12B1E2FF585B7001D1B34 /* VkLayer_khronos_validation.framework */,
+				6EF12B1F2FF585B7001D1B34 /* vulkan.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6E230DDC2FE318250073CD22 /* Template */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6E230DF52FE318260073CD22 /* Build configuration list for PBXNativeTarget "Template" */;
+			buildPhases = (
+				6E230DD92FE318250073CD22 /* Sources */,
+				6E230DDA2FE318250073CD22 /* Frameworks */,
+				6E230DDB2FE318250073CD22 /* Resources */,
+				6EF12B262FF585B7001D1B34 /* Embed Frameworks */,
+				6EF12B272FF5877B001D1B34 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6E230DDF2FE318250073CD22 /* Template */,
+			);
+			name = Template;
+			packageProductDependencies = (
+			);
+			productName = Template;
+			productReference = 6E230DDD2FE318250073CD22 /* StaggingBuffer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6E230DD52FE318250073CD22 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					6E230DDC2FE318250073CD22 = {
+						CreatedOnToolsVersion = 26.5;
+					};
+				};
+			};
+			buildConfigurationList = 6E230DD82FE318250073CD22 /* Build configuration list for PBXProject "Template" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6E230DD42FE318250073CD22;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 6E230DDE2FE318250073CD22 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6E230DDC2FE318250073CD22 /* Template */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6E230DDB2FE318250073CD22 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6E230DD92FE318250073CD22 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		6E230DF62FE318260073CD22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_ARC = NO;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YNKKFWX624;
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(HOME)/VulkanSDK/Vulkan/iOS/lib";
+				GCC_INPUT_FILETYPE = automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = "$(HOME)/VulkanSDK/Vulkan/iOS/include";
+				INFOPLIST_FILE = Template/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StaggingBuffer;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/Frameworks/MoltenVK.Framework",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(HOME)/VulkanSDK/Vulkan/iOS/lib";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = prs.StaggingBuffer;
+				PRODUCT_NAME = StaggingBuffer;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		6E230DF72FE318260073CD22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_ARC = NO;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YNKKFWX624;
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(HOME)/VulkanSDK/Vulkan/iOS/lib";
+				GCC_INPUT_FILETYPE = automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = "$(HOME)/VulkanSDK/Vulkan/iOS/include";
+				INFOPLIST_FILE = Template/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StaggingBuffer;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/Frameworks/MoltenVK.Framework",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(HOME)/VulkanSDK/Vulkan/iOS/lib";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = prs.StaggingBuffer;
+				PRODUCT_NAME = StaggingBuffer;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		6E230DF82FE318260073CD22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		6E230DF92FE318260073CD22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6E230DD82FE318250073CD22 /* Build configuration list for PBXProject "Template" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E230DF82FE318260073CD22 /* Debug */,
+				6E230DF92FE318260073CD22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6E230DF52FE318260073CD22 /* Build configuration list for PBXNativeTarget "Template" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E230DF62FE318260073CD22 /* Debug */,
+				6E230DF72FE318260073CD22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6E230DD52FE318250073CD22 /* Project object */;
+}
