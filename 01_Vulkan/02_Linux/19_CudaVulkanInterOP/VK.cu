@@ -1,20 +1,25 @@
-﻿// windows header files
-#include<windows.h>
-#include"VK.h"
-#include<stdio.h> // for file IO
-#include<stdlib.h> // for exit
 
-#define VK_USE_PLATFORM_WIN32_KHR  // tells in which platform you are
+// standard header file
+#include<stdio.h>
+#include<stdlib.h>
+#include<memory.h>
+#include<unistd.h>  // for close() on Linux fd
+
+
+// X11 header files
+#include<X11/Xlib.h> // for all XWindow APIs
+#include<X11/Xutil.h> // for XVisiualInfo and related API
+#include<X11/XKBlib.h>
+#include <X11/keysym.h>
+#include<X11/Xatom.h> // for XA_ATOM
+
+
+#define VK_USE_PLATFORM_XLIB_KHR
 #include<vulkan/vulkan.h>
 
-// OpenCL Headers
-#define CL_TARGET_OPENCL_VERSION 300
-#include<CL/OpenCL.h>
-#include<CL/cl_ext.h> // for cl_khr_icd extension and cl_khr_d3d11_sharing extension 
 
-// OpenCl import library
-#pragma comment(lib, "OpenCL.lib")
-
+// cuda related headers
+#include<cuda_runtime.h>
 
 // glm related macros and header files
 #define GLM_FORCE_RADIANS
@@ -23,64 +28,31 @@
 #include"glm/gtc/matrix_transform.hpp"
 
 
-// cl_khr_external_memory extension constants
-#ifndef CL_MEM_DEVICE_HANDLE_LIST_KHR
-#define CL_MEM_DEVICE_HANDLE_LIST_KHR      0x2051
-#define CL_MEM_DEVICE_HANDLE_LIST_END_KHR  0
-#endif
-
-
-// OpenCL external memory function pointer typedefs
-typedef cl_int (CL_API_CALL *clEnqueueAquireExternalMemObjectsKHR_fn)(
-    cl_command_queue command_queue,
-    cl_uint num_mem_objects,
-    const cl_mem* mem_objects,
-    cl_uint num_events_in_wait_list,
-    const cl_event* event_wait_list,
-    cl_event* event);
-
-typedef cl_int (CL_API_CALL *clEnqueueReleaseExternalMemObjectsKHR_fn)(
-    cl_command_queue command_queue,
-    cl_uint num_mem_objects,
-    const cl_mem* mem_objects,
-    cl_uint num_events_in_wait_list,
-    const cl_event* event_wait_list,
-    cl_event* event);
-
-typedef cl_mem (CL_API_CALL *clCreateBufferWithPropertiesKHR_fn)(
-    cl_context context,
-    const cl_mem_properties* properties,
-    cl_mem_flags flags,
-    size_t size,
-    void* host_ptr,
-    cl_int* errcode_ret);
-
-
-
-// vulkun related libraries
-#pragma comment(lib, "vulkan-1.lib")
-
-
 // Macros
-#define Win_WIDTH 800
-#define Win_HEIGHT 600
+#define WIN_WIDTH 800
+#define WIN_HEIGHT 600
+#define ARRAY_SIZE(x) sizeof(x)/sizeof(x[0])
 
 
-//global function declaration
-LRESULT CALLBACK Wndproc(HWND, UINT, WPARAM, LPARAM);
-
-const char* gpszAppName = "ARTR";
-
-// global variable declaration
-FILE* gpFile = NULL; 
+// global varialble declaration
+const char * gpszAppName = "ARTR";
 
 
-HWND ghwnd = NULL;
-BOOL gbActive = FALSE;
-DWORD dwstyle = 0;
-WINDOWPLACEMENT wprev;
-BOOL gbFullscreen = FALSE;
-BOOL bWindowMinimized = FALSE;
+Display *gpDisplay = NULL;
+Colormap colormap;
+Window window;
+XVisualInfo *gpXvisualInfo = NULL;
+
+
+int winWidth = WIN_WIDTH;
+int winHeight = WIN_HEIGHT;
+
+Bool bActiveWIndow = False;
+Bool bEscapeKeyIsPressed = False;
+Bool bFullscreen = False;
+Bool bWindowMinimized = False;
+
+FILE * gpFile = NULL;
 
 
 // vulkun related global variables
@@ -115,7 +87,7 @@ VkPhysicalDevice* vkPhysicalDevice_Array = NULL;
 
 uint32_t enableDeviceExtensionCount = 0;
 
-const char* enabledDeviceExtensionNames_array[2];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME and VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
+const char* enabledDeviceExtensionNames_array[3];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME and  VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
 
 // Vulkan Device
 VkDevice vkDevice = VK_NULL_HANDLE;
@@ -131,8 +103,6 @@ VkColorSpaceKHR vkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 // presentation mode
 VkPresentModeKHR vkPresentModeKHR = VK_PRESENT_MODE_FIFO_KHR;
 
-int winWidth = Win_WIDTH;
-int winHeight = Win_HEIGHT;
 
 //swap chain related global variables
 VkSwapchainKHR vkSwapchainKHR = VK_NULL_HANDLE;
@@ -176,12 +146,12 @@ VkClearColorValue vkClearColorValue;
 
 VkClearDepthStencilValue vkClearDepthStencilValue;
 
-BOOL bInitialised = FALSE;
+Bool bInitialised = False;
 
 uint32_t currentImageIndex = UINT32_MAX;
 
 // Validation
-BOOL bValidation = TRUE;
+Bool bValidation = True;
 
 uint32_t enabledValidationLayerCount = 0;
 
@@ -249,356 +219,480 @@ VertexData vertex_position_1024x1024_graphics;
 
 VkCommandBuffer* vkCommandBuffer_For_1024x1024_graphics_Array = NULL;
 
-BOOL bMesh1024Choosen = TRUE;
+Bool bMesh1024Choosen = True;
 
 char colorFromKey = 'O';
 
 float AnimationTime = 0.0f;
 
-// sinwave related varibles
-unsigned int mesh_Width = 1024;
-unsigned int mesh_Height = 1024;
-
-// Opencl related global declarations
-cl_int oclResult;
-cl_platform_id oclPlatformID;
-cl_device_id oclDeviceID;
-cl_context oclContext;
-cl_command_queue oclCommandQueue;
-cl_program oclProgram;
-cl_kernel oclKernel;
-cl_mem pos_OpenCL = NULL;
-
+// Cuda related variables
+cudaError_t cudaResult;
 
 VkExternalMemoryHandleTypeFlagBits vkExternalMemoryHandleTypeFlagBits;
 
+cudaExternalMemory_t cuExtMemory;
+
+void* pos_Cuda = NULL;
+
 VertexData vertex_External;
 
-BOOL bOnGPU = FALSE;
+Bool bOnGPU = False;
 
 
+// CUDA kernel for sine wave
 
-//entry_point function
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstace, LPSTR lpszCmdLine, int iCmdShow)
+__global__ void sinWaveKernel(float4* pos, int width, int height, float time)
 {
-	// Function Declaration 
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    // Bounds check (MANDATORY)
+    if (x >= width || y >= height)
+        return;
+
+    float u = (float)x / (float)width;
+    float v = (float)y / (float)height;
+
+    u = u * 2.0f - 1.0f;
+    v = v * 2.0f - 1.0f;
+
+    float frequency = 4.0f;
+
+    float w = sinf(u * frequency + time) * cosf(v * frequency + time) * 0.5f;
+
+    pos[y * width + x] = make_float4(u, w, v, 1.0f);
+
+}
+
+
+// entry point function
+int main(int argc, char *argv[])
+{
+    // Function Declaration 
 	VkResult initialise(void);
 	void uninitialise(void);
 	VkResult display(void);
 	void update(void);
-
-	// local variable declarations
-	WNDCLASSEX wndclass;
-	HWND hwnd;
-	MSG msg;
-	TCHAR szAppName[255];
-	int iResult = 0;
-	BOOL bDone = FALSE;
-
-	VkResult vkresult = VK_SUCCESS;
-
-	//int height = 600;
-	//int width = 800;
-	int window_x_coordinate = GetSystemMetrics(SM_CXSCREEN);
-	int window_y_coordinate = GetSystemMetrics(SM_CYSCREEN);
-	int y;
-	int x;
-	x = (window_x_coordinate / 2) - Win_WIDTH / 2;
-	y = (window_y_coordinate / 2) - Win_HEIGHT / 2;
-
-	//code
-	gpFile = fopen("Log.txt", "w");
-	if (gpFile == NULL)
-	{
-		MessageBox(NULL, TEXT("log file cannot be open"), TEXT("Eroor"), MB_OK | MB_ICONERROR);
-		exit(0);
-	}
-	fprintf(gpFile, "programm started successfully...\n");
-
-	wsprintf(szAppName, TEXT("%s"), gpszAppName);
-
-	//WndclassEX initialisation
-
-	wndclass.cbSize = sizeof(WNDCLASSEX);
-	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wndclass.cbClsExtra = 0;
-	wndclass.cbWndExtra = 0;
-	wndclass.lpfnWndProc = Wndproc;
-	wndclass.hInstance = hInstance;
-	wndclass.hbrBackground= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wndclass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndclass.lpszClassName = szAppName;
-	wndclass.lpszMenuName = NULL;
-	wndclass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(MYICON));
-
-	//register wndclassEX
-
-	RegisterClassEx(&wndclass);
+	void toggleFullScreen(void);
+	VkResult resize(int, int);
+    Bool isWindowMinimized(void);
 
 
-	// create window
-	hwnd = CreateWindowEx(WS_EX_APPWINDOW, 
-		szAppName,
-		TEXT("PRS : Vulkun"),
-		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+    VkResult vkresult = VK_SUCCESS;
 
 
-		x,// upperleft x-coordinate
-		y,// upperleft y-coordinate
-		Win_WIDTH,// width
-		Win_HEIGHT,// height
+    // Local Variable Declation
+    XVisualInfo XvisualInfo;
+    int iNumFBConfig = 0;
+    XSetWindowAttributes WindowAttributes;
+    int defaultScreen;
+    int defaultDepth;
+    Status status;
+    XSetWindowAttributes windowAttribute;
+    int styleMask;
+    Atom windowManagerDelete;
+    XEvent event;
+    KeySym keysym;
+    int screenWidth;
+    int screenHeight;
+    char keys[26];
+    Bool bDone = False;
 
-		NULL,
-		NULL,
-		hInstance,
-		NULL);
+    // code
 
-	ghwnd = hwnd;
+    gpFile = fopen("Log.txt","w");
+    if(gpFile == NULL)
+    {
+        printf(" main(): Log File Can Not Be Created. Exiting Now ...\n");
+        exit(1);
+    }
+    else
+    {
+        fprintf(gpFile," main() : Programm Started Successfully. \n");
+    }
 
-	// INITIALISATION
+	if (XInitThreads() == 0) {
+        fprintf(gpFile, "main(): XInitThreads() failed\n");
+        uninitialise();
+        exit(1);
+    }
 
-	vkresult = initialise();
+    // Open the connection with x-server interface and get gpDisplay interface
+    gpDisplay = XOpenDisplay(NULL);
+    if(gpDisplay == NULL)
+    {
+        fprintf(gpFile, "main(): XOpenDisplay Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    // Get Default screen from above gpDisplay
+    defaultScreen = XDefaultScreen(gpDisplay);
+
+    // Get Default Depth from above two 
+    //defaultDepth = XDefaultDepth(gpDisplay,defaultScreen);
+
+    // Get Visiualinfo from above three
+    memset((void*)&XvisualInfo,0,sizeof(XVisualInfo));
+
+    XvisualInfo.screen = defaultScreen;
+    gpXvisualInfo = XGetVisualInfo(gpDisplay,VisualScreenMask,&XvisualInfo,&iNumFBConfig);
+
+    if(gpXvisualInfo == NULL)
+    {
+        fprintf(gpFile,"main(): XGetVisualInfo Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    fprintf(gpFile, "Found Number Of iNumFBConfig = %d\n",iNumFBConfig);
+
+    // create colormap
+    colormap = XCreateColormap(gpDisplay,
+    XRootWindow(gpDisplay,XvisualInfo.screen),gpXvisualInfo->visual,AllocNone);
+
+    // set Window attributes / Properties
+    memset((void*)&windowAttribute,0,sizeof(XSetWindowAttributes));
+
+    windowAttribute.border_pixel = 0;
+    windowAttribute.background_pixel = XBlackPixel(gpDisplay,defaultScreen);
+    windowAttribute.background_pixmap = 0;
+    windowAttribute.colormap = colormap;
+    windowAttribute.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | KeyPressMask | PointerMotionMask | StructureNotifyMask | PropertyChangeMask | FocusChangeMask;
+     // set the style of window
+    styleMask = CWBorderPixel | CWBackPixel | CWColormap | CWEventMask;
+
+    // Now finally create window
+    window = XCreateWindow(gpDisplay,
+    XRootWindow(gpDisplay,XvisualInfo.screen),
+    0,
+    0,
+    WIN_WIDTH,
+    WIN_HEIGHT,
+    0,
+    gpXvisualInfo->depth,
+    InputOutput,
+    gpXvisualInfo->visual,
+    styleMask,
+    &windowAttribute);
+
+    if(!window)
+    {
+        fprintf(gpFile,"main(): XCreateWindow Failed \n");
+        uninitialise();
+        exit(1);
+    }
+
+    vkresult = initialise();
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "WinMain() : Initialise functioon failed\n");
-		DestroyWindow(hwnd);
-		hwnd = NULL;
+		fprintf(gpFile, "Winmain() : Intialise() failed with error code : %d\n", vkresult);
+        uninitialise();
+        exit(0);
 	}
 	else
 	{
-		fprintf(gpFile, "Winmain() : Intialise() succeeded\n");
+		fprintf(gpFile, "Winmain() : Intialise() Succeded. \n");
 	}
 
-	// show the window
-	ShowWindow(hwnd, iCmdShow);
+    // Give caption to window
+    XStoreName(gpDisplay,window,"PRS : Vulkan");
 
-	SetForegroundWindow(hwnd);
-	SetFocus(hwnd);
+    // specify window manager delete atom
+    windowManagerDelete = XInternAtom(gpDisplay,"WM_DELETE_WINDOW",True);
 
-	
+    // set above atom as protocol for window manager
+    XSetWMProtocols(gpDisplay,window,&windowManagerDelete,1);
 
-	// gameloop
-	while (bDone == FALSE)
-	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-				bDone = TRUE;
+     // show / map the window
+    XMapWindow(gpDisplay,window);
 
-			else
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
 
-			}
+    // Center the Window
+    screenWidth = XWidthOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
+    screenHeight = XHeightOfScreen(XScreenOfDisplay(gpDisplay,defaultScreen));
+    XMoveWindow(gpDisplay,window,(screenWidth - WIN_WIDTH) / 2 , (screenHeight - WIN_HEIGHT) / 2);
 
-		}
+    // Event Loop
+    while (bDone == False)
+    {
+        while (XPending(gpDisplay))
+        {
+           
+            XNextEvent(gpDisplay,&event);
+            switch (event.type)
+            {
+                case MapNotify:
+                    break;
+                case FocusIn: // simlar to WM_SETFOCUS
+                    bActiveWIndow = True;
+                    break;
+                case FocusOut: // simlar to WM_KILLFOCUS
+                    bActiveWIndow = False;
+                    break;
+                case KeyPress :
+                    keysym = XkbKeycodeToKeysym(gpDisplay,event.xkey.keycode,0,0);
 
-		else
-		{
-			if (gbActive == TRUE)
-			{
-				if (bWindowMinimized == FALSE)
-				{
-					// RENDER
-					vkresult =  display();
-					if (vkresult != VK_FALSE && vkresult != VK_SUCCESS && vkresult != VK_ERROR_OUT_OF_DATE_KHR && vkresult != VK_SUBOPTIMAL_KHR)
-					{
-						fprintf(gpFile, "Initialisation() :  call to display failed\n");
-						bDone = TRUE;
-					}
+                switch (keysym)
+                {
+                    case XK_Escape:
+                        bEscapeKeyIsPressed = True;
+                        break; 
 
-					// update
-					update();
-				}
-			}
+                    default:
+                        break;   
+                }
 
-		}
-	}
+                XLookupString(&event.xkey,keys,sizeof(keys),NULL,NULL);
 
-	// UNINITIALISATION
-	uninitialise();
+                switch(keys[0])
+                {
+                    case 'F':
+                    case 'f':
+                        if(bFullscreen == False)
+                        {
+                            toggleFullScreen();
+                            bFullscreen = True;
+                        }
+                        else
+                        {
+                            toggleFullScreen();
+                            bFullscreen = False;
+                        }
+                        break;
+					case 'K':
+					case 'k':
+						colorFromKey = 'K';
+						break;
 
-	return((int)msg.wParam);
+					case 'R':
+					case 'r':
+						colorFromKey = 'R';
+						break;
+
+					case 'G':
+					case 'g':
+						colorFromKey = 'G';
+						break;
+
+					case 'B':
+					case 'b':
+						colorFromKey = 'B';
+						break;
+
+					case 'C':
+					case 'c':
+						colorFromKey = 'C';
+						break;
+
+					case 'M':
+					case 'm':
+						colorFromKey = 'M';
+						break;
+
+					case 'Y':
+					case 'y':
+						colorFromKey = 'Y';
+						break;
+
+					case 'V':
+					case 'v':
+						colorFromKey = 'V';
+						break;
+
+					case 'S':
+					case 's':
+						colorFromKey = 'S';
+						break;
+
+					case 'O':
+					case 'o':
+						colorFromKey = 'O';
+						break;
+
+					case 'P':
+					case 'p':
+						bOnGPU = False;
+						break;
+
+					case 'H':
+					case 'h':
+						bOnGPU = True;
+						break;
+
+                        default:
+                            break;
+                        
+                }
+                break;
+
+                case ConfigureNotify: // similar to WM_SIZE
+                    winWidth = event.xconfigure.width;
+                    winHeight = event.xconfigure.height;
+                    resize(winWidth,winHeight);
+                    break;
+
+                case PropertyNotify:
+                    if (isWindowMinimized() == True)
+                    {
+                        bWindowMinimized = True;
+                    }
+                    else
+                    {
+                        bWindowMinimized = False;
+                    }
+                    break;
+
+                case DestroyNotify:
+                    break;
+    
+                case 33 : // for WM_DESTROY
+                    bDone = True;
+                    break;
+                break;
+                default:
+                break;
+            }
+        }
+
+        if (bActiveWIndow == True)
+        {
+            if (bEscapeKeyIsPressed == True)
+            {
+                bDone = True;
+            }
+
+            // Display
+            if (bWindowMinimized == False)
+            {
+                // RENDER
+                vkresult =  display();
+                if (vkresult != VK_FALSE && vkresult != VK_SUCCESS && vkresult != VK_ERROR_OUT_OF_DATE_KHR && vkresult != VK_SUBOPTIMAL_KHR)
+                {
+                    fprintf(gpFile, "Initialisation() :  call to display failed\n");
+                    bDone = True;
+                }
+
+                // update
+                update();
+            }
+        }
+    }
+
+    uninitialise();
+
+    printf("End of the programm\n");
+
+    return 0; 
 }
 
-
-//callback function
-LRESULT CALLBACK Wndproc(HWND hwnd , UINT iMsg, WPARAM wParam, LPARAM lParam)
+void toggleFullScreen(void)
 {
-	// function declaration
-	void ToggleFullscreen(void);
-	VkResult resize(int, int);
+    // Local Variable Declaration
+    Atom windowManagerStateNormal;
+    Atom windowManagerStateFullscreen;
+    XEvent event; 
 
-	// code
-	switch (iMsg)
-	{
-	case WM_SETFOCUS:
-		gbActive = TRUE;
-		break;
-	case WM_KILLFOCUS:
-		gbActive = FALSE;
-		break;
-	case WM_CREATE:
-		memset(&wprev, 0, sizeof(WINDOWPLACEMENT));
-		wprev.length = sizeof(WINDOWPLACEMENT);
-		break;
-	case WM_SIZE:
-		if (wParam == SIZE_MINIMIZED)
-		{
-			bWindowMinimized = TRUE;
-		}
-		else
-		{
-			resize(LOWORD(lParam), HIWORD(lParam));
-			bWindowMinimized = FALSE;
-		}
-		break;
-	case WM_ERASEBKGND:
-		return(0);
-	case WM_KEYDOWN:
-		switch (LOWORD(wParam))
-		{
-		case VK_ESCAPE:
-			DestroyWindow(hwnd);
-			break;
-		
-		case 52: // key '4' for 1024 x 1024 mesh
-			bMesh1024Choosen = TRUE;
-			break;
-		}
-		break;
+    // code
+    windowManagerStateNormal = XInternAtom(gpDisplay,"_NET_WM_STATE",False);
 
+    windowManagerStateFullscreen = XInternAtom(gpDisplay,"_NET_WM_STATE_FULLSCREEN",False);
 
-	case WM_CHAR:
-		switch (LOWORD(wParam))
-		{
-		case 'F':
-		case 'f':
-			if (gbFullscreen == FALSE)
-			{
-				ToggleFullscreen();
-				gbFullscreen = TRUE;
-			}
-			else
-			{
-				ToggleFullscreen();
-				gbFullscreen = FALSE;
-			}
-			break;
-		
-	    case 'K':
-		case 'k':
-			colorFromKey = 'K';
-			break;
+    // memeset event struct and fill it with above two atoms
+    memset((void*)&event,0,sizeof(XEvent));
 
-		case 'R':
-		case 'r':
-			colorFromKey = 'R';
-			break;
+    event.type = ClientMessage;
+    event.xclient.window = window;
+    event.xclient.message_type = windowManagerStateNormal;
+    event.xclient.format = 32;
+    event.xclient.data.l[0] = bFullscreen?0:1;
+    event.xclient.data.l[1] = windowManagerStateFullscreen;
 
-		case 'G':
-		case 'g':
-			colorFromKey = 'G';
-			break;
+    // send the event
+    XSendEvent(gpDisplay,
+    XRootWindow(gpDisplay,gpXvisualInfo->screen),
+    False,
+    SubstructureNotifyMask,
+    &event);
 
-		case 'B':
-		case 'b':
-			colorFromKey = 'B';
-			break;
-
-		case 'C':
-		case 'c':
-			colorFromKey = 'C';
-			break;
-
-		case 'M':
-		case 'm':
-			colorFromKey = 'M';
-			break;
-
-		case 'Y':
-		case 'y':
-			colorFromKey = 'Y';
-			break;
-
-		case 'V':
-		case 'v':
-			colorFromKey = 'V';
-			break;
-
-		case 'S':
-		case 's':
-			colorFromKey = 'S';
-			break;
-
-		case 'O':
-		case 'o':
-			colorFromKey = 'O';
-			break;
-
-		case 'P':
-		case 'p':
-			bOnGPU = FALSE;
-			break;
-
-		case 'H':
-		case 'h':
-			if (pos_OpenCL != NULL)
-				bOnGPU = TRUE;
-			else
-				fprintf(gpFile, "GPU mode not available: pos_OpenCL is NULL\n");
-			break;
-
-		}
-		break;
-
-	case WM_CLOSE:
-		DestroyWindow(hwnd);
-		break;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-
-	default:
-		break;
-
-	}
-	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
 
 }
 
-void ToggleFullscreen(void)
+Bool isWindowMinimized(void)
 {
-	// local variable decalration
-	MONITORINFO mi = { sizeof(MONITORINFO) };
+    // function declaration
+    void uninitialise(void);
 
-	//code
-	if (gbFullscreen == FALSE)
-	{
-		dwstyle = GetWindowLong(ghwnd, GWL_STYLE);
+    // Local Varible Delcaration
+    Bool windowMinimized = False;
+    int iResult = -1;
+    Atom Return_Property_Type = None;
+    int Return_Property_Format = -1;
+    unsigned long number_of_returned_items = 0;
+    unsigned long number_of_bytes_remained = 0;
+    unsigned char *returned_property_data_array = NULL;
+    Atom wm_state = XInternAtom(gpDisplay,"_NET_WM_STATE", True);
 
-		if (dwstyle & WS_OVERLAPPEDWINDOW)
-		{
-			if (GetWindowPlacement(ghwnd, &wprev) && GetMonitorInfo(MonitorFromWindow(ghwnd, MONITORINFOF_PRIMARY), &mi))
-			{
-				SetWindowLong(ghwnd, GWL_STYLE, dwstyle & ~WS_OVERLAPPEDWINDOW);
-				SetWindowPos(ghwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOZORDER | SWP_FRAMECHANGED);
-			}
-		}
-		ShowCursor(FALSE);
-	}
-	else
-	{
-		SetWindowPlacement(ghwnd, &wprev);
-		SetWindowLong(ghwnd, GWL_STYLE, dwstyle | WS_OVERLAPPEDWINDOW);
-		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
-		ShowCursor(TRUE);
+    if(wm_state == None)
+    {
+        fprintf(gpFile,"isWindowMinimized(): XInternAtom Failed To Find _NET_WM_STATE \n");
+        uninitialise();
+        exit(1);
+    }
 
-	}
+    Atom wm_state_hidden = XInternAtom(gpDisplay,"_NET_WM_STATE_HIDDEN", True);
+    if(wm_state_hidden == None)
+    {
+        fprintf(gpFile,"isWindowMinimized(): XInternAtom Failed To Find _NET_WM_STATE_HIDDEN \n");
+        uninitialise();
+        exit(1);
+    }
 
+    iResult = XGetWindowProperty(gpDisplay,
+                                 window,
+                                 wm_state,
+                                 0L,
+                                 1024,
+                                 False,
+                                 XA_ATOM,
+                                 &Return_Property_Type,
+                                 &Return_Property_Format,
+                                 &number_of_returned_items,
+                                 &number_of_bytes_remained,
+                                 &returned_property_data_array);
+
+    if(iResult != Success || returned_property_data_array == NULL)
+    {
+        if(returned_property_data_array != NULL)
+        {
+            XFree(returned_property_data_array);
+            returned_property_data_array = NULL;
+        }
+
+        return False;
+    }
+    else
+    {
+        // loop the returned array to get required property
+        Atom *atomArray = (Atom *)returned_property_data_array;
+        for(unsigned long i = 0; i < number_of_returned_items; i++)
+        {
+            // check whether array contain hidden property or not
+            if(atomArray[i] == wm_state_hidden)
+            {
+                windowMinimized = True;
+                break;
+            }
+        }
+    }
+
+    if(returned_property_data_array != NULL)
+    {
+        XFree(returned_property_data_array);
+        returned_property_data_array = NULL;
+    }
+
+    return windowMinimized;
 }
 
 VkResult initialise(void)
@@ -630,9 +724,10 @@ VkResult initialise(void)
 	VkResult createFences(void);
 	VkResult buildCommandBuffers(void);
 
-	// OpenCL function declarations
-	cl_int initialise_OpenCL(void);
-	VkResult createExternalVertexBuffer(unsigned int, unsigned int , VertexData*);
+	// cuda related function declarations
+	cudaError initialise_Cuda(void);
+	VkResult createExternalVertexBuffer(int, int , VertexData*);
+
 
 
 	// variable declarations
@@ -702,16 +797,16 @@ VkResult initialise(void)
 	// get device queue
 	getDeviceQueue();
 
-	// initialize OpenCL
-	oclResult = initialise_OpenCL();
-	if (oclResult != CL_SUCCESS)
+	// cuda initialisation
+	cudaResult = initialise_Cuda();
+	if (cudaResult != cudaSuccess)
 	{
-		fprintf(gpFile, "initialise() : initialise_OpenCL() function failed (%d)\n", oclResult);
-		return(VK_ERROR_INITIALIZATION_FAILED); // Hardcoded return value
+		fprintf(gpFile, "initialise() : initialise_Cuda() function failed (%d)\n", cudaResult);
+		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 	else
 	{
-		fprintf(gpFile, "initialise() : initialise_OpenCL() succeeded\n");
+		fprintf(gpFile, "initialise() : initialise_Cuda() succeeded\n");
 	}
 
 	// createSwapchain
@@ -778,11 +873,11 @@ VkResult initialise(void)
 
 	// create eeexternal vertex buffer
 	memset((void*)&vertex_External, 0, sizeof(VertexData));
-	vkresult = createExternalVertexBuffer(mesh_Width, mesh_Height, &vertex_External);
+	vkresult = createExternalVertexBuffer(1024, 1024, &vertex_External);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "initialise() : createExternalVertexBuffer() failed, GPU OpenCL path disabled (%d)\n", vkresult);
-		bOnGPU = FALSE;
+		fprintf(gpFile, "initialise() : createExternalVertexBuffer() function failed for 1024x1024 (%d)\n", vkresult);
+		return(vkresult);
 	}
 	else
 	{
@@ -976,7 +1071,7 @@ VkResult initialise(void)
 
 	// initialisation is completed
 
-	bInitialised = TRUE;
+	bInitialised = True;
 
 
 	fprintf(gpFile, "******************************************* Initialise comment *****************************\n");
@@ -986,103 +1081,23 @@ VkResult initialise(void)
 	return(vkresult);
 }
 
-cl_int initialise_OpenCL(void)
+cudaError_t initialise_Cuda(void)
 {
-	// function declarations
-	BOOL DoesOpenCLPlatformSupportsRequiredExtensions (cl_platform_id);
+	int devCount = 0;
+	cudaError_t cudaResult = cudaSuccess;
 
-	// check for the presence of OpenCL device if absent no point to go ahead
-	cl_uint Platform_Count = 0;
-	cl_platform_id* oclPlatformIDs = NULL;
-	cl_uint Device_Count;
-	cl_device_id* oclDeviceIDs = NULL;
-
-	// get no of opencl supported platforms
-	oclResult = clGetPlatformIDs(0, NULL, &Platform_Count);
-	if (oclResult != CL_SUCCESS)
+	cudaResult = cudaGetDeviceCount(&devCount);
+	if (cudaResult != cudaSuccess)
 	{
-		fprintf(gpFile, "initialise_OpenCL() : clGetPlatformIDs() failed to get platform count\n");
-		return(oclResult);
+		fprintf(gpFile, "initialise_Cuda() : cudaGetDeviceCount() failed with error %d\n", cudaResult);
+		return cudaResult;
 	}
-	else if (Platform_Count == 0)
+	else if (devCount == 0)
 	{
-		fprintf(gpFile, "initialise_OpenCL() : no opencl supported platform found\n");
-		return(CL_DEVICE_NOT_FOUND);
+		fprintf(gpFile, "initialise_Cuda() : No CUDA capable devices found\n");
+		return cudaErrorNoDevice;
 	}
 
-	// we have one or more platforms get them in array
-	oclPlatformIDs = (cl_platform_id*)malloc(sizeof(cl_platform_id) * Platform_Count);
-
-	// Now get all platform IDs
-	oclResult = clGetPlatformIDs(Platform_Count, oclPlatformIDs, NULL);
-
-	int OpenCLPlafromWithGPUFound = -1;
-
-	// loop throught OpenCL platforms to find that OpenCl platform with support GPU ad with required OpenCl extensions
-	for (unsigned int i = 0; i < Platform_Count; i++)
-	{
-		// get no of Device for found platform
-		oclResult = clGetDeviceIDs(oclPlatformIDs[i], CL_DEVICE_TYPE_GPU, 0, NULL, &Device_Count);
-		if (oclResult != CL_SUCCESS)
-		{
-			continue;
-		}
-		else if (Device_Count == 0)
-		{
-			continue;
-		}
-
-		// so now we have ith platform with one or more GPU devices
-
-		// now see whether this GPU supports required extensions like (CL_KHR_EXTERNAL_MEMORY , cl_khr_device_uuid, cl_khr_external_semaphor)
-		if (DoesOpenCLPlatformSupportsRequiredExtensions(oclPlatformIDs[i]) == FALSE)
-		{
-			continue;
-		}
-		
-		// so now we have correct OpenCL platform to correct reqired extensions and has GPU devices too
-		oclPlatformID = oclPlatformIDs[i];
-
-		// print slected properties
-		size_t infoSize;
-		char * oclPlatformInfo = NULL;
-
-		// print platform name
-		clGetPlatformInfo(oclPlatformID, CL_PLATFORM_NAME, 0, NULL, &infoSize);
-
-		oclPlatformInfo = (char*)malloc(infoSize * sizeof(char));
-
-	    clGetPlatformInfo(oclPlatformID, CL_PLATFORM_NAME, infoSize, oclPlatformInfo, NULL);
-
-		fprintf(gpFile, "initialise_OpenCL() : OpenCL Platform Name : %s\n", oclPlatformInfo);
-
-		free(oclPlatformInfo);
-
-		OpenCLPlafromWithGPUFound = 1;
-		
-		break;
-	}
-
-	// free oclPlatformIDs memory
-	free(oclPlatformIDs);
-
-	oclPlatformIDs = NULL;
-
-
-
-	if (OpenCLPlafromWithGPUFound == -1)
-	{
-		fprintf(gpFile, "initialise_OpenCL() : No OpenCL platform with GPU device and required extensions found\n");
-		return -32; // value for invalid OpenCL platform macro
-	}
-
-	// now allocate memory to hold one or more GPU devices in found platform
-	oclDeviceIDs = (cl_device_id*)malloc(sizeof(cl_device_id) * Device_Count);
-
-	// now get one or more gpu device ids to this allcated array
-	clGetDeviceIDs(oclPlatformID, CL_DEVICE_TYPE_GPU, Device_Count, oclDeviceIDs, NULL);
-
-	// get  vulkan complatible device uuid
 	VkPhysicalDeviceIDProperties vkPhysicalDeviceIDProperties;
 	memset(&vkPhysicalDeviceIDProperties, 0, sizeof(VkPhysicalDeviceIDProperties));
 	vkPhysicalDeviceIDProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
@@ -1094,284 +1109,59 @@ cl_int initialise_OpenCL(void)
 
 	vkGetPhysicalDeviceProperties2(vkPhysicalDevice_selected, &vkPhysicalDeviceProperties2);
 
-	cl_uchar cl_uuid[CL_UUID_SIZE_KHR];
+	uint8_t vulkanDeviceUUID[VK_UUID_SIZE];
+	memcpy(vulkanDeviceUUID, vkPhysicalDeviceIDProperties.deviceUUID, VK_UUID_SIZE);
 
-	int vulkanOpenCLInteropDeviceFound = -1;
-
-	// loop through all gpu devices to find vulkan interop device
-	for (unsigned int i = 0; i < Device_Count; i++)
+	int iVulkanCudaInteropDeviceFound = -1;
+	for (int i = 0; i < devCount; i++)
 	{
-		// get opencl capable devies uuid from opencl itself
-		//clGetDeviceInfo(oclDeviceIDs[i], CL_DEVICE_UUID_KHR, sizeof(CL_UUID_SIZE_KHR), &cl_uuid, NULL);
-		clGetDeviceInfo(oclDeviceIDs[i], CL_DEVICE_UUID_KHR, CL_UUID_SIZE_KHR, &cl_uuid, NULL);
-
-		BOOL isUUIDMatch= TRUE;
-
-		// compare OpenCl Device uuid with vulkan physical device uuid
-		for(uint32_t j = 0; j < CL_UUID_SIZE_KHR; j++)
-		{
-			if (cl_uuid[j] != vkPhysicalDeviceIDProperties.deviceUUID[j])
-			{
-				isUUIDMatch = FALSE;
-				break;
-			}
-		}
-
-		if(isUUIDMatch == FALSE)
+		int computeMode = 0;
+		cudaResult = cudaDeviceGetAttribute(&computeMode, cudaDevAttrComputeMode, i);
+		if (cudaResult != cudaSuccess)
 		{
 			continue;
 		}
-		// otherwise we have found the correct device
-		oclDeviceID = oclDeviceIDs[i];
+		if (computeMode == cudaComputeModeProhibited)
+		{
+			continue;
+		}
 
-		size_t infoSize;
-		char* oclDeviceInfo = NULL;
+		cudaDeviceProp devProp;
+		memset(&devProp, 0, sizeof(cudaDeviceProp));
+		cudaResult = cudaGetDeviceProperties(&devProp, i);
+		if (cudaResult != cudaSuccess)
+		{
+			continue;
+		}
 
-		clGetDeviceInfo(oclDeviceID, CL_DEVICE_NAME, 0, NULL, &infoSize);
+		if (memcmp(devProp.uuid.bytes, vulkanDeviceUUID, VK_UUID_SIZE) != 0)
+		{
+			continue;
+		}
 
-		oclDeviceInfo = (char*)malloc(infoSize * sizeof(char));
+		cudaResult = cudaSetDevice(i);
+		if (cudaResult != cudaSuccess)
+		{
+			continue;
+		}
 
-		clGetDeviceInfo(oclDeviceID, CL_DEVICE_NAME, infoSize, oclDeviceInfo, NULL);
-
-		fprintf(gpFile, "initialise_OpenCL() : OpenCL Device Name : %s\n", oclDeviceInfo);
-
-		free(oclDeviceInfo);
-
-		oclDeviceInfo = NULL;
-
-		vulkanOpenCLInteropDeviceFound = 1;
-
+		fprintf(gpFile, "initialise_Cuda() : CUDA device %s selected for vulkan cuda interop\n", devProp.name);
+		iVulkanCudaInteropDeviceFound = 1;
 		break;
-
 	}
 
-	// free oclDeviceIDs memory
-	free(oclDeviceIDs);
-
-	oclDeviceIDs = NULL;
-
-	// if no such capable interop device found
-
-	if (vulkanOpenCLInteropDeviceFound == -1)
+	if (iVulkanCudaInteropDeviceFound == -1)
 	{
-		fprintf(gpFile, "initialise_OpenCL() : No OpenCL device with vulkan interop found\n");
-		return -2; 
+		fprintf(gpFile, "initialise_Cuda() : No CUDA device found for vulkan cuda interop\n");
+
+		return cudaErrorUnknown;
 	}
 
-	// create OpenCL context
-	// create OpenCL context WITH platform property — required for Vulkan external memory interop
-	cl_context_properties oclContextProperties[] =
-	{
-		CL_CONTEXT_PLATFORM, (cl_context_properties)oclPlatformID,
-		0
-	};
+	vkExternalMemoryHandleTypeFlagBits = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT; 
 
-	oclContext = clCreateContext(oclContextProperties, 1, &oclDeviceID, NULL, NULL, &oclResult);
-	if (oclResult != CL_SUCCESS)
-	{
-		fprintf(gpFile, "initialise_OpenCL() : clCreateContext() failed (%d)\n", oclResult);
-		fflush(gpFile);
-		return(oclResult);
-	}
-	else
-	{
-		fprintf(gpFile, "initialise_OpenCL() : clCreateContext() succeeded.\n");
-		fflush(gpFile);
-	}
-
-	// create OpenCL command queue
-	oclCommandQueue = clCreateCommandQueueWithProperties(oclContext, oclDeviceID, 0, &oclResult);
-	if (oclResult != CL_SUCCESS)
-	{
-		fprintf(gpFile, "initialise_OpenCL() : clCreateCommandQueueWithProperties() failed\n");
-		fflush(gpFile);
-		return(oclResult);
-	}
-
-	// create opencl program from opencl kernel source code
-	const char* oclKernelSourceCode =
-		"__kernel void sinWaveKernel(__global float4 * pos, int width, int height, float time)" \
-		"{" \
-		"int x = get_global_id(0);" \
-		"int y = get_global_id(1);" \
-		"float u = (float)x / (float)width;" \
-		"float v = (float)y / (float)height;" \
-		"u = u * 2.0f - 1.0f;" \
-		"v = v * 2.0f - 1.0f;" \
-		"float frequency = 4.0f;" \
-		"float w = sin(u * frequency + time) * cos(v * frequency + time) * 0.5f;" \
-		"pos[y * width + x] = (float4)(u, w, v, 1.0f);" \
-		"}";
-
-	oclProgram = clCreateProgramWithSource(oclContext, 1, (const char**)&oclKernelSourceCode, NULL, &oclResult);
-	if (oclResult != CL_SUCCESS)
-	{
-		fprintf(gpFile, "initialise_OpenCL() : clCreateProgramWithSource() failed\n");
-		fflush(gpFile);
-		return(oclResult);
-	}
-
-	// build opencl program
-	oclResult = clBuildProgram(oclProgram, 0, NULL, "-cl-fast-relaxed-math", NULL, NULL);
-	if (oclResult != CL_SUCCESS)
-	{
-		fprintf(gpFile, "initialise_OpenCL() : clBuildProgram() failed\n");
-
-		// print build log
-		size_t logSize;
-		clGetProgramBuildInfo(oclProgram, oclDeviceID, CL_PROGRAM_BUILD_LOG, 0, NULL, &logSize);
-
-		char* buildLog = (char*)malloc(logSize * sizeof(char));
-
-		clGetProgramBuildInfo(oclProgram, oclDeviceID, CL_PROGRAM_BUILD_LOG, logSize, buildLog, NULL);
-
-		fprintf(gpFile, "Build Log : %s\n", buildLog);
-
-		free(buildLog);
-
-		return(oclResult);
-	}
-
-	// create opencl kernel
-	oclKernel = clCreateKernel(oclProgram, "sinWaveKernel", &oclResult);
-	if (oclResult != CL_SUCCESS)
-	{
-		fprintf(gpFile, "initialise_OpenCL() : clCreateKernel() failed\n");
-		fflush(gpFile);
-		return(oclResult);
-	}
-
-	vkExternalMemoryHandleTypeFlagBits = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-
-	return CL_SUCCESS;
-
+	return cudaSuccess;
 }
 
-BOOL DoesOpenCLPlatformSupportsRequiredExtensions (cl_platform_id ocl_platformID)
-{
-	// variable declarations
-	size_t extensionSize;
-	char * oclPlatformExtensions = NULL;
-
-	// list given platform extensions
-	clGetPlatformInfo(ocl_platformID, CL_PLATFORM_EXTENSIONS, 0, NULL, &extensionSize);
-
-	oclPlatformExtensions = (char*)malloc(extensionSize * sizeof(char)); 
-
-	clGetPlatformInfo(ocl_platformID, CL_PLATFORM_EXTENSIONS, extensionSize, oclPlatformExtensions, NULL);
-
-	char * oclPlatformExtensions_Copy_For_strtok = NULL;
-
-	oclPlatformExtensions_Copy_For_strtok = (char*)malloc((extensionSize) * sizeof(char));
-
-	strcpy(oclPlatformExtensions_Copy_For_strtok, oclPlatformExtensions);
-
-	// find out how many extensions are there
-	char * token = strtok(oclPlatformExtensions_Copy_For_strtok, " " " ");
-
-	int ExtensionCount = 0;   // declare OUTSIDE loop
-	int i = 0;
-	while(token != NULL)
-	{
-		i++;
-		token = strtok(NULL, " " " ");
-		ExtensionCount = i;
-		fprintf(gpFile, "...%d : %s\n", ExtensionCount, token);
-	}
-
-	// create array of lengths of names of each found extensions
-
-	int * extensionLengths_Array = NULL;
-	extensionLengths_Array = (int*)malloc(sizeof(int) * i);
-
-	strcpy(oclPlatformExtensions_Copy_For_strtok, oclPlatformExtensions);
-
-	token = strtok(oclPlatformExtensions_Copy_For_strtok, " " " ");
-
-	i = 0;
-
-	while (token != NULL)
-	{
-		extensionLengths_Array[i] = strlen(token) + 1;
-		token = strtok(NULL, " " " ");
-		i++;
-	}
-
-	// accoringly allocate a string array such that it will hold strings equal to extesnion count and each string of required length taken from extensionLengths_Array
-
-	char ** clextensions_Array = NULL;
-	clextensions_Array = (char**)malloc(sizeof(char*) * ExtensionCount);
-	for(int i = 0 ; i < ExtensionCount; i++)
-	{
-		clextensions_Array[i] = (char*)malloc(sizeof(char) * extensionLengths_Array[i]);
-	}
-
-	// copy each extension name to above created string array
-	strcpy(oclPlatformExtensions_Copy_For_strtok, oclPlatformExtensions);
-
-	token = strtok(oclPlatformExtensions_Copy_For_strtok, " " " ");
-
-	i = 0;
-	while (token != NULL)
-	{
-		memcpy(clextensions_Array[i], token, extensionLengths_Array[i]);
-		token = strtok(NULL, " " " ");
-		i++;
-	}
-
-	free(oclPlatformExtensions_Copy_For_strtok);
-	oclPlatformExtensions_Copy_For_strtok = NULL;
-
-	// print all supported  opencl extensions
-	for (int i = 0; i < ExtensionCount; i++)
-	{
-		fprintf(gpFile, "DoesOpenCLPlatformSupportsRequiredExtensions() : Supported Extension %d : %s\n", i + 1, clextensions_Array[i]);
-	}
-
-	// now comapre in extensions array to see whether this array contains our required opencl extensions for vulkan opencl interoperability
-
-	int clKhrDeviceUiidExtesnionFound = 0;
-	int clKhrExternalMemoryExtensionFound = 0;
-
-	for (int i = 0; i < ExtensionCount; i++)
-	{
-		// for "cl_khr_device_uuid" enxtension
-		if (strcmp(clextensions_Array[i], "cl_khr_device_uuid") == 0)
-		{
-			clKhrDeviceUiidExtesnionFound = 1;
-		}
-
-		// for "cl_khr_external_memory" extension
-		else if (strcmp(clextensions_Array[i], "cl_khr_external_memory") == 0)
-		{
-			clKhrExternalMemoryExtensionFound = 1;
-		}
-	}
-
-	// free allocated memory
-
-	for (int i = 0; i < ExtensionCount; i++)
-	{
-		free(clextensions_Array[i]);
-		clextensions_Array[i] = NULL;
-	}
-	free(clextensions_Array);
-	clextensions_Array = NULL;
-	free(extensionLengths_Array);
-	extensionLengths_Array = NULL;
-	free(oclPlatformExtensions);
-	oclPlatformExtensions = NULL;
-
-	// conclusion
-	BOOL bResult = FALSE;
-	if (clKhrDeviceUiidExtesnionFound == 1 && clKhrExternalMemoryExtensionFound == 1)
-	{
-		bResult = TRUE;
-	}
-	
-	return bResult;
-	
-}
 
 
 VkResult resize(int width, int heigth)
@@ -1395,20 +1185,20 @@ VkResult resize(int width, int heigth)
 	if (heigth <= 0)
 		heigth = 1;
 
-	// set global winwidth and winheight variables
-	winWidth = width;
-	winHeight = heigth;
-
 	// check the bInitialised variable
-	if (bInitialised == FALSE)
+	if (bInitialised == False)
 	{
 		fprintf(gpFile, "resize() : Initialisation yet not completed or failed\n");
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 
-	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  FALSE again
-	bInitialised = FALSE;
+	// as recreation of swapchain is needed we are going to repeate many steps of initialise again hence set bInitialised  =  False again
+	bInitialised = False;
+
+	// set global winwidth and winheight variables
+	winWidth = width;
+	winHeight = heigth;
 
 	// wait for device to complete in hand task
 	if (vkDevice)
@@ -1598,7 +1388,7 @@ VkResult resize(int width, int heigth)
 	}
 
 
-	bInitialised = TRUE;
+	bInitialised = True;
 
 	return(vkresult);
 }
@@ -1619,104 +1409,59 @@ VkResult display(void)
 
 	// code
 
-	// if control comes here before initilisation gets completed return false
+	// if control comes here before initilisation gets completed return False
 
-	if (bInitialised == FALSE)
+	if (bInitialised == False)
 	{
 		fprintf(gpFile, "display(): initliasation yet not completed\n");
 		return (VkResult)VK_FALSE;
 	}
 
-	// CPU or GPU
-	if(bOnGPU == TRUE)
+	if(bOnGPU == True)
 	{
-		// set opencl krenel first arguments i.e 0th argument
-		oclResult = clSetKernelArg(oclKernel, 0, sizeof(cl_mem), (void*)&pos_OpenCL);
-		if (oclResult != CL_SUCCESS)
+		if(bMesh1024Choosen == True)
 		{
-			fprintf(gpFile, "display() : clSetKernelArg() failed for 0th argument\n");
+			// run cuda kernal
+			dim3 block (8,8,1);
+			dim3 grid (1024 / block.x, 1024 / block.y, 1);
+
+			sinWaveKernel <<<grid, block>>> ((float4*)pos_Cuda, 1024, 1024, AnimationTime);
+
+		}
+
+		// common to all above mesh if bloacks
+		cudaResult = cudaGetLastError();
+		if (cudaResult != cudaSuccess)
+		{
+			fprintf(gpFile, "display() : sinWaveKernel launch failed with error %d\n", cudaResult);
 			return VK_ERROR_INITIALIZATION_FAILED;
 		}
 
-		// set 1st argument
-		oclResult = clSetKernelArg(oclKernel, 1, sizeof(cl_uint), (void*)&mesh_Width);
-		if (oclResult != CL_SUCCESS)
+		// common to if mesh blacks synchronize
+		cudaResult = cudaDeviceSynchronize();
+		if (cudaResult != cudaSuccess)
 		{
-			fprintf(gpFile, "display() : clSetKernelArg() failed for 1st argument\n");
+			fprintf(gpFile, "display() : cudaDeviceSynchronize launch failed with error %d\n", cudaResult);
 			return VK_ERROR_INITIALIZATION_FAILED;
 		}
-
-		// set 2nd argument
-		oclResult = clSetKernelArg(oclKernel, 2, sizeof(cl_uint), (void*)&mesh_Height);
-		if (oclResult != CL_SUCCESS)
-		{
-			fprintf(gpFile, "display() : clSetKernelArg() failed for 2nd argument\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		// set 3rd argument
-		oclResult = clSetKernelArg(oclKernel, 3, sizeof(float), (void*)&AnimationTime);
-		if (oclResult != CL_SUCCESS)
-		{
-			fprintf(gpFile, "display() : clSetKernelArg() failed for 3rd argument\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		// map vulkan buffer for writing from opencl
-		clEnqueueAquireExternalMemObjectsKHR_fn clEnqueueAquireExternalMemObjectsKHR = (clEnqueueAquireExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclPlatformID, "clEnqueueAcquireExternalMemObjectsKHR");
-
-		if(clEnqueueAquireExternalMemObjectsKHR == NULL)
-		{
-			fprintf(gpFile, "display() : clGetExtensionFunctionAddressForPlatform() failed to get clEnqueueAcquireExternalMemObjectsKHR address\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		oclResult = clEnqueueAquireExternalMemObjectsKHR(oclCommandQueue, 1, &pos_OpenCL, 0, NULL, NULL);
-		if (oclResult != CL_SUCCESS)
-		{
-			fprintf(gpFile, "display() : clEnqueueAcquireExternalMemObjectsKHR() failed\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		// now run opencl kernel
-		size_t globalWorkSize[2];
-		globalWorkSize[0] = mesh_Width;
-		globalWorkSize[1] = mesh_Height;
-
-		oclResult = clEnqueueNDRangeKernel(oclCommandQueue, oclKernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-		if (oclResult != CL_SUCCESS)
-		{
-			fprintf(gpFile, "display() : clEnqueueNDRangeKernel() failed\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		// now release the vulkan buffer from opencl
-
-		clEnqueueReleaseExternalMemObjectsKHR_fn clEnqueueReleaseExternalMemObjectsKHR = (clEnqueueReleaseExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclPlatformID, "clEnqueueReleaseExternalMemObjectsKHR");
-
-		if (clEnqueueReleaseExternalMemObjectsKHR == NULL)
-		{
-			fprintf(gpFile, "display() : clGetExtensionFunctionAddressForPlatform() failed to get clEnqueueReleaseExternalMemObjectsKHR address\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		oclResult = clEnqueueReleaseExternalMemObjectsKHR(oclCommandQueue, 1, &pos_OpenCL, 0, NULL, NULL);
-
-		if (oclResult != CL_SUCCESS)
-		{
-			fprintf(gpFile, "display() : clEnqueueReleaseExternalMemObjectsKHR() failed\n");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		// finish opencl commands
-		clFinish(oclCommandQueue);
 	}
-	
 
-	if(bMesh1024Choosen == TRUE)
+	else
+	{
+		if(bMesh1024Choosen == True)
+		{
+			prepairSinwaveForCPU(1024, 1024, AnimationTime);
+			vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
+		}
+
+	}
+
+
+	if(bMesh1024Choosen == True)
 	{
 		vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
 	}
+
 
 	// build commmand buffers
 	vkresult = buildCommandBuffers();
@@ -1823,6 +1568,7 @@ VkResult display(void)
 	vkDeviceWaitIdle(vkDevice);
 
 
+
 	return(vkresult);
 
 }
@@ -1831,30 +1577,29 @@ void update(void)
 {
 	// code
 	AnimationTime = AnimationTime + 0.05f;
-	
 }
 
 
 void uninitialise(void)
 {
 	// Function declarations
-	void ToggleFullscreen(void);
-	cl_int uninitialise_OpenCL(void);
+	void toggleFullScreen(void);
+	cudaError uninitialise_Cuda(void); 
 
-	// Code
-	if (gbFullscreen == TRUE)
-	{
-		ToggleFullscreen();
-	}
+    // restore fullscreen
+    if(bFullscreen == True)
+    {
+        toggleFullScreen();
+        bFullscreen = False;
+    }
 
-	if (ghwnd)
-	{
-		DestroyWindow(ghwnd);
-		ghwnd = NULL;
-	}
+    if(window)
+    {
+        XDestroyWindow(gpDisplay,window);
+    }
 
 
-	//No need to destroy/uninitialize vkQueue
+	//No need to destroy/uninitialise vkQueue
 
 
 	//Vulkan related any destruction *HAS TO BE AFTER VkDevice*
@@ -1981,19 +1726,20 @@ void uninitialise(void)
 			fprintf(gpFile, "\nFreed uniformData.vkDeviceMemory \n");
 		}
 
-		// uninitialize OpenCL
-		oclResult = uninitialise_OpenCL();
-		if (oclResult != CL_SUCCESS)
+		// uninitialize cuda related resources
+		cudaResult = uninitialise_Cuda();
+		if (cudaResult != cudaSuccess)
 		{
-			fprintf(gpFile, "uninitialise() : uninitialise_OpenCL() failed\n");
+			fprintf(gpFile, "uninitialise() : uninitialise_Cuda() failed with error %d\n", cudaResult);
 		}
 		else
 		{
-			fprintf(gpFile, "uninitialise() : uninitialise_OpenCL() successfull\n");
+			fprintf(gpFile, "uninitialise() : uninitialise_Cuda() succeeded\n");
 		}
 
-		// destroy vertex buffer and free memory
-		if(vertex_External.vkDeviceMemory)
+		// destroy external vertex buffer
+
+		if (vertex_External.vkDeviceMemory)
 		{
 			vkFreeMemory(vkDevice, vertex_External.vkDeviceMemory, NULL);
 			vertex_External.vkDeviceMemory = VK_NULL_HANDLE;
@@ -2147,43 +1893,35 @@ void uninitialise(void)
 
 }
 
-cl_int uninitialise_OpenCL(void)
+cudaError uninitialise_Cuda(void)
 {
-	//code
-	if (pos_OpenCL)
+	if (pos_Cuda)
 	{
-		clReleaseMemObject(pos_OpenCL);
-		pos_OpenCL = NULL;
+		cudaResult = cudaFree(pos_Cuda);
+		if (cudaResult != cudaSuccess)
+		{
+			fprintf(gpFile, "uninitialise_Cuda() : cudaFree(pos_Cuda) failed with error %d\n", cudaResult);
+			return cudaResult;
+		}
+		pos_Cuda = NULL;
+		fprintf(gpFile, "uninitialise_Cuda() : cudaFree(pos_Cuda) succeeded\n");
 	}
 
-	if (oclKernel)
+	if (cuExtMemory)
 	{
-		clReleaseKernel(oclKernel);
-		oclKernel = NULL;
+		cudaResult = cudaDestroyExternalMemory(cuExtMemory);
+		if (cudaResult != cudaSuccess)
+		{
+			fprintf(gpFile, "uninitialise_Cuda() : cudaDestroyExternalMemory() failed with error %d\n", cudaResult);
+			return cudaResult;
+		}
+		cuExtMemory = NULL;
+		fprintf(gpFile, "uninitialise_Cuda() : cudaDestroyExternalMemory() succeeded\n");
 	}
 
-	if (oclProgram)
-	{
-		clReleaseProgram(oclProgram);
-		oclProgram = NULL;
-	}
-
-	if (oclCommandQueue)
-	{
-		clReleaseCommandQueue(oclCommandQueue);
-		oclCommandQueue = NULL;
-	}
-
-	if (oclContext)
-	{
-		clReleaseContext(oclContext);
-		oclContext = NULL;
-	}
-
-	return CL_SUCCESS;
-
-
+	return cudaSuccess;
 }
+
 
 //////////////////////////////////////////////////////     DEFINATION OF VULKUN RELATED FUNCTION     //////////////////////////////////////////////////////////
 
@@ -2212,7 +1950,7 @@ VkResult createVulkanInstance(void)
 	}
 
 	// Fill validation layers
-	if (bValidation == TRUE)
+	if (bValidation == True)
 	{
 		vkresult = fillValidationLayerNames();
 		if (vkresult != VK_SUCCESS)
@@ -2241,7 +1979,7 @@ VkResult createVulkanInstance(void)
 	vkApplicationInfo.apiVersion = VK_API_VERSION_1_3;
 
 
-	// step 3 : Initialize struct VkInstanceCreateInfo
+	// step 3 : initialise struct VkInstanceCreateInfo
 	VkInstanceCreateInfo vkInstanceCreateInfo;
 	memset((void*)&vkInstanceCreateInfo, 0, sizeof(VkInstanceCreateInfo));
 
@@ -2251,7 +1989,7 @@ VkResult createVulkanInstance(void)
 	vkInstanceCreateInfo.enabledExtensionCount = enabledInstanceExtensionCount;
 	vkInstanceCreateInfo.ppEnabledExtensionNames = enabledInstanceExtensionNames_array;  // Corrected the field name
 
-	if (bValidation == TRUE)
+	if (bValidation == True)
 	{
 		vkInstanceCreateInfo.enabledLayerCount = enabledValidationLayerCount;
 		vkInstanceCreateInfo.ppEnabledLayerNames = enabledValidationLayerNames_Array;
@@ -2287,7 +2025,7 @@ VkResult createVulkanInstance(void)
 	}
 
 	// do for validationcallback
-	if (bValidation == TRUE)
+	if (bValidation == True)
 	{
 		vkresult = createValidationCallbackfuntion();
 		if (vkresult != VK_SUCCESS)
@@ -2367,7 +2105,7 @@ VkResult fillExtensionNames(void)
 
 	// step 4: Check for required extensions
 	VkBool32 vulkunSurfaceExtensionFound = VK_FALSE;
-	VkBool32 win32SurfaceExtensionFound = VK_FALSE;
+	VkBool32 xlibSurfaceExtensionFound = VK_FALSE;
 	VkBool32 debugReportExtensionFound = VK_FALSE;
 
 	for (uint32_t i = 0; i < instanceExtensionCount; i++)
@@ -2378,17 +2116,17 @@ VkResult fillExtensionNames(void)
 			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
 		}
 
-		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_WIN32_SURFACE_EXTENSION_NAME) == 0)
+		if (strcmp(InstanceExtensionNames_array[i], VK_KHR_XLIB_SURFACE_EXTENSION_NAME) == 0)
 		{
-			win32SurfaceExtensionFound = VK_TRUE;
-			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+			xlibSurfaceExtensionFound = VK_TRUE;
+			enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
 		}
 
 		if (strcmp(InstanceExtensionNames_array[i], VK_EXT_DEBUG_REPORT_EXTENSION_NAME) == 0)
 		{
 			debugReportExtensionFound = VK_TRUE;
 
-			if (bValidation == TRUE)
+			if (bValidation == True)
 			{
 				enabledInstanceExtensionNames_array[enabledInstanceExtensionCount++] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
 			}
@@ -2420,21 +2158,21 @@ VkResult fillExtensionNames(void)
 		fprintf(gpFile, "fillExtensionNames() : VK_KHR_SURFACE_EXTENSION_NAME found\n");
 	}
 
-	if (win32SurfaceExtensionFound == VK_FALSE)
+	if (xlibSurfaceExtensionFound == VK_FALSE)
 	{
 		vkresult = VK_ERROR_INITIALIZATION_FAILED; // return hardcoded failure
-		fprintf(gpFile, "fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME not found\n");
+		fprintf(gpFile, "fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME not found\n");
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "fillExtensionNames() : VK_KHR_WIN32_SURFACE_EXTENSION_NAME found\n");
+		fprintf(gpFile, "fillExtensionNames() : VK_KHR_XLIB_SURFACE_EXTENSION_NAME found\n");
 	}
 
 
 	if (vulkunSurfaceExtensionFound == VK_FALSE)
 	{
-		if (bValidation == TRUE)
+		if (bValidation == True)
 		{
 			vkresult = VK_ERROR_INITIALIZATION_FAILED; // return hardcoded failure
 			fprintf(gpFile, "fillExtensionNames() : validation is on but required  VK_EXT_DEBUG_REPORT_EXTENSION_NAME not found\n");
@@ -2447,7 +2185,7 @@ VkResult fillExtensionNames(void)
 	}
 	else
 	{
-		if (bValidation == TRUE)
+		if (bValidation == True)
 		{
 			fprintf(gpFile, "fillExtensionNames() : validation is on and  VK_EXT_DEBUG_REPORT_EXTENSION_NAME is also found\n");
 		}
@@ -2581,7 +2319,7 @@ VkResult createValidationCallbackfuntion(void)
 	if (vkDestroyDebugReportCallbackEXT_fnptr == NULL)
 	{
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
-		fprintf(gpFile, "createValidationCallbackFunction() : vkGetInstanceProcAddr() failed to get function pointer for vkDestroyDebugReportCallbackEXT\n",__FUNCTION__);
+		fprintf(gpFile, "createValidationCallbackFunction() : vkGetInstanceProcAddr() failed to get function pointer for vkDestroyDebugReportCallbackEXT\n");
 		return vkresult;
 	}
 	else
@@ -2621,16 +2359,16 @@ VkResult getSupportedSurface(void)
 {
 	VkResult vkresult = VK_SUCCESS;
 
-	VkWin32SurfaceCreateInfoKHR vkWin32SurfaceCreateInfoKHR;
-	memset((void*)&vkWin32SurfaceCreateInfoKHR, 0, sizeof(VkWin32SurfaceCreateInfoKHR));
+	VkXlibSurfaceCreateInfoKHR vkXlibSurfaceCreateInfoKHR;
+	memset((void*)&vkXlibSurfaceCreateInfoKHR, 0, sizeof(VkXlibSurfaceCreateInfoKHR));
 
-	vkWin32SurfaceCreateInfoKHR.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	vkWin32SurfaceCreateInfoKHR.pNext = NULL;
-	vkWin32SurfaceCreateInfoKHR.flags = 0;
-	vkWin32SurfaceCreateInfoKHR.hinstance = (HINSTANCE)GetWindowLongPtr(ghwnd, GWLP_HINSTANCE);
-	vkWin32SurfaceCreateInfoKHR.hwnd = ghwnd;
+	vkXlibSurfaceCreateInfoKHR.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+	vkXlibSurfaceCreateInfoKHR.pNext = NULL;
+	vkXlibSurfaceCreateInfoKHR.flags = 0;
+	vkXlibSurfaceCreateInfoKHR.dpy = gpDisplay;
+	vkXlibSurfaceCreateInfoKHR.window = window;
 
-	vkresult = vkCreateWin32SurfaceKHR(vkInstance, &vkWin32SurfaceCreateInfoKHR, NULL, &vkSurfaceKHR);
+	vkresult = vkCreateXlibSurfaceKHR(vkInstance, &vkXlibSurfaceCreateInfoKHR, NULL, &vkSurfaceKHR);
 	if(vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "getSupportedSurface() : vkCreateWin32SurfaceKHR Failed\n");
@@ -2938,24 +2676,35 @@ VkResult fillDeviceExtensionNames(void)
     free(vkExtensionProperties_array); // Free extension properties after copying names
 
     // Step 4: Check for required extensions
-    VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
-	VkBool32 vulkanExternalMemoryWin32ExtensionFound = VK_FALSE;
 
-    for (uint32_t i = 0; i < deviceExtensionCount; i++)
-    {
-        if (strcmp(DeviceExtensionNames_array[i], VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
-        {
-            vulkanSwapchainExtensionFound = VK_TRUE;
-            enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-        }
-		
-		// Check for VK_KHR_external_memory_win32 extension
-		if (strcmp(DeviceExtensionNames_array[i], VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME) == 0)
+	VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
+	VkBool32 vulkanExternalMemoryFdExtensionFound = VK_FALSE;
+
+	for (uint32_t i = 0; i < deviceExtensionCount; i++)
+	{
+		if (strcmp(DeviceExtensionNames_array[i], VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
 		{
-			vulkanExternalMemoryWin32ExtensionFound = VK_TRUE;
-			enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME;
+			vulkanSwapchainExtensionFound = VK_TRUE;
+			enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 		}
-    }
+
+		if (strcmp(DeviceExtensionNames_array[i], VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME) == 0)
+		{
+			vulkanExternalMemoryFdExtensionFound = VK_TRUE;
+			enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME;
+		}
+	}
+
+	if (vulkanExternalMemoryFdExtensionFound == VK_FALSE)
+	{
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME not found\n");
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME found\n");
+	}
 
     // Step 5: Free the allocated memory for extension names
     for (uint32_t i = 0; i < deviceExtensionCount; i++)
@@ -2973,18 +2722,6 @@ VkResult fillDeviceExtensionNames(void)
     }
     fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME found\n");
 
-	// Check for VK_KHR_external_memory_win32 extension
-	if (vulkanExternalMemoryWin32ExtensionFound == VK_FALSE)
-	{
-		vkresult = VK_ERROR_INITIALIZATION_FAILED; // Return hardcoded failure
-		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME not found\n");
-		return vkresult;
-	}
-	else
-	{
-		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME found\n");
-	}
-
     // Step 7: Print enabled extension names
     for (uint32_t i = 0; i < enableDeviceExtensionCount; i++)
     {
@@ -2998,6 +2735,7 @@ VkResult createVulkanDevice(void)
 {
 	// function declaration
 	VkResult fillDeviceExtensionNames(void);
+
 
 	// variable declaration
 	VkResult vkresult = VK_SUCCESS;
@@ -3017,6 +2755,7 @@ VkResult createVulkanDevice(void)
 	float queuePriority[1];
 	queuePriority[0] = 1.0f;
 
+	// newly added code
 	VkDeviceQueueCreateInfo vkDeviceQueueCreateInfo;
 	memset((void*)&vkDeviceQueueCreateInfo, 0, sizeof(VkDeviceQueueCreateInfo));
 
@@ -3028,7 +2767,7 @@ VkResult createVulkanDevice(void)
 	vkDeviceQueueCreateInfo.pQueuePriorities = queuePriority;
 
 
-	// initialise vkDeviceCreateInfo structure
+	// initialise vkDeviceCreateInfo sttucture
 	VkDeviceCreateInfo vkDeviceCreateInfo;
 	memset((void*)&vkDeviceCreateInfo, 0, sizeof(VkDeviceCreateInfo));
 
@@ -3042,7 +2781,7 @@ VkResult createVulkanDevice(void)
 	vkDeviceCreateInfo.pEnabledFeatures = NULL;
 	vkDeviceCreateInfo.queueCreateInfoCount = 1;
 	vkDeviceCreateInfo.pQueueCreateInfos = &vkDeviceQueueCreateInfo;
-	
+
 
 	vkresult = vkCreateDevice(vkPhysicalDevice_selected, &vkDeviceCreateInfo, NULL, &vkDevice);
 	if (vkresult != VK_SUCCESS)
@@ -3444,7 +3183,6 @@ VkResult createImagesAndImageViews(void)
 		else
 		{
 			fprintf(gpFile, "createImagesAndImageViews() : vkCreateImageView() succeeded for iteration (%d)\n", i);
-			fflush(gpFile);
 		}
 	}
 
@@ -3459,7 +3197,6 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : getSupportedDepthFormat() succeeded for iteration\n");
-		fflush(gpFile);
 	}
 
 	// for depth image initialise vkImageCreateInfo
@@ -3489,7 +3226,6 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : vkCreateImage() succeeded for iteration\n");
-		fflush(gpFile);
 	}
 
 	// memory reqirement for depth image
@@ -3530,7 +3266,6 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : vkAllocateMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	vkresult = vkBindImageMemory(vkDevice, vkImage_Depth, vkDeviceMemory_Depth, 0);
@@ -3542,7 +3277,6 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : vkBindImageMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	// crateImageView For above image view
@@ -3569,7 +3303,6 @@ VkResult createImagesAndImageViews(void)
 	else
 	{
 		fprintf(gpFile, "createImagesAndImageViews() : VkCreateImageView() succeeded.\n");
-		fflush(gpFile);
 	}
 
 
@@ -3639,7 +3372,6 @@ VkResult createCommandPool(void)
 	else
 	{
 		fprintf(gpFile, "createCommandPool() : vkCreateCommandPool() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -3678,7 +3410,6 @@ VkResult createCommandBuffers(VkCommandBuffer** ppvkCommandBuffer_Array)
 	else
 	{
 		fprintf(gpFile, "createCommandBuffers() : vkAllocateCommandBuffers() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	*ppvkCommandBuffer_Array = vkCommandBuffer_Array;
@@ -3727,13 +3458,11 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkCreateBuffer() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
@@ -3753,9 +3482,7 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	{
 		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
 		{
-			if ((vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags &
-			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) ==
-			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
+			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
 				vkMemoryAllocateInfo.memoryTypeIndex = i; 
 				break;
@@ -3770,26 +3497,22 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkAllocateMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkBindBufferMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	void* data = NULL;
@@ -3798,13 +3521,11 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createVertexBuffer() : vkMapMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	// actual memory mapped
@@ -3822,7 +3543,8 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 
 }
 
-VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_height, VertexData* pVertexData)
+
+VkResult createExternalVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertexData)
 {
 
 	// Variable declaration
@@ -3856,13 +3578,11 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkCreateBuffer() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
@@ -3905,109 +3625,109 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkAllocateMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, vertexData_Position.vkBuffer, vertexData_Position.vkDeviceMemory, 0);
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createExternalVertexBuffer() : vkBindBufferMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	// new code
-	HANDLE hMemoryWin32Handle = NULL;
+	int fd = -1;
 
-	VkMemoryGetWin32HandleInfoKHR vkMemoryGetWin32HandleInfoKHR;
-	memset((void*)&vkMemoryGetWin32HandleInfoKHR, 0, sizeof(VkMemoryGetWin32HandleInfoKHR));
+	VkMemoryGetFdInfoKHR vkMemoryGetFdInfoKHR;
+	memset((void*)&vkMemoryGetFdInfoKHR, 0, sizeof(VkMemoryGetFdInfoKHR));
 
-	vkMemoryGetWin32HandleInfoKHR.sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR;
-	vkMemoryGetWin32HandleInfoKHR.pNext = NULL;
-	vkMemoryGetWin32HandleInfoKHR.memory = vertexData_Position.vkDeviceMemory;
-	vkMemoryGetWin32HandleInfoKHR.handleType = vkExternalMemoryHandleTypeFlagBits;
+	vkMemoryGetFdInfoKHR.sType    = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR;
+	vkMemoryGetFdInfoKHR.pNext    = NULL;
+	vkMemoryGetFdInfoKHR.memory   = vertexData_Position.vkDeviceMemory;
+	vkMemoryGetFdInfoKHR.handleType = vkExternalMemoryHandleTypeFlagBits;
 
-	PFN_vkGetMemoryWin32HandleKHR pfnVkGetMemoryWin32HandleKHR =(PFN_vkGetMemoryWin32HandleKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryWin32HandleKHR");
+	PFN_vkGetMemoryFdKHR pfnVkGetMemoryFdKHR = (PFN_vkGetMemoryFdKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryFdKHR");
 
-	if (pfnVkGetMemoryWin32HandleKHR == NULL)
+	if (pfnVkGetMemoryFdKHR == NULL)
 	{
-		fprintf(gpFile,
-			"createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryWin32HandleKHR address.\n");
-			fflush(gpFile);
+		fprintf(gpFile, "createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryFdKHR address.\n");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 	else
 	{
-		fprintf(gpFile,
-			"createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryWin32HandleKHR address.\n");
-			fflush(gpFile);
+		fprintf(gpFile, "createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryFdKHR address.\n");
 	}
 
-	// call above function pointer
-	vkresult = pfnVkGetMemoryWin32HandleKHR(vkDevice, &vkMemoryGetWin32HandleInfoKHR, &hMemoryWin32Handle);
+	vkresult = pfnVkGetMemoryFdKHR(vkDevice, &vkMemoryGetFdInfoKHR, &fd);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
+		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryFdKHR() failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() succeeded.\n");
-		fflush(gpFile);
+		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryFdKHR() succeeded. fd = %d\n", fd);
 	}
 
-	// map above external buffers memory into OpenCL to get the device pointer from OpenCl
-	cl_mem_properties oclMemProperties[] =
+	// import fd into CUDA
+	cudaExternalMemoryHandleDesc cuExternalMemoryHandleDesc;
+	memset((void*)&cuExternalMemoryHandleDesc, 0, sizeof(cudaExternalMemoryHandleDesc));
+
+	cuExternalMemoryHandleDesc.type      = cudaExternalMemoryHandleTypeOpaqueFd;  // Linux fd type
+	cuExternalMemoryHandleDesc.size      = size;
+	cuExternalMemoryHandleDesc.handle.fd = fd;  // Linux uses fd, not win32 handle
+	cuExternalMemoryHandleDesc.flags     = 0;
+
+	cudaResult = cudaImportExternalMemory(&cuExtMemory, &cuExternalMemoryHandleDesc);
+	if (cudaResult != cudaSuccess)
 	{
-		CL_EXTERNAL_MEMORY_HANDLE_OPAQUE_WIN32_KHR, (cl_mem_properties)hMemoryWin32Handle,
-		CL_MEM_DEVICE_HANDLE_LIST_KHR, (cl_mem_properties)oclDeviceID,
-		CL_MEM_DEVICE_HANDLE_LIST_END_KHR,
-		0
-	};
-
-	
-		pos_OpenCL = clCreateBufferWithProperties(
-		oclContext,
-		oclMemProperties,
-		CL_MEM_READ_WRITE,
-		vkMemoryRequirements.size,
-		NULL,
-		&oclResult);
-
-
-	if (oclResult != CL_SUCCESS)
-	{
-		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithPropertiesKHR() failed. Error Code: (%d)\n", oclResult);
-		fflush(gpFile);
+		fprintf(gpFile, "createExternalVertexBuffer() : cudaImportExternalMemory() failed. Error Code: (%d)\n", cudaResult);
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 	else
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithPropertiesKHR() succeeded.\n");
-		fflush(gpFile);
+		fprintf(gpFile, "createExternalVertexBuffer() : cudaImportExternalMemory() succeeded.\n");
 	}
 
-	// close the handle as its job is done
-	CloseHandle(hMemoryWin32Handle);
-	hMemoryWin32Handle = NULL;
+	// close fd after CUDA has imported it
+	close(fd);
+	fd = -1;
+
+	// use above external memoery to get mapped device pointer from cuda
+
+	// as we have buffer we need maped pointer for buffer
+	cudaExternalMemoryBufferDesc cuExternalMemoryBufferDesc;
+	memset((void*)&cuExternalMemoryBufferDesc, 0, sizeof(cudaExternalMemoryBufferDesc));
+
+	cuExternalMemoryBufferDesc.offset = 0;
+	cuExternalMemoryBufferDesc.size = size;
+	cuExternalMemoryBufferDesc.flags = 0;
+
+	cudaResult = cudaExternalMemoryGetMappedBuffer(&pos_Cuda, cuExtMemory, &cuExternalMemoryBufferDesc);
+	if (cudaResult != cudaSuccess)
+	{
+		fprintf(gpFile, "createExternalVertexBuffer() : cudaExternalMemoryGetMappedBuffer() failed. Error Code: (%d)\n", cudaResult);
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+	else
+	{
+		fprintf(gpFile, "createExternalVertexBuffer() : cudaExternalMemoryGetMappedBuffer() succeeded.\n");
+	}
 
 	*pVertexData = vertexData_Position;
 
 	return vkresult;
 
 }
+
 
 VkResult createUniformBuffer(void)
 {
@@ -4033,13 +3753,11 @@ VkResult createUniformBuffer(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkCreateBuffer() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkCreateBuffer() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	VkMemoryRequirements vkMemoryRequirements;
@@ -4075,12 +3793,10 @@ VkResult createUniformBuffer(void)
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkAllocateMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
-		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkAllocateMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	vkresult = vkBindBufferMemory(vkDevice, uniformData.vkBuffer, uniformData.vkDeviceMemory, 0);
@@ -4088,12 +3804,10 @@ VkResult createUniformBuffer(void)
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkBindBufferMemory() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
-		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : vkBindBufferMemory() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	// call updateUnifomBuffer
@@ -4102,12 +3816,10 @@ VkResult createUniformBuffer(void)
 	{
 		fprintf(gpFile, "createUniformBuffer() : updateUniformbuffer() function failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
-		fflush(gpFile);
 	}
 	else
 	{
 		fprintf(gpFile, "createUniformBuffer() : updateUniformbuffer() succeeded.\n");
-		fflush(gpFile);
 	}
 
 
@@ -4176,7 +3888,7 @@ VkResult updateUniformbuffer(void)
 		{
 			myUniformData.color = glm::vec4(0.5f, 0.0f, 0.5f, 1.0f); // for blue color background
 		}
-		else if(colorFromKey == 'P')
+		else if(colorFromKey == 'S')
 		{
 			myUniformData.color = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f); // for other color background white
 		}
@@ -4224,14 +3936,12 @@ VkResult createShaders(void)
 	if (fp == NULL)
 	{
 		fprintf(gpFile, "createShaders() : createShader failed to open vertexshader.spv file\n");
-		fflush(gpFile);
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to open vertexshader.spv file\n");
-		fflush(gpFile);
 	}
 
 	fseek(fp, 0L, SEEK_END);
@@ -4254,14 +3964,12 @@ VkResult createShaders(void)
 	if (retVal != 1)
 	{
 		fprintf(gpFile, "createShaders() : createShader failed to read vertexshader.spv file\n");
-		fflush(gpFile);
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to read vertexshader.spv file\n");
-		fflush(gpFile);
 	}
 
 	fclose(fp);
@@ -4279,13 +3987,11 @@ VkResult createShaders(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createShaders() : vkCreateShaderModule() function failed.for vertex shader Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded fro vertex shader.\n");
-		fflush(gpFile);
 	}
 
 
@@ -4310,14 +4016,12 @@ VkResult createShaders(void)
 	if (fp == NULL)
 	{
 		fprintf(gpFile, "createShaders() : createShader failed to open fragmentshader.spv file\n");
-		fflush(gpFile);
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to open fragmentshader.spv file\n");
-		fflush(gpFile);
 	}
 
 	fseek(fp, 0L, SEEK_END);
@@ -4327,7 +4031,6 @@ VkResult createShaders(void)
 	if (size == 0)
 	{
 		fprintf(gpFile, "createShaders() : createShader failed and give file size of fragment shader 0\n");
-		fflush(gpFile);
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
@@ -4341,14 +4044,12 @@ VkResult createShaders(void)
 	if (retVal != 1)
 	{
 		fprintf(gpFile, "createShaders() : createShader failed to read fragmentshader.spv file\n");
-		fflush(gpFile);
 		vkresult = VK_ERROR_INITIALIZATION_FAILED;
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createShaders() : createShader succeeded to read fragmentshader.spv file\n");
-		fflush(gpFile);
 	}
 
 	fclose(fp);
@@ -4365,13 +4066,11 @@ VkResult createShaders(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createShaders() : vkCreateShaderModule() function failed. for fragment shader Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createShaders() : vkCreateShaderModule() succeeded for fragment shader.\n");
-		fflush(gpFile);
 	}
 
 
@@ -4382,7 +4081,6 @@ VkResult createShaders(void)
 	}
 
 	fprintf(gpFile, "fragment Module sucessfully created\n");
-	fflush(gpFile);
 
 	return vkresult;
 }
@@ -4420,13 +4118,11 @@ VkResult createDiscriptorSetLayout(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createDescriptorSetLayout() : vkCreateDescriptorSetLayout() failed Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createDescriptorSetLayout() : vkCreateDescriptorSetLayout() succeeded.\n");
-		fflush(gpFile);
 	}
 
 
@@ -4458,13 +4154,11 @@ VkResult createPiplineLayout(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createPiplineLayout() : vkCreatePipelineLayout() failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createPiplineLayout() : vkCreatePipelineLayout() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -4496,13 +4190,11 @@ VkResult createDescriptorpool(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createDescriptorpool() : vkCreateDescriptorPool() failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createDescriptorpool() : vkCreateDescriptorPool() succeeded.\n");
-		fflush(gpFile);
 	}
 
 
@@ -4531,13 +4223,11 @@ VkResult createDescriptorSet(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createDescriptorSet() : vkCreateDescriptorPool() succeeded.\n");
-		fflush(gpFile);
 	}
 	
 	// describe whether we want image as uniform or buffer as unuform 
@@ -4567,7 +4257,6 @@ VkResult createDescriptorSet(void)
 	vkUpdateDescriptorSets(vkDevice, 1, &vkWriteDescriptorSet, 0, NULL);
 
 	fprintf(gpFile, "\nvkUpdateDescriptorSets() succeeded.\n");
-	fflush(gpFile);
 
 
 	return vkresult;
@@ -4580,7 +4269,7 @@ VkResult createRenderPass(void)
 
 	VkAttachmentDescription vkAttachmentDescription_array[2]; // now depth come so its 2
 
-	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) * _ARRAYSIZE(vkAttachmentDescription_array));
+	memset((void*)vkAttachmentDescription_array, 0, sizeof(VkAttachmentDescription) * ARRAY_SIZE(vkAttachmentDescription_array));
 
 	// for color
 	vkAttachmentDescription_array[0].flags = 0;
@@ -4641,7 +4330,7 @@ VkResult createRenderPass(void)
 	vkRenderPassCreateInfo.flags = 0;
 	vkRenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	vkRenderPassCreateInfo.pNext = NULL;
-	vkRenderPassCreateInfo.attachmentCount = _ARRAYSIZE(vkAttachmentDescription_array);
+	vkRenderPassCreateInfo.attachmentCount = ARRAY_SIZE(vkAttachmentDescription_array);
 	vkRenderPassCreateInfo.pAttachments = vkAttachmentDescription_array;
 	vkRenderPassCreateInfo.subpassCount = 1;
 	vkRenderPassCreateInfo.pSubpasses = &vkSubpassDesciption;
@@ -4652,13 +4341,11 @@ VkResult createRenderPass(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createRenderPass() : vkCreateRenderPass() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -4671,14 +4358,14 @@ VkResult createPipline(void)
 
 	// vertex input state
 	VkVertexInputBindingDescription vkVertexInputBindingDescription_Array[1];
-	memset((void*)vkVertexInputBindingDescription_Array, 0, sizeof(VkVertexInputBindingDescription) * _ARRAYSIZE(vkVertexInputBindingDescription_Array));
+	memset((void*)vkVertexInputBindingDescription_Array, 0, sizeof(VkVertexInputBindingDescription) * ARRAY_SIZE(vkVertexInputBindingDescription_Array));
 
 	vkVertexInputBindingDescription_Array[0].binding = 0;
 	vkVertexInputBindingDescription_Array[0].stride = sizeof(float) * 4;
 	vkVertexInputBindingDescription_Array[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	VkVertexInputAttributeDescription vkVertexInputAttributeDescription_Array[1];
-	memset((void*)vkVertexInputAttributeDescription_Array, 0, sizeof(VkVertexInputAttributeDescription) * _ARRAYSIZE(vkVertexInputAttributeDescription_Array));
+	memset((void*)vkVertexInputAttributeDescription_Array, 0, sizeof(VkVertexInputAttributeDescription) * ARRAY_SIZE(vkVertexInputAttributeDescription_Array));
 
 	vkVertexInputAttributeDescription_Array[0].binding = 0;
 	vkVertexInputAttributeDescription_Array[0].location = 0;
@@ -4691,9 +4378,9 @@ VkResult createPipline(void)
 	vkPipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vkPipelineVertexInputStateCreateInfo.pNext = NULL;
 	vkPipelineVertexInputStateCreateInfo.flags = 0;
-	vkPipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = _ARRAYSIZE(vkVertexInputBindingDescription_Array);
+	vkPipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = ARRAY_SIZE(vkVertexInputBindingDescription_Array);
 	vkPipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = vkVertexInputBindingDescription_Array;
-	vkPipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = _ARRAYSIZE(vkVertexInputAttributeDescription_Array);
+	vkPipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = ARRAY_SIZE(vkVertexInputAttributeDescription_Array);
 	vkPipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vkVertexInputAttributeDescription_Array;
 
 
@@ -4726,10 +4413,10 @@ VkResult createPipline(void)
 
 	// colorBlend State
 	VkPipelineColorBlendAttachmentState vkPipelineColorBlendAttachmentState_Array[1];
-	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array));
+	memset((void*)vkPipelineColorBlendAttachmentState_Array, 0, sizeof(VkPipelineColorBlendAttachmentState) * ARRAY_SIZE(vkPipelineColorBlendAttachmentState_Array));
 
 	vkPipelineColorBlendAttachmentState_Array[0].blendEnable = VK_FALSE;
-	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	vkPipelineColorBlendAttachmentState_Array[0].colorWriteMask =VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
 
 
 	VkPipelineColorBlendStateCreateInfo vkPipelineColorBlendStateCreateInfo;
@@ -4739,7 +4426,7 @@ VkResult createPipline(void)
 	vkPipelineColorBlendStateCreateInfo.pNext = NULL;
 	vkPipelineColorBlendStateCreateInfo.flags = 0;
 
-	vkPipelineColorBlendStateCreateInfo.attachmentCount = _ARRAYSIZE(vkPipelineColorBlendAttachmentState_Array);
+	vkPipelineColorBlendStateCreateInfo.attachmentCount = ARRAY_SIZE(vkPipelineColorBlendAttachmentState_Array);
 	vkPipelineColorBlendStateCreateInfo.pAttachments = vkPipelineColorBlendAttachmentState_Array;
 
 
@@ -4805,7 +4492,7 @@ VkResult createPipline(void)
 
 	// shader state
 	VkPipelineShaderStageCreateInfo vkPipelineShaderStageCreateInfo_Array[2];
-	memset((void*)vkPipelineShaderStageCreateInfo_Array, 0, sizeof(VkPipelineShaderStageCreateInfo)* _ARRAYSIZE(vkPipelineShaderStageCreateInfo_Array));
+	memset((void*)vkPipelineShaderStageCreateInfo_Array, 0, sizeof(VkPipelineShaderStageCreateInfo)* ARRAY_SIZE(vkPipelineShaderStageCreateInfo_Array));
 
 	// for vertex shader
 	vkPipelineShaderStageCreateInfo_Array[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -4846,13 +4533,11 @@ VkResult createPipline(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createPipline() : vkCreatePipelineCache() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createPipline() : vkCreatePipelineCache() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	// create actual graphics pipline
@@ -4871,7 +4556,7 @@ VkResult createPipline(void)
 	vkGraphicsPipelineCreateInfo.pDepthStencilState = &vkPipelineDepthStencilStateCreateInfo;
 	vkGraphicsPipelineCreateInfo.pDynamicState = NULL;
 	vkGraphicsPipelineCreateInfo.pMultisampleState = &vkPipelineMultisampleStateCreateInfo;
-	vkGraphicsPipelineCreateInfo.stageCount = _ARRAYSIZE(vkPipelineShaderStageCreateInfo_Array);
+	vkGraphicsPipelineCreateInfo.stageCount = ARRAY_SIZE(vkPipelineShaderStageCreateInfo_Array);
 	vkGraphicsPipelineCreateInfo.pStages = vkPipelineShaderStageCreateInfo_Array;
 	vkGraphicsPipelineCreateInfo.pTessellationState = NULL;
 	vkGraphicsPipelineCreateInfo.layout = vkPipelineLayout;
@@ -4887,13 +4572,11 @@ VkResult createPipline(void)
 	if (vkresult != VK_SUCCESS)
 	{
 		fprintf(gpFile, "createPipeline() : vkCreateGraphicsPipelines() function failed. Error Code: (%d)\n", vkresult);
-		fflush(gpFile);
 		return vkresult;
 	}
 	else
 	{
 		fprintf(gpFile, "createPipeline() : vkCreateGraphicsPipelines() succeeded.\n");
-		fflush(gpFile);
 	}
 
 	// we have done with pipline cache so destroy it
@@ -4903,7 +4586,6 @@ VkResult createPipline(void)
 		vkDestroyPipelineCache(vkDevice, vkPipelineCache, NULL);
 		vkPipelineCache = VK_NULL_HANDLE;
 		fprintf(gpFile, "createPipeline() : Free vkPipelineCache freed\n");
-		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -4923,7 +4605,7 @@ VkResult createframeBuffers(void)
 	{
 		// Declare array of VkImageView
 		VkImageView vkImageView_Attchment_Array[2];
-		memset((void*)vkImageView_Attchment_Array, 0, sizeof(VkImageView) * _ARRAYSIZE(vkImageView_Attchment_Array));
+		memset((void*)vkImageView_Attchment_Array, 0, sizeof(VkImageView) * ARRAY_SIZE(vkImageView_Attchment_Array));
 
 		VkFramebufferCreateInfo vkFramebufferCreateInfo;
 		memset((void*)&vkFramebufferCreateInfo, 0, sizeof(VkFramebufferCreateInfo));
@@ -4932,7 +4614,7 @@ VkResult createframeBuffers(void)
 		vkFramebufferCreateInfo.pNext = NULL;
 		vkFramebufferCreateInfo.flags = 0;
 		vkFramebufferCreateInfo.renderPass = vkRenderpass;
-		vkFramebufferCreateInfo.attachmentCount = _ARRAYSIZE(vkImageView_Attchment_Array);
+		vkFramebufferCreateInfo.attachmentCount = ARRAY_SIZE(vkImageView_Attchment_Array);
 		vkFramebufferCreateInfo.pAttachments = vkImageView_Attchment_Array;
 		vkFramebufferCreateInfo.width = vkExtent2D_Swapchain.width;
 		vkFramebufferCreateInfo.height = vkExtent2D_Swapchain.height;
@@ -4952,7 +4634,6 @@ VkResult createframeBuffers(void)
 		else
 		{
 			fprintf(gpFile, "createframeBuffers() : vkCreateFramebuffer() succeeded.\n");
-			fflush(gpFile);
 		}
 	}
 
@@ -4982,7 +4663,6 @@ VkResult createSemaphores(void)
 	else
 	{
 		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.\n");
-		fflush(gpFile);
 	}
 
 	vkresult = vkCreateSemaphore(vkDevice, &vkSemaphoreCreateInfo, NULL, &vkSemaphore_rendercomplete);
@@ -4994,7 +4674,6 @@ VkResult createSemaphores(void)
 	else
 	{
 		fprintf(gpFile, "createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.\n");
-		fflush(gpFile);
 	}
 
 	return vkresult;
@@ -5029,7 +4708,6 @@ VkResult createFences(void)
 		else
 		{
 			fprintf(gpFile, "createFences() : vkCreateFence() succeeded.\n");
-			fflush(gpFile);
 		}
 	}
 
@@ -5038,26 +4716,15 @@ VkResult createFences(void)
 
 VkResult buildCommandBuffers(void)
 {
-	// function prototype
-	VkResult prepairSinwaveForCPU(unsigned int, unsigned int, float);
 
 	// Variable declaration
 	VkResult vkresult = VK_SUCCESS;
 
 	// command buffer
-	VkCommandBuffer* vkCommandBuffer_Array = NULL;
-
-	if (bMesh1024Choosen == TRUE)
-	{
-		if (bOnGPU == FALSE)
-		{
-			prepairSinwaveForCPU(1024, 1024, AnimationTime);
-		}
-		vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
-	}
-
+	VkCommandBuffer* vkCommandBuffer_Array = vkCommandBuffer_For_1024x1024_graphics_Array;
+	
 	// loop per swapchain image
-	for (uint32_t i = 0; i < swapchainImageCount; i++)
+	for(uint32_t i = 0; i < swapchainImageCount; i++)
 	{
 		// reset command buffers
 		vkresult = vkResetCommandBuffer(vkCommandBuffer_Array[i], 0);
@@ -5069,7 +4736,6 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [%d].\n", i);
-			fflush(gpFile);
 		}
 
 		VkCommandBufferBeginInfo vkCommandBufferBeginInfo;
@@ -5088,21 +4754,20 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [%d].\n", i);
-			fflush(gpFile);
 		}
 
 		// set clear values
 		VkClearValue vkClearValue_Array[2];
-		memset((void*)vkClearValue_Array, 0, sizeof(VkClearValue) * ARRAYSIZE(vkClearValue_Array));
+		memset((void*)vkClearValue_Array, 0, sizeof(VkClearValue) * ARRAY_SIZE(vkClearValue_Array));
 
 		if (colorFromKey == 'K')
 		{
 			VkClearColorValue vkClearValue_White = { 1.0f, 1.0f, 1.0f, 1.0f };
-			vkClearValue_Array[0].color = vkClearValue_White;   // ✔ NOW TYPES MATCH
+			vkClearValue_Array[0].color = vkClearValue_White; 
 		}
 		else
 		{
-			vkClearValue_Array[0].color = vkClearColorValue;    // ✔ already correct
+			vkClearValue_Array[0].color = vkClearColorValue;   
 		}
 
 		// Removed unnecessary duplicate assignment:
@@ -5121,7 +4786,7 @@ VkResult buildCommandBuffers(void)
 		vkRenderPassBeginInfo.renderArea.offset.y = 0;
 		vkRenderPassBeginInfo.renderArea.extent.width = vkExtent2D_Swapchain.width;
 		vkRenderPassBeginInfo.renderArea.extent.height = vkExtent2D_Swapchain.height;
-		vkRenderPassBeginInfo.clearValueCount = ARRAYSIZE(vkClearValue_Array);
+		vkRenderPassBeginInfo.clearValueCount = ARRAY_SIZE(vkClearValue_Array);
 		vkRenderPassBeginInfo.pClearValues = vkClearValue_Array;
 		vkRenderPassBeginInfo.framebuffer = vkFramebuffer_Array[i];
 
@@ -5145,18 +4810,19 @@ VkResult buildCommandBuffers(void)
 
 		// bind with vertex buffer
 		VkDeviceSize vkDeviceSize_Offest_Array[1];
-		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAYSIZE(vkDeviceSize_Offest_Array));
+		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAY_SIZE(vkDeviceSize_Offest_Array));
 		
 
-		if (bOnGPU == FALSE)
+		if (bOnGPU == True)
 		{
-			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_position_1024x1024_graphics.vkBuffer, vkDeviceSize_Offest_Array);
+			// GPU path: CUDA kernel already wrote sine wave into vertex_External buffer
+			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_External.vkBuffer, vkDeviceSize_Offest_Array);
 		}
 		else
 		{
-			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_External.vkBuffer, vkDeviceSize_Offest_Array);
+			// CPU path: CPU filled vertex_position_1024x1024_graphics buffer
+			vkCmdBindVertexBuffers(vkCommandBuffer_Array[i], 0, 1, &vertex_position_1024x1024_graphics.vkBuffer, vkDeviceSize_Offest_Array);
 		}
-
 
 		vkCmdDraw(vkCommandBuffer_Array[i], 1024 * 1024, 1, 0, 0);
 
@@ -5173,7 +4839,6 @@ VkResult buildCommandBuffers(void)
 		else
 		{
 			fprintf(gpFile, "buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [%d].\n", i);
-			fflush(gpFile);
 		}
 	}
 
@@ -5183,34 +4848,37 @@ VkResult buildCommandBuffers(void)
 
 VkResult prepairSinwaveForCPU(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
 {
-	void fillSinwaveArraysForCPU(unsigned int, unsigned int, float);
+	// function declaration
+	void fillSinwaveArraysForCPU(unsigned int , unsigned int , float);
 
 	VkResult vkresult = VK_SUCCESS;
 
 	void* data = NULL;
 
-	// code
-	unsigned int size = mesh_width * mesh_height * 4 * sizeof(float); // 4 for x,y,z,w
+	VkDeviceSize size = (VkDeviceSize)mesh_width *(VkDeviceSize)mesh_height *4 *sizeof(float); // x,y,z,w
 
 	// fill sinwave arrays
 	fillSinwaveArraysForCPU(mesh_width, mesh_height, Anim_Time);
 
-	// map the buffers
 	if (mesh_width == 1024 && mesh_height == 1024)
 	{
-		// map memory
-		vkresult = vkMapMemory(vkDevice, vertex_position_1024x1024_graphics.vkDeviceMemory, 0, size, 0, &data);
+		vkresult = vkMapMemory(
+			vkDevice,
+			vertex_position_1024x1024_graphics.vkDeviceMemory,
+			0,
+			size,
+			0,
+			&data);
+
 		if (vkresult != VK_SUCCESS)
 		{
-			fprintf(gpFile, "prepairSinwaveForCPU() : vkMapMemory() failed. Error Code: (%d)\n", vkresult);
+			fprintf(gpFile,"prepairSinwaveForCPU() : vkMapMemory() failed. Error Code: (%d)\n",vkresult);
 			return vkresult;
 		}
 
-		// copy data
-		memcpy(data, pos_1024_graphics, size);
+		memcpy(data, pos_1024_graphics, (size_t)size);
 
-		// unmap memory
-		vkUnmapMemory(vkDevice, vertex_position_1024x1024_graphics.vkDeviceMemory);
+		vkUnmapMemory(vkDevice,vertex_position_1024x1024_graphics.vkDeviceMemory);
 	}
 
 	return vkresult;
@@ -5219,54 +4887,42 @@ VkResult prepairSinwaveForCPU(unsigned int mesh_width, unsigned int mesh_height,
 
 void fillSinwaveArraysForCPU(unsigned int mesh_width, unsigned int mesh_height, float Anim_Time)
 {
-	for(int i = 0 ;  i < (int)mesh_width; i++)
+	for (int i = 0; i < (int)mesh_width; i++)
 	{
-		for(int j = 0; j < (int)mesh_height; j++)
+		for (int j = 0; j < (int)mesh_height; j++)
 		{
-			for(int k = 0 ; k < 4; k++)
+			for (int k = 0; k < 4; k++)
 			{
-				float u = (float)i / (float)(mesh_width);
-				float v = (float)j / (float)(mesh_height);
+				float u = (float)i / (float)mesh_width;
+				float v = (float)j / (float)mesh_height;
 
-				u = u * 2.0f - 1.0f; // -1.0 to +1.0
-				v = v * 2.0f - 1.0f; // -1.0 to +1.0
+				u = u * 2.0f - 1.0f;
+				v = v * 2.0f - 1.0f;
 
-				float freqency = 4.0f;
+				float frequency = 4.0f;
 
-				float w = sinf(u * freqency + Anim_Time) * cosf(v * freqency + Anim_Time) * 0.5f;
+				float w = sinf(u * frequency + Anim_Time) *
+						  cosf(v * frequency + Anim_Time) * 0.5f;
 
-				if(k == 0) // x
+				if (mesh_width == 1024 && mesh_height == 1024)
 				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					if (k == 0)
 					{
 						pos_1024_graphics[i][j][k] = u;
 					}
-				}
-
-				if(k == 1) // y
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					else if (k == 1)
 					{
 						pos_1024_graphics[i][j][k] = w;
 					}
-				}
-
-				if(k == 2) // z
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					else if (k == 2)
 					{
 						pos_1024_graphics[i][j][k] = v;
 					}
-				}
-
-				if(k == 3) // w
-				{
-					if(mesh_width == 1024 && mesh_height == 1024)
+					else if (k == 3)
 					{
 						pos_1024_graphics[i][j][k] = 1.0f;
 					}
 				}
-			
 			}
 		}
 	}

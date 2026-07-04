@@ -1,7 +1,9 @@
+
 // standard header file
-#include<stdio.h> // for prinf()
-#include<stdlib.h>  // for exit()
-#include<memory.h> // for memset()
+#include<stdio.h>
+#include<stdlib.h>
+#include<memory.h>
+#include<unistd.h>  // for close() on Linux fd
 
 
 // X11 header files
@@ -85,7 +87,7 @@ VkPhysicalDevice* vkPhysicalDevice_Array = NULL;
 
 uint32_t enableDeviceExtensionCount = 0;
 
-const char* enabledDeviceExtensionNames_array[2];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME and  VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
+const char* enabledDeviceExtensionNames_array[3];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME and  VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
 
 // Vulkan Device
 VkDevice vkDevice = VK_NULL_HANDLE;
@@ -1155,7 +1157,7 @@ cudaError_t initialise_Cuda(void)
 		return cudaErrorUnknown;
 	}
 
-	vkExternalMemoryHandleTypeFlagBits = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+	vkExternalMemoryHandleTypeFlagBits = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT; 
 
 	return cudaSuccess;
 }
@@ -1582,6 +1584,7 @@ void uninitialise(void)
 {
 	// Function declarations
 	void toggleFullScreen(void);
+	cudaError uninitialise_Cuda(void); 
 
     // restore fullscreen
     if(bFullscreen == True)
@@ -2673,16 +2676,35 @@ VkResult fillDeviceExtensionNames(void)
     free(vkExtensionProperties_array); // Free extension properties after copying names
 
     // Step 4: Check for required extensions
-    VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
 
-    for (uint32_t i = 0; i < deviceExtensionCount; i++)
-    {
-        if (strcmp(DeviceExtensionNames_array[i], VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
-        {
-            vulkanSwapchainExtensionFound = VK_TRUE;
-            enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-        }
-    }
+	VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
+	VkBool32 vulkanExternalMemoryFdExtensionFound = VK_FALSE;
+
+	for (uint32_t i = 0; i < deviceExtensionCount; i++)
+	{
+		if (strcmp(DeviceExtensionNames_array[i], VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
+		{
+			vulkanSwapchainExtensionFound = VK_TRUE;
+			enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+		}
+
+		if (strcmp(DeviceExtensionNames_array[i], VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME) == 0)
+		{
+			vulkanExternalMemoryFdExtensionFound = VK_TRUE;
+			enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME;
+		}
+	}
+
+	if (vulkanExternalMemoryFdExtensionFound == VK_FALSE)
+	{
+		vkresult = VK_ERROR_INITIALIZATION_FAILED;
+		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME not found\n");
+		return vkresult;
+	}
+	else
+	{
+		fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME found\n");
+	}
 
     // Step 5: Free the allocated memory for extension names
     for (uint32_t i = 0; i < deviceExtensionCount; i++)
@@ -3622,50 +3644,47 @@ VkResult createExternalVertexBuffer(int mesh_width, int mesh_height, VertexData*
 	}
 
 	// new code
-	HANDLE hMemoryWin32Handle = NULL;
+	int fd = -1;
 
-	VkMemoryGetWin32HandleInfoKHR vkMemoryGetWin32HandleInfoKHR;
-	memset((void*)&vkMemoryGetWin32HandleInfoKHR, 0, sizeof(VkMemoryGetWin32HandleInfoKHR));
+	VkMemoryGetFdInfoKHR vkMemoryGetFdInfoKHR;
+	memset((void*)&vkMemoryGetFdInfoKHR, 0, sizeof(VkMemoryGetFdInfoKHR));
 
-	vkMemoryGetWin32HandleInfoKHR.sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR;
-	vkMemoryGetWin32HandleInfoKHR.pNext = NULL;
-	vkMemoryGetWin32HandleInfoKHR.memory = vertexData_Position.vkDeviceMemory;
-	vkMemoryGetWin32HandleInfoKHR.handleType = vkExternalMemoryHandleTypeFlagBits;
+	vkMemoryGetFdInfoKHR.sType    = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR;
+	vkMemoryGetFdInfoKHR.pNext    = NULL;
+	vkMemoryGetFdInfoKHR.memory   = vertexData_Position.vkDeviceMemory;
+	vkMemoryGetFdInfoKHR.handleType = vkExternalMemoryHandleTypeFlagBits;
 
-	PFN_vkGetMemoryWin32HandleKHR pfnVkGetMemoryWin32HandleKHR =(PFN_vkGetMemoryWin32HandleKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryWin32HandleKHR");
+	PFN_vkGetMemoryFdKHR pfnVkGetMemoryFdKHR = (PFN_vkGetMemoryFdKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryFdKHR");
 
-	if (pfnVkGetMemoryWin32HandleKHR == NULL)
+	if (pfnVkGetMemoryFdKHR == NULL)
 	{
-		fprintf(gpFile,
-			"createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryWin32HandleKHR address.\n");
+		fprintf(gpFile, "createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryFdKHR address.\n");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 	else
 	{
-		fprintf(gpFile,
-			"createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryWin32HandleKHR address.\n");
+		fprintf(gpFile, "createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryFdKHR address.\n");
 	}
 
-	// call above function pointer
-	vkresult = pfnVkGetMemoryWin32HandleKHR(vkDevice, &vkMemoryGetWin32HandleInfoKHR, &hMemoryWin32Handle);
+	vkresult = pfnVkGetMemoryFdKHR(vkDevice, &vkMemoryGetFdInfoKHR, &fd);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() function failed. Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryFdKHR() failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
 	else
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() succeeded.\n");
+		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryFdKHR() succeeded. fd = %d\n", fd);
 	}
 
-	// impoert handle to external buffer memory into cuda
+	// import fd into CUDA
 	cudaExternalMemoryHandleDesc cuExternalMemoryHandleDesc;
 	memset((void*)&cuExternalMemoryHandleDesc, 0, sizeof(cudaExternalMemoryHandleDesc));
 
-	cuExternalMemoryHandleDesc.type = cudaExternalMemoryHandleTypeOpaqueWin32; // this is cuda inbuild win32 handle type
-	cuExternalMemoryHandleDesc.size = size;
-	cuExternalMemoryHandleDesc.handle.win32.handle = hMemoryWin32Handle;
-	cuExternalMemoryHandleDesc.flags = 0;
+	cuExternalMemoryHandleDesc.type      = cudaExternalMemoryHandleTypeOpaqueFd;  // Linux fd type
+	cuExternalMemoryHandleDesc.size      = size;
+	cuExternalMemoryHandleDesc.handle.fd = fd;  // Linux uses fd, not win32 handle
+	cuExternalMemoryHandleDesc.flags     = 0;
 
 	cudaResult = cudaImportExternalMemory(&cuExtMemory, &cuExternalMemoryHandleDesc);
 	if (cudaResult != cudaSuccess)
@@ -3678,9 +3697,9 @@ VkResult createExternalVertexBuffer(int mesh_width, int mesh_height, VertexData*
 		fprintf(gpFile, "createExternalVertexBuffer() : cudaImportExternalMemory() succeeded.\n");
 	}
 
-	// close the handle as its job is done
-	CloseHandle(hMemoryWin32Handle);
-	hMemoryWin32Handle = NULL;
+	// close fd after CUDA has imported it
+	close(fd);
+	fd = -1;
 
 	// use above external memoery to get mapped device pointer from cuda
 
@@ -4739,7 +4758,7 @@ VkResult buildCommandBuffers(void)
 
 		// set clear values
 		VkClearValue vkClearValue_Array[2];
-		memset((void*)vkClearValue_Array, 0, sizeof(VkClearValue) * ARRAYSIZE(vkClearValue_Array));
+		memset((void*)vkClearValue_Array, 0, sizeof(VkClearValue) * ARRAY_SIZE(vkClearValue_Array));
 
 		if (colorFromKey == 'K')
 		{
@@ -4767,7 +4786,7 @@ VkResult buildCommandBuffers(void)
 		vkRenderPassBeginInfo.renderArea.offset.y = 0;
 		vkRenderPassBeginInfo.renderArea.extent.width = vkExtent2D_Swapchain.width;
 		vkRenderPassBeginInfo.renderArea.extent.height = vkExtent2D_Swapchain.height;
-		vkRenderPassBeginInfo.clearValueCount = ARRAYSIZE(vkClearValue_Array);
+		vkRenderPassBeginInfo.clearValueCount = ARRAY_SIZE(vkClearValue_Array);
 		vkRenderPassBeginInfo.pClearValues = vkClearValue_Array;
 		vkRenderPassBeginInfo.framebuffer = vkFramebuffer_Array[i];
 
@@ -4791,7 +4810,7 @@ VkResult buildCommandBuffers(void)
 
 		// bind with vertex buffer
 		VkDeviceSize vkDeviceSize_Offest_Array[1];
-		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAYSIZE(vkDeviceSize_Offest_Array));
+		memset((void*)vkDeviceSize_Offest_Array, 0, sizeof(VkDeviceSize) * ARRAY_SIZE(vkDeviceSize_Offest_Array));
 		
 
 		if (bOnGPU == True)
