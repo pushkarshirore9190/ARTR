@@ -2,6 +2,7 @@
 #include<stdio.h> // for prinf()
 #include<stdlib.h>  // for exit()
 #include<memory.h> // for memset()
+#include<unistd.h> // for close()
 
 
 // X11 header files
@@ -11,12 +12,14 @@
 #include <X11/keysym.h>
 #include<X11/Xatom.h> // for XA_ATOM
 
+#ifndef VK_USE_PLATFORM_XLIB_KHR
 #define VK_USE_PLATFORM_XLIB_KHR
+#endif
 #include<vulkan/vulkan.h>
 
 // OpenCL Headers
 #define CL_TARGET_OPENCL_VERSION 300
-#include<CL/OpenCL.h>
+#include<CL/opencl.h>
 #include<CL/cl_ext.h> // for cl_khr_icd extension and cl_khr_d3d11_sharing extension 
 
 // cl_khr_external_memory extension constants
@@ -59,8 +62,8 @@ Bool bWindowMinimized = False;
 FILE * gpFile = NULL;
 
 
-/ OpenCL external memory function pointer typedefs
-typedef cl_int (CL_API_CALL *clEnqueueAquireExternalMemObjectsKHR_fn)(
+// OpenCL external memory function pointer typedefs
+typedef cl_int (CL_API_CALL *clEnqueueAcquireExternalMemObjectsKHR_fn)(
     cl_command_queue command_queue,
     cl_uint num_mem_objects,
     const cl_mem* mem_objects,
@@ -119,7 +122,7 @@ VkPhysicalDevice* vkPhysicalDevice_Array = NULL;
 
 uint32_t enableDeviceExtensionCount = 0;
 
-const char* enabledDeviceExtensionNames_array[2];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME and VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
+const char* enabledDeviceExtensionNames_array[3];  // VK_KHR_SWAPCHAIN_EXTENSION_NAME and VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
 
 // Vulkan Device
 VkDevice vkDevice = VK_NULL_HANDLE;
@@ -531,7 +534,10 @@ int main(int argc, char *argv[])
 
 					case 'H':
 					case 'h':
-						bOnGPU = True;
+						if (pos_OpenCL != NULL)
+							bOnGPU = True;
+						else
+							fprintf(gpFile, "GPU mode not available: pos_OpenCL is NULL\n");
 						break;
 
                         default:
@@ -889,8 +895,8 @@ VkResult initialise(void)
 	vkresult = createExternalVertexBuffer(mesh_Width, mesh_Height, &vertex_External);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "initialise() : createExternalVertexBuffer() function failed for 1024x1024 (%d)\n", vkresult);
-		return(vkresult);
+		fprintf(gpFile, "initialise() : createExternalVertexBuffer() failed, GPU OpenCL path disabled (%d)\n", vkresult);
+		bOnGPU = False;
 	}
 	else
 	{
@@ -1334,7 +1340,7 @@ cl_int initialise_OpenCL(void)
 		return(oclResult);
 	}
 
-	vkExternalMemoryHandleTypeFlagBits = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+	vkExternalMemoryHandleTypeFlagBits = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
 
 	return CL_SUCCESS;
 
@@ -1759,15 +1765,15 @@ VkResult display(void)
 		}
 
 		// map vulkan buffer for writing from opencl
-		clEnqueueAquireExternalMemObjectsKHR_fn clEnqueueAquireExternalMemObjectsKHR = (clEnqueueAquireExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclPlatformID, "clEnqueueAcquireExternalMemObjectsKHR");
+		clEnqueueAcquireExternalMemObjectsKHR_fn clEnqueueAcquireExternalMemObjectsKHR = (clEnqueueAcquireExternalMemObjectsKHR_fn)clGetExtensionFunctionAddressForPlatform(oclPlatformID, "clEnqueueAcquireExternalMemObjectsKHR");
 
-		if(clEnqueueAquireExternalMemObjectsKHR == NULL)
+		if(clEnqueueAcquireExternalMemObjectsKHR == NULL)
 		{
 			fprintf(gpFile, "display() : clGetExtensionFunctionAddressForPlatform() failed to get clEnqueueAcquireExternalMemObjectsKHR address\n");
 			return VK_ERROR_INITIALIZATION_FAILED;
 		}
 
-		oclResult = clEnqueueAquireExternalMemObjectsKHR(oclCommandQueue, 1, &pos_OpenCL, 0, NULL, NULL);
+		oclResult = clEnqueueAcquireExternalMemObjectsKHR(oclCommandQueue, 1, &pos_OpenCL, 0, NULL, NULL);
 		if (oclResult != CL_SUCCESS)
 		{
 			fprintf(gpFile, "display() : clEnqueueAcquireExternalMemObjectsKHR() failed\n");
@@ -2976,102 +2982,107 @@ VkResult printVkInfo()
 
 VkResult fillDeviceExtensionNames(void)
 {
-    // Variable declarations
     VkResult vkresult = VK_SUCCESS;
 
-    // Step 1: Query how many device extensions are supported
+    enableDeviceExtensionCount = 0;
+
     uint32_t deviceExtensionCount = 0;
-    vkresult = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, NULL);
+
+    vkresult = vkEnumerateDeviceExtensionProperties(
+        vkPhysicalDevice_selected,
+        NULL,
+        &deviceExtensionCount,
+        NULL
+    );
+
     if (vkresult != VK_SUCCESS)
     {
-        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call failed with error code %d\n", vkresult);
+        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call failed\n");
         return vkresult;
     }
+
     fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 1st call succeeded. Device extension count: %d\n", deviceExtensionCount);
 
-    // Step 2: Allocate memory for extension properties
-    VkExtensionProperties* vkExtensionProperties_array = (VkExtensionProperties*)malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
-    if (!vkExtensionProperties_array)
-    {
-        fprintf(gpFile, "fillDeviceExtensionNames(): Memory allocation failed for vkExtensionProperties_array\n");
-        return VK_ERROR_OUT_OF_HOST_MEMORY;
-    }
+    VkExtensionProperties* vkExtensionProperties_array =
+        (VkExtensionProperties*)malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
 
-    // Query extension properties
-    vkresult = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice_selected, NULL, &deviceExtensionCount, vkExtensionProperties_array);
+    vkresult = vkEnumerateDeviceExtensionProperties(
+        vkPhysicalDevice_selected,
+        NULL,
+        &deviceExtensionCount,
+        vkExtensionProperties_array
+    );
+
     if (vkresult != VK_SUCCESS)
     {
-        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call failed with error code %d\n", vkresult);
+        fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call failed\n");
         free(vkExtensionProperties_array);
         return vkresult;
     }
-    fprintf(gpFile, "fillDeviceExtensionNames(): vkEnumerateDeviceExtensionProperties() 2nd call succeeded\n");
 
-    // Step 3: Allocate memory for extension name strings
-    char** DeviceExtensionNames_array = (char**)malloc(sizeof(char*) * deviceExtensionCount);
-    if (!DeviceExtensionNames_array)
-    {
-        fprintf(gpFile, "fillDeviceExtensionNames(): Memory allocation failed for DeviceExtensionNames_array\n");
-        free(vkExtensionProperties_array);
-        return VK_ERROR_OUT_OF_HOST_MEMORY;
-    }
-
-    for (uint32_t i = 0; i < deviceExtensionCount; i++)
-    {
-        DeviceExtensionNames_array[i] = (char*)malloc(strlen(vkExtensionProperties_array[i].extensionName) + 1);
-        if (!DeviceExtensionNames_array[i])
-        {
-            fprintf(gpFile, "fillDeviceExtensionNames(): Memory allocation failed for DeviceExtensionNames_array[%d]\n", i);
-            // Free previously allocated memory before returning
-            for (uint32_t j = 0; j < i; j++)
-                free(DeviceExtensionNames_array[j]);
-            free(DeviceExtensionNames_array);
-            free(vkExtensionProperties_array);
-            return VK_ERROR_OUT_OF_HOST_MEMORY;
-        }
-
-        strcpy(DeviceExtensionNames_array[i], vkExtensionProperties_array[i].extensionName);
-        fprintf(gpFile, "fillDeviceExtensionNames(): Vulkan Device Extension = %s\n", DeviceExtensionNames_array[i]);
-    }
-
-    free(vkExtensionProperties_array); // Free extension properties after copying names
-
-    // Step 4: Check for required extensions
     VkBool32 vulkanSwapchainExtensionFound = VK_FALSE;
+    VkBool32 vulkanExternalMemoryExtensionFound = VK_FALSE;
+    VkBool32 vulkanExternalMemoryFdExtensionFound = VK_FALSE;
 
     for (uint32_t i = 0; i < deviceExtensionCount; i++)
     {
-        if (strcmp(DeviceExtensionNames_array[i], VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
+        fprintf(gpFile, "fillDeviceExtensionNames(): Vulkan Device Extension = %s\n",
+            vkExtensionProperties_array[i].extensionName);
+
+        if (strcmp(vkExtensionProperties_array[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
         {
             vulkanSwapchainExtensionFound = VK_TRUE;
-            enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+        }
+
+        if (strcmp(vkExtensionProperties_array[i].extensionName, VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME) == 0)
+        {
+            vulkanExternalMemoryExtensionFound = VK_TRUE;
+        }
+
+        if (strcmp(vkExtensionProperties_array[i].extensionName, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME) == 0)
+        {
+            vulkanExternalMemoryFdExtensionFound = VK_TRUE;
         }
     }
 
-    // Step 5: Free the allocated memory for extension names
-    for (uint32_t i = 0; i < deviceExtensionCount; i++)
-    {
-        free(DeviceExtensionNames_array[i]);
-    }
-    free(DeviceExtensionNames_array);
+    free(vkExtensionProperties_array);
+    vkExtensionProperties_array = NULL;
 
-    // Step 6: Check if the required extension is found
     if (vulkanSwapchainExtensionFound == VK_FALSE)
     {
-        vkresult = VK_ERROR_INITIALIZATION_FAILED; // Return hardcoded failure
         fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME not found\n");
-        return vkresult;
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
-    fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME found\n");
 
-    // Step 7: Print enabled extension names
+    if (vulkanExternalMemoryExtensionFound == VK_FALSE)
+    {
+        fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME not found\n");
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (vulkanExternalMemoryFdExtensionFound == VK_FALSE)
+    {
+        fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME not found\n");
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+    enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME;
+    enabledDeviceExtensionNames_array[enableDeviceExtensionCount++] = VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME;
+
+    fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_SWAPCHAIN_EXTENSION_NAME found\n");
+    fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME found\n");
+    fprintf(gpFile, "fillDeviceExtensionNames(): VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME found\n");
+
     for (uint32_t i = 0; i < enableDeviceExtensionCount; i++)
     {
-        fprintf(gpFile, "fillDeviceExtensionNames(): Enabled Vulkan Device Extension = %s\n", enabledDeviceExtensionNames_array[i]);
+        fprintf(gpFile, "fillDeviceExtensionNames(): Enabled Vulkan Device Extension = %s\n",
+            enabledDeviceExtensionNames_array[i]);
     }
 
     return vkresult;
 }
+
 
 VkResult createVulkanDevice(void)
 {
@@ -3833,7 +3844,9 @@ VkResult createVertexBuffer(int mesh_width, int mesh_height, VertexData* pVertex
 	{
 		if ((vkMemoryRequirements.memoryTypeBits & 1) == 1)
 		{
-			if (vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			if ((vkPhysicalDeviceMemoryProperties.memoryTypes[i].propertyFlags &
+			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) ==
+			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
 			{
 				vkMemoryAllocateInfo.memoryTypeIndex = i; 
 				break;
@@ -4000,66 +4013,41 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 	}
 
 	// new code
-	HANDLE hMemoryWin32Handle = NULL;
+	int memoryFd = -1;
 
-	VkMemoryGetWin32HandleInfoKHR vkMemoryGetWin32HandleInfoKHR;
-	memset((void*)&vkMemoryGetWin32HandleInfoKHR, 0, sizeof(VkMemoryGetWin32HandleInfoKHR));
+	VkMemoryGetFdInfoKHR vkMemoryGetFdInfoKHR;
+	memset((void*)&vkMemoryGetFdInfoKHR, 0, sizeof(VkMemoryGetFdInfoKHR));
 
-	vkMemoryGetWin32HandleInfoKHR.sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR;
-	vkMemoryGetWin32HandleInfoKHR.pNext = NULL;
-	vkMemoryGetWin32HandleInfoKHR.memory = vertexData_Position.vkDeviceMemory;
-	vkMemoryGetWin32HandleInfoKHR.handleType = vkExternalMemoryHandleTypeFlagBits;
+	vkMemoryGetFdInfoKHR.sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR;
+	vkMemoryGetFdInfoKHR.pNext = NULL;
+	vkMemoryGetFdInfoKHR.memory = vertexData_Position.vkDeviceMemory;
+	vkMemoryGetFdInfoKHR.handleType = vkExternalMemoryHandleTypeFlagBits;
 
-	PFN_vkGetMemoryWin32HandleKHR pfnVkGetMemoryWin32HandleKHR =(PFN_vkGetMemoryWin32HandleKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryWin32HandleKHR");
+	PFN_vkGetMemoryFdKHR pfnVkGetMemoryFdKHR =
+		(PFN_vkGetMemoryFdKHR)vkGetDeviceProcAddr(vkDevice, "vkGetMemoryFdKHR");
 
-	if (pfnVkGetMemoryWin32HandleKHR == NULL)
+	if (pfnVkGetMemoryFdKHR == NULL)
 	{
-		fprintf(gpFile,
-			"createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryWin32HandleKHR address.\n");
+		fprintf(gpFile, "createExternalVertexBuffer() : vkGetDeviceProcAddr() failed to get vkGetMemoryFdKHR address.\n");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
-	else
-	{
-		fprintf(gpFile,
-			"createExternalVertexBuffer() : vkGetDeviceProcAddr() succeeded to get vkGetMemoryWin32HandleKHR address.\n");
-			fflush(gpFile);
-	}
 
-	// call above function pointer
-	vkresult = pfnVkGetMemoryWin32HandleKHR(vkDevice, &vkMemoryGetWin32HandleInfoKHR, &hMemoryWin32Handle);
+	vkresult = pfnVkGetMemoryFdKHR(vkDevice, &vkMemoryGetFdInfoKHR, &memoryFd);
 	if (vkresult != VK_SUCCESS)
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() function failed. Error Code: (%d)\n", vkresult);
+		fprintf(gpFile, "createExternalVertexBuffer() : vkGetMemoryFdKHR() failed. Error Code: (%d)\n", vkresult);
 		return vkresult;
 	}
-	else
-	{
-		fprintf(gpFile, "createExternalVertexBuffer() : pfnVkGetMemoryWin32HandleKHR() succeeded.\n");
-		fflush(gpFile);
-	}
 
-	// map above external buffers memory into OpenCL to get the device pointer from OpenCl
 	cl_mem_properties oclMemProperties[] =
 	{
-		CL_EXTERNAL_MEMORY_HANDLE_OPAQUE_WIN32_KHR, (cl_mem_properties)hMemoryWin32Handle,
+		CL_EXTERNAL_MEMORY_HANDLE_OPAQUE_FD_KHR, (cl_mem_properties)memoryFd,
 		CL_MEM_DEVICE_HANDLE_LIST_KHR, (cl_mem_properties)oclDeviceID,
 		CL_MEM_DEVICE_HANDLE_LIST_END_KHR,
 		0
 	};
 
-
-	clCreateBufferWithPropertiesKHR_fn clCreateBufferWithPropertiesKHR =
-    (clCreateBufferWithPropertiesKHR_fn)clGetExtensionFunctionAddressForPlatform(
-        oclPlatformID, "clCreateBufferWithPropertiesKHR");
-
-	if (clCreateBufferWithPropertiesKHR == NULL)
-	{
-		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithPropertiesKHR not found\n");
-		return VK_ERROR_INITIALIZATION_FAILED;
-	}
-
-	// create OpenCl Compatible external buffer from above vulkan buffer
-	pos_OpenCL = clCreateBufferWithPropertiesKHR(
+	pos_OpenCL = clCreateBufferWithProperties(
 		oclContext,
 		oclMemProperties,
 		CL_MEM_READ_WRITE,
@@ -4067,21 +4055,14 @@ VkResult createExternalVertexBuffer(unsigned int mesh_width, unsigned int mesh_h
 		NULL,
 		&oclResult);
 
-
 	if (oclResult != CL_SUCCESS)
 	{
-		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithPropertiesKHR() failed. Error Code: (%d)\n", oclResult);
+		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithProperties() failed. Error Code: (%d)\n", oclResult);
+		close(memoryFd);
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
-	else
-	{
-		fprintf(gpFile, "createExternalVertexBuffer() : clCreateBufferWithPropertiesKHR() succeeded.\n");
-		fflush(gpFile);
-	}
 
-	// close the handle as its job is done
-	CloseHandle(hMemoryWin32Handle);
-	hMemoryWin32Handle = NULL;
+	close(memoryFd);
 
 	*pVertexData = vertexData_Position;
 

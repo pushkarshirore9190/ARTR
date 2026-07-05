@@ -25,17 +25,22 @@
 #     -lcudart \
 #     -L$HOME/VulkanSDK/vulkan/x86_64/lib
 
+
 rm -f vk.o
 
-
+# Compile
 nvcc -c VK.cu -o vk.o \
     -ccbin clang-14 \
     -DVK_USE_PLATFORM_XLIB_KHR \
     -std=c++17 \
     -x cu \
-    --expt-relaxed-constexpr
+    --expt-relaxed-constexpr \
+    -diag-suppress 20013 \
+    -diag-suppress 177 \
+    -diag-suppress 550 \
+    -w
 
-# 2. Link
+# Link
 nvcc -o vk vk.o \
     -ccbin clang-14 \
     -lX11 \
