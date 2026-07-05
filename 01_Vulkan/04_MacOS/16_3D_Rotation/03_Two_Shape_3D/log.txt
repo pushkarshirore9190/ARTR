@@ -252,3 +252,24 @@ createRenderPass() : vkCreateRenderPass() succeeded.
 initialise() : createRenderPass() succeeded
 createPipline() : vkCreatePipelineCache() succeeded.
 createPipeline() : vkCreateGraphicsPipelines() succeeded.
+createPipeline() : Free vkPipelineCache freed
+initialise() : createPipline() succeeded
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+createframeBuffers() : vkCreateFramebuffer() succeeded.
+initialise() : createframeBuffers() succeeded
+createSemaphores() : vkCreateSemaphore() succeeded for backbuffer.
+createSemaphores() : vkCreateSemaphore() succeeded for rendercomplete.
+initialise() : createSemaphores() succeeded
+createFences() : vkCreateFence() succeeded.
+createFences() : vkCreateFence() succeeded.
+initialise() : createFences() succeeded
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [0].
+buildCommandBuffers() : vkResetCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : VkBeginCommandBuffer() succeeded at index [1].
+buildCommandBuffers() : vkEndCommandBuffer() succeeded at index [1].
+initialise() : buildCommandBuffers() succeeded
+******************************************* Initialise comment *****************************
+Initialised()  :  Initialisation() Complete Successfully
+Initialisation successful
