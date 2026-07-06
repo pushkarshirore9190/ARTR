@@ -223,7 +223,6 @@ BOOL bLight = NO;
 
 
 
-
 @implementation View
 
 +(Class)layerClass
@@ -769,7 +768,6 @@ BOOL bLight = NO;
     winWidth = width;
     winHeight = heigth;
 
-    
     // wait for device to complete in hand task
     if (vkDevice)
     {
@@ -1365,6 +1363,7 @@ BOOL bLight = NO;
         vkSurfaceKHR = VK_NULL_HANDLE;
         printf( "\nvkDestroySurfaceKHR Done\n");
     }
+
     
     if (vkDebugUtilsMessengerEXT_handle && vkDestroyDebugUtilsMessengerEXT_fnptr)
     {
