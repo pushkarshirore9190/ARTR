@@ -27,6 +27,7 @@ var cancelAnimationFrame =
     window.msCancelAnimationFrame;
 
 // WebGPU related varible
+var clearColor = null;
 var clearColor_FBO = null;
 let Device = null;
 let Context = null;
@@ -47,8 +48,8 @@ var keyFlags = new Uint32Array([0,0,0,0]);  // .x for light . y for texture
 
 
 var isLightingEnabled = false;
-var texturingEnabled = false;
-var isTeapotAnimating  = false;
+var isTexturingEnabled = false;
+var isTeapotAnimating  = true;
 let perspectiveProjectionMatrix = null;
 let perspectiveProjectionMatrix_FBO = null;
 
@@ -167,7 +168,7 @@ async function main() {
 
     // call stub functions from here
 
-    initialise();
+    await initialise();
 
     resize();
 
@@ -183,7 +184,7 @@ function onUncapturedError(event)
 function onDeviceLost(info)
 {
     // code
-    console.warning("WebGPUDeviceLostReason: ", info.reason , "WebGPUDeviceLostMessage: ", info.message);
+    console.warn("WebGPUDeviceLostReason: ", info.reason , "WebGPUDeviceLostMessage: ", info.message);
     Device = null;
     Queue = null;
     perspectiveProjectionMatrix = null;
@@ -239,6 +240,11 @@ function keyDown(event)
             isLightingEnabled = !isLightingEnabled;
             break;
 
+        case "T":
+        case "t":
+            isTexturingEnabled = !isTexturingEnabled;
+            break;
+
         default:
             break;
     }
@@ -248,6 +254,13 @@ function keyDown(event)
 function mouseDown()
 {
     //code
+}
+
+
+function degToRad(degree)
+{
+    //code
+    return (degree * Math.PI / 180.0);
 }
 
 
@@ -780,18 +793,18 @@ async function initialise()
         [
             
             [
-                teapotTexcoords[(i + 0) * 2 + 0],
-                teapotTexcoords[(i + 0) * 2 + 1]
+                teapotTexCoords[(i + 0) * 2 + 0],
+                teapotTexCoords[(i + 0) * 2 + 1]
             ],
 
             [
-                teapotTexcoords[(i + 1) * 2 + 0],
-                teapotTexcoords[(i + 1) * 2 + 1]
+                teapotTexCoords[(i + 1) * 2 + 0],
+                teapotTexCoords[(i + 1) * 2 + 1]
             ],
 
             [
-                teapotTexcoords[(i + 2) * 2 + 0],
-                teapotTexcoords[(i + 2) * 2 + 1]
+                teapotTexCoords[(i + 2) * 2 + 0],
+                teapotTexCoords[(i + 2) * 2 + 1]
             ]
 
         ];
@@ -828,7 +841,7 @@ async function initialise()
         console.log("initialise() : buffer_Teapot_Normals is supported by your browser.\n");
     }
 
-    buffer_Teapot_Texcoords = createVertexBuffer(teapotMeshData.texcoordsArray);
+    buffer_Teapot_Texcoords = createVertexBuffer(teapotMeshData.texCoordsArray);
 
     if(buffer_Teapot_Texcoords == null)
     {
@@ -1161,139 +1174,176 @@ async function initialise()
 
 
 
-    // using UDF 1: createBindGroupLayoutUniform
-    const bindGroupLayout_Uniform = createBindGroupLayoutUniform(0, GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, "uniform");
-
-    // create pipeline layout for mvp uniform
-    const pipelineLayoutDescriptor = 
-    {
-        bindGroupLayouts: [bindGroupLayout_Uniform]
-    };
-
-    const pipelineLayout = Device.createPipelineLayout(pipelineLayoutDescriptor);
-
-    if(pipelineLayout == null)
-    {
-        console.log("initialise() : pipelineLayout is not supported by your browser.\n");
-        throw Error("initialise() : pipelineLayout is not supported by your browser.\n");
-    }
-    else
-    {
-        console.log("initialise() : pipelineLayout is supported by your browser.\n");
-    }
-
-    // create uniform buffer for mvp matrix using UDF 2: createUniformBuffer
-    const myUniformBufferSize = Float32Array.BYTES_PER_ELEMENT * 16 +
-                                Float32Array.BYTES_PER_ELEMENT * 16 + // from 64th to 127th
-                                Float32Array.BYTES_PER_ELEMENT * 16 + // from 128th to 191st
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 192th to 207th
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 208th to 223th
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 224th to 239th
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 240th to 250th
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 272th to 287th
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 272th to 287th
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 288th to 303rd
-                                Float32Array.BYTES_PER_ELEMENT * 4 + // from 304th to 319th
-                                Uint32Array.BYTES_PER_ELEMENT * 4; // from 320th to 335th
-
-
-    buffer_Uniform = createUniformBuffer(myUniformBufferSize, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
-
-    // using UDF 3: createBindGroupForUniform
-    bindingGroup_Uniform = createBindGroupForUniform(buffer_Uniform, 0, myUniformBufferSize, 0, bindGroupLayout_Uniform);
-
-    const positionVertexAttribute =
+    const positionVertexAttribute =  // shared between teapot and cube
     {
         shaderLocation: 0, // this matches with @location(0) in vertex shader
         offset: 0,
         format: "float32x3"
     };
 
-    const normalVertexAttribute =
+    const normalVertexAttribute = // for teapot only
     {
         shaderLocation: 1, // this matches with @location(1) in vertex shader
         offset: 0,
         format: "float32x3"
     };
 
-    const normalVertexBufferLayout =
+    const texcoordVertexAttribute_Teapot =
+    {
+        shaderLocation: 2, // this matches with @location(2) in vertex shader
+        offset: 0,
+        format: "float32x2"
+    };
+
+    const texcoordVertexAttribute_Cube =
+    {
+        shaderLocation: 1, // this matches with @location(1) in vertex shader
+        offset: 0,
+        format: "float32x2"
+    };
+
+    
+    const positionVertexBufferLayout = // shared between teapot and cube
+    {
+        attributes: [positionVertexAttribute],
+        arrayStride: Float32Array.BYTES_PER_ELEMENT * 3, // 3 floats of 4 bytes each
+        stepMode: "vertex"
+    };
+    
+    const normalVertexBufferLayout = // for teapot only
     {
         arrayStride: Float32Array.BYTES_PER_ELEMENT * 3, // 3 floats of 4 bytes each
         attributes: [normalVertexAttribute],
         stepMode: "vertex"
     };
 
-    const positionVertexBufferLayout =
+    const texcoordVertexBufferLayout_Teapot =
     {
-        arrayStride: Float32Array.BYTES_PER_ELEMENT * 3, // 3 floats of 4 bytes each
-        attributes: [positionVertexAttribute],
+        attributes: [texcoordVertexAttribute_Teapot],
+        arrayStride: Float32Array.BYTES_PER_ELEMENT * 2, // 2 floats of 4 bytes each
         stepMode: "vertex"
     };
 
-
-    const vertexShaderState =
+    const texcoordVertexBufferLayout_Cube =
     {
-        module: shaderModule_VertexShader,
+        attributes: [texcoordVertexAttribute_Cube],
+        arrayStride: Float32Array.BYTES_PER_ELEMENT * 2, // 2 floats of 4 bytes each
+        stepMode: "vertex"
+    };
+    
+    const vertexShaderState_Teapot =
+    {
+        module: shaderModule_TeapotVertexShader,
         entryPoint: "main",
-        buffers: [positionVertexBufferLayout,normalVertexBufferLayout]
+        buffers: [positionVertexBufferLayout,normalVertexBufferLayout,texcoordVertexBufferLayout_Teapot]
     };
 
-    const colorTargetState =
+    const vertexShaderState_Cube =
+    {
+        module: shaderModule_CubeVertexShader,
+        entryPoint: "main",
+        buffers: [positionVertexBufferLayout,texcoordVertexBufferLayout_Cube]
+    };
+
+    // color target state
+
+    const colorTargetState_Teapot =
+    {
+        format: "rgba8unorm",
+    };
+
+    const colorTargetState_Cube =
     {
         format: canvasFormat,
     };
 
     // fragment shader state
-    const fragmentShaderState =
+    const fragmentShaderState_Teapot =
     {
-        module: shaderModule_FragmentShader,
+        module: shaderModule_TeapotFragmentShader,
         entryPoint: "main",
-        targets: [colorTargetState]
+        targets: [colorTargetState_Teapot]
     };
 
-    const premitiveState =
+    const fragmentShaderState_Cube =
     {
-        frontFace: "ccw",
+        module: shaderModule_CubeFragmentShader,
+        entryPoint: "main",
+        targets: [colorTargetState_Cube]
+    };
+
+    const premitiveState =  // shared between teapot and cube
+    {
+        frontFace: "cw",
         cullMode: "none",
         topology: "triangle-list"
     };
 
     // depth stencil state
-    const depthStencilState =
+    const depthStencilState =  // shared between teapot and cube
     {
         format: "depth24plus-stencil8",
         depthWriteEnabled: true,
         depthCompare: "less-equal"
     };
 
-    // create final pipeline descriptor
-    const pipelineDescriptor =
+    // create final pipeline descriptor for teapot
+    const pipelineDescriptor_Teapot =
     {
-        layout: pipelineLayout,
-        vertex: vertexShaderState,
-        fragment: fragmentShaderState,
+        layout: PipelineLayout_Teapot,
+        vertex: vertexShaderState_Teapot,
+        fragment: fragmentShaderState_Teapot,
         primitive: premitiveState,
         depthStencil: depthStencilState,
     };
 
-    renderPipeline = Device.createRenderPipeline(pipelineDescriptor);
+    renderPipeline_Teapot = Device.createRenderPipeline(pipelineDescriptor_Teapot);
 
-    if(renderPipeline == null)
+    if(renderPipeline_Teapot == null)
     {
-        console.log("initialise() : renderPipeline is not supported by your browser.\n");
-        throw Error("initialise() : renderPipeline is not supported by your browser.\n");
+        console.log("initialise() : renderPipeline_Teapot is not supported by your browser.\n");
+        throw Error("initialise() : renderPipeline_Teapot is not supported by your browser.\n");
     }
     else
     {
-        console.log("initialise() : renderPipeline is supported by your browser.\n");
+        console.log("initialise() : renderPipeline_Teapot is supported by your browser.\n");
     }
+
+    // create final pipeline descriptor for cube
+    const pipelineDescriptor_Cube =
+    {
+        layout: PipelineLayout_Cube,
+        vertex: vertexShaderState_Cube,
+        fragment: fragmentShaderState_Cube,
+        primitive: premitiveState,
+        depthStencil: depthStencilState,
+    };
+
+    renderPipeline_Cube = Device.createRenderPipeline(pipelineDescriptor_Cube);
+
+    if(renderPipeline_Cube == null)
+    {
+        console.log("initialise() : renderPipeline_Cube is not supported by your browser.\n");
+        throw Error("initialise() : renderPipeline_Cube is not supported by your browser.\n");
+    }
+    else
+    {
+        console.log("initialise() : renderPipeline_Cube is supported by your browser.\n");
+    }
+
+    // white background for black cube
+    clearColor = { r: 1.0, g: 1.0, b: 1.0, a: 1.0 };
+
+    // define the clearcolor - BLACK background
+    clearColor_FBO = { r: 0.0, g: 0.0, b: 0.0, a: 1.0 };
 
     // initialise perspective projection matrix
     perspectiveProjectionMatrix = mat4.create();
 
+    perspectiveProjectionMatrix_FBO = mat4.create();
 
-    // define the clearcolor - BLACK background
-    clearColor = { r: 0.0, g: 0.0, b: 0.0, a: 1.0 };
+    // Initliase teapot/Fbos  projecttion matrix onces
+    mat4.perspective(perspectiveProjectionMatrix_FBO, 45.0 * Math.PI / 180.0, FBO_WIDTH / FBO_HEIGHT, 0.1, 100.0);
 
 }
 
@@ -1576,7 +1626,6 @@ function createBindGroupForTextureAndSampler(_textureBindingIndex, _texture, _sa
 }
 
 
-
 function resize() 
 {
     // code
@@ -1641,8 +1690,125 @@ function display()
         throw Error("display() : commandEncoder is not supported by your browser.\n");
     }
 
-    // now create remderpass depth attachment
-    const renderPassDepthAttachment =
+    var teapotModelMatrix = mat4.create();
+    var teapotViewMatrix = mat4.create();
+
+    mat4.translate(teapotModelMatrix, teapotModelMatrix, [0.0, 0.0, -1.5]);
+
+    mat4.rotateY(teapotModelMatrix, teapotModelMatrix, degToRad(angle_Teapot));
+
+
+    // toogle lighting
+    if(isLightingEnabled == true)
+    {
+       keyFlags[0] = 1;
+    }
+    else
+    {
+        keyFlags[0] = 0;
+    }
+
+    // texure
+    if(isTexturingEnabled == true)
+    {
+       keyFlags[1] = 1;
+    }
+    else
+    {
+        keyFlags[1] = 0;
+    }
+
+    // twleve write buffer calls to fill the one unified buffer targeting indiviual byte offest as we saw while intialising myuniform buffer size
+    
+    // one : matrices
+    Queue.writeBuffer(buffer_Uniform_Teapot, 0, teapotModelMatrix, 0, teapotModelMatrix.length);  // from 0th to 63rd
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 16, teapotViewMatrix, 0, teapotViewMatrix.length); // from 64th to 127th
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 32 , perspectiveProjectionMatrix_FBO, 0, perspectiveProjectionMatrix_FBO.length); // from 128th to 191st
+    
+    // two : lights
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 48 , lightAmbient, 0, lightAmbient.length); // from 192th to 207th
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 52 , lightDiffuse, 0, lightDiffuse.length);
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 56 , lightSpecular, 0, lightSpecular.length);
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 60 , lightPosition, 0, lightPosition.length);
+
+    // three : material
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 64 , materialAmbient, 0, materialAmbient.length);
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 68 , materialDiffuse, 0, materialDiffuse.length);
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 72 , materialSpecular, 0, materialSpecular.length);
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 76 , materialShininess, 0, materialShininess.length);
+
+    // four: light toggle
+    Queue.writeBuffer(buffer_Uniform_Teapot, Float32Array.BYTES_PER_ELEMENT * 80 , keyFlags, 0, keyFlags.length);
+
+
+    // cube transformation matrices
+    var cubeModelMatrix = mat4.create();
+    const cubeMVPMatrix = mat4.create();
+
+    mat4.translate(cubeModelMatrix, cubeModelMatrix, [0.0, 0.0, -5.0]);
+    mat4.rotateX(cubeModelMatrix, cubeModelMatrix, degToRad(angle_Cube));
+    mat4.rotateY(cubeModelMatrix, cubeModelMatrix, degToRad(angle_Cube));
+    mat4.rotateZ(cubeModelMatrix, cubeModelMatrix, degToRad(angle_Cube));
+
+    mat4.multiply(cubeMVPMatrix, perspectiveProjectionMatrix, cubeModelMatrix);
+
+    Queue.writeBuffer(buffer_Uniform_Cube, 0, cubeMVPMatrix, 0, cubeMVPMatrix.length);
+
+    const teapotColorAttachment =
+    {
+        view: texture_Teapot_Color.createView(),
+        clearValue: clearColor_FBO,
+        loadOp: "clear",
+        storeOp: "store"
+    };
+
+    const teapotDepthAttachment =
+    {
+        view: texture_Teapot_Depth.createView(),
+        depthClearValue: 1.0,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+        stencilClearValue: 0,
+        stencilLoadOp: "clear",
+        stencilStoreOp: "store"
+    };
+
+    // according to above create renderpass descriptor of type GPURenderPassDescriptor
+    const teapotRenderPassDescriptor = 
+    {
+        colorAttachments: [teapotColorAttachment],
+        depthStencilAttachment: teapotDepthAttachment
+    };
+
+    // start the renderpass
+    const teapotRenderPassEncoder = commandEncoder.beginRenderPass(teapotRenderPassDescriptor);
+
+    teapotRenderPassEncoder.setPipeline(renderPipeline_Teapot);
+    teapotRenderPassEncoder.setViewport(0, 0, FBO_WIDTH, FBO_HEIGHT, 0, 1); // MUST BE EQual to teapot texture size
+    teapotRenderPassEncoder.setScissorRect(0, 0, FBO_WIDTH, FBO_HEIGHT);
+    teapotRenderPassEncoder.setVertexBuffer(0, buffer_Teapot_Positions);
+    teapotRenderPassEncoder.setVertexBuffer(1, buffer_Teapot_Normals);
+    teapotRenderPassEncoder.setVertexBuffer(2, buffer_Teapot_Texcoords);
+    teapotRenderPassEncoder.setIndexBuffer(buffer_Teapot_Elements, "uint16");
+    teapotRenderPassEncoder.setBindGroup(0, bindgroup_Uniform_Teapot);
+    teapotRenderPassEncoder.setBindGroup(1, bindgroup_Marble_Texture_And_Sampler);
+    teapotRenderPassEncoder.drawIndexed(numTeapotIndices); 
+
+    // end the renderpass
+    teapotRenderPassEncoder.end();
+
+
+    // cube render pass
+
+    const cubeColorAttachment =
+    {
+        view: Context.getCurrentTexture().createView(),
+        clearValue: clearColor,
+        loadOp: "clear",
+        storeOp: "store"
+    };
+
+     const cubeDepthAttachment =
     {
         view: depthTexture.createView(),
         depthClearValue: 1.0,
@@ -1651,81 +1817,27 @@ function display()
         stencilClearValue: 0,
         stencilLoadOp: "clear",
         stencilStoreOp: "store"
-        
-    }
-
-    // create renderpass color attachment of type GPURenderPassColorAttachment
-    const renderPassColorAttachment = 
-    {
-        view: Context.getCurrentTexture().createView(),
-        clearValue: clearColor,
-        loadOp: "clear",
-        storeOp: "store"
     };
 
-    // according to above create renderpass descriptor of type GPURenderPassDescriptor
-    const renderPassDescriptor = 
+     const cubeRenderPassDescriptor = 
     {
-        colorAttachments: [renderPassColorAttachment],
-        depthStencilAttachment: renderPassDepthAttachment
+        colorAttachments: [cubeColorAttachment],
+        depthStencilAttachment: cubeDepthAttachment
     };
 
-   const modelMatrix = mat4.create();
-    const viewMatrix = mat4.create();
-    const modelViewProjectionMatrix = mat4.create();
+    const cubeRenderPassEncoder = commandEncoder.beginRenderPass(cubeRenderPassDescriptor);
 
-    mat4.translate(modelMatrix, modelMatrix, [0.0, 0.0, -6.0]);
-
-    mat4.multiply(modelViewProjectionMatrix, viewMatrix, modelMatrix);
-    mat4.multiply(modelViewProjectionMatrix, perspectiveProjectionMatrix, modelViewProjectionMatrix);
-
-
-    // toogle lighting
-    if(isLightingEnabled == true)
-    {
-        lKeyIsPressed[0] = 1;
-    }
-    else
-    {
-        lKeyIsPressed[0] = 0;
-    }
-
-    // twleve write buffer calls to fill the one unified buffer targeting indiviual byte offest as we saw while intialising myuniform buffer size
-    
-    // one : matrices
-    Queue.writeBuffer(buffer_Uniform, 0, modelMatrix, 0, modelMatrix.length);  // from 0th to 63rd
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16, viewMatrix, 0, viewMatrix.length); // from 64th to 127th
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 + Float32Array.BYTES_PER_ELEMENT * 16 , modelViewProjectionMatrix, 0, modelViewProjectionMatrix.length); // from 128th to 191st
-    
-    // two : lights
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 , lightAmbient, 0, lightAmbient.length); // from 192th to 207th
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 1 , lightDiffuse, 0, lightDiffuse.length);
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 2 , lightSpecular, 0, lightSpecular.length);
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 3 , lightPosition, 0, lightPosition.length);
-
-    // three : material
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 4 , materialAmbient, 0, materialAmbient.length);
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 5 , materialDiffuse, 0, materialDiffuse.length);
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 6 , materialSpecular, 0, materialSpecular.length);
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 7 , materialShininess, 0, materialShininess.length);
-
-    // four: light toggle
-    Queue.writeBuffer(buffer_Uniform, Float32Array.BYTES_PER_ELEMENT * 16 * 3 + Float32Array.BYTES_PER_ELEMENT * 4 * 8 , lKeyIsPressed, 0, lKeyIsPressed.length);
-
-    // start the renderpass
-    const renderPassEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-
-    renderPassEncoder.setPipeline(renderPipeline);
-    renderPassEncoder.setViewport(0, 0, canvas.width, canvas.height, 0, 1);
-    renderPassEncoder.setScissorRect(0, 0, canvas.width, canvas.height);
-    renderPassEncoder.setVertexBuffer(0, buffer_Positions);
-    renderPassEncoder.setVertexBuffer(1, buffer_Normals);
-    renderPassEncoder.setIndexBuffer(buffer_Elements, "uint16");
-    renderPassEncoder.setBindGroup(0, bindingGroup_Uniform);
-    renderPassEncoder.drawIndexed(numMeshIndices); // 6 vertices for rectangle (2 triangles)
+    cubeRenderPassEncoder.setPipeline(renderPipeline_Cube);
+    cubeRenderPassEncoder.setViewport(0, 0, canvas.width, canvas.height, 0, 1);
+    cubeRenderPassEncoder.setScissorRect(0, 0, canvas.width, canvas.height);
+    cubeRenderPassEncoder.setVertexBuffer(0, buffer_Cube_Positions);
+    cubeRenderPassEncoder.setVertexBuffer(1, buffer_Cube_Texcoords);
+    cubeRenderPassEncoder.setBindGroup(0, bindgroup_Uniform_Cube);
+    cubeRenderPassEncoder.setBindGroup(1, bindgroup_Teapot_Texture_And_Sampler);
+    cubeRenderPassEncoder.draw(36);
 
     // end the renderpass
-    renderPassEncoder.end();
+    cubeRenderPassEncoder.end();
 
     // finish the command encoder. there can be multiple command encoders we have one and submit it to the queue
     Queue.submit([commandEncoder.finish()]);
@@ -1740,6 +1852,20 @@ function display()
 function update() 
 {
     // code
+    if(isTeapotAnimating == true)
+    {
+        angle_Teapot += 1.0;
+        if(angle_Teapot >= 360.0)
+        {
+            angle_Teapot = 0.0;
+        }
+
+        angle_Cube += 1.0;
+        if(angle_Cube >= 360.0)
+        {
+            angle_Cube = 0.0;
+        }
+    }
 }
 
 function uninitialise() 
@@ -1767,19 +1893,53 @@ function uninitialise()
         Context = null;
     }
 
+    if(texture_Teapot_Color != null)
+    {
+        texture_Teapot_Color.destroy();
+        texture_Teapot_Color = null;
+    }
+
+    if(texture_Teapot_Depth != null)
+    {
+        texture_Teapot_Depth.destroy();
+        texture_Teapot_Depth = null;
+    }
+
+    if(texture_Marble != null)
+    {
+        texture_Marble.destroy();
+        texture_Marble = null;
+    }
+
     // destroy the device
     if(Device != null)
     {
         Device.destroy();
         Device = null;
         Queue = null;
-        renderPipeline = null;
-        buffer_Uniform = null;
-        bindingGroup_Uniform = null;
-        buffer_Positions = null;
-        buffer_Normals = null;
-        buffer_Texcoords = null;
-        buffer_Elements = null;
+       texture_Teapot_Color = null;
+        texture_Teapot_Depth = null;
+        texture_Marble = null;
+        sampler_Marble = null;
+        sampler_Teapot = null;
+        renderPipeline_Teapot = null;
+        buffer_Uniform_Teapot = null;
+        bindgroup_Uniform_Teapot = null;
+        bindgroup_Marble_Texture_And_Sampler = null;
+
+        buffer_Teapot_Positions = null;
+        buffer_Teapot_Normals = null;
+        buffer_Teapot_Texcoords = null;
+        buffer_Teapot_Elements = null;
+
+        // cube related varibles
+        renderPipeline_Cube = null;
+        buffer_Uniform_Cube = null;
+        bindgroup_Uniform_Cube = null;
+        bindgroup_Teapot_Texture_And_Sampler = null;
+
+        buffer_Cube_Positions =  null;
+        buffer_Cube_Texcoords =  null;
 
     }
 
@@ -1790,5 +1950,6 @@ function uninitialise()
     console.log("uninitialise() : WebGPUDevice is destroyed successfully.\n");
 
 }
+
 
 
